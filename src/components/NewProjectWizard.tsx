@@ -3,17 +3,8 @@ import {
   X, Plus, Trash2, FileText, Users, TrendingUp, ArrowLeft, ArrowRight, 
   FolderPlus, Tag, Sparkles, FileCode2, CheckCircle2, ShieldAlert
 } from 'lucide-react';
-import { RoleHoursAllocation, ProjectMember } from '../types';
+import { RoleHoursAllocation, ProjectMember, UserSession } from '../types';
 import { PROJECT_TEMPLATES, generatePhasesForTemplate } from '../projectTemplates';
-
-// --- ROSTER DE INTEGRANTES DE AGENCIA ---
-const AGENCY_TEAM = [
-  { id: 'u1', name: 'Eduardo M.', roleBase: 'Director', avatar: 'https://i.pravatar.cc/150?u=u1' },
-  { id: 'u2', name: 'Edgar P.', roleBase: 'Coordinador', avatar: 'https://i.pravatar.cc/150?u=u2' },
-  { id: 'u3', name: 'Ana T.', roleBase: 'SAC', avatar: 'https://i.pravatar.cc/150?u=u3' },
-  { id: 'u4', name: 'Luis V.', roleBase: 'ContentD', avatar: 'https://i.pravatar.cc/150?u=u4' },
-  { id: 'u5', name: 'Sofía R.', roleBase: 'ContentS', avatar: 'https://i.pravatar.cc/150?u=u5' }
-];
 
 const PREDEFINED_TAGS = {
   'Entregable': ['#RedesSociales', '#Branding', '#UI/UX', '#VideoMotion', '#PixelArt', '#GameDev', '#DesarrolloWeb'],
@@ -25,9 +16,10 @@ interface NewProjectWizardProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateProject: (projectData: any) => void;
+  users: UserSession[];
 }
 
-export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onClose, onCreateProject }) => {
+export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onClose, onCreateProject, users }) => {
   const [step, setStep] = useState<1 | 2>(1);
   const [activeTab, setActiveTab] = useState<'general' | 'fases' | 'integrantes' | 'rentabilidad'>('general');
   const [clients, setClients] = useState<any[]>([]);
@@ -51,49 +43,86 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     }
   }, [isOpen]);
 
-  // --- PASO 1 ---
-  const [projectName, setProjectName] = useState('');
-  const [clientName, setClientName] = useState('');
-  const [projectMode, setProjectMode] = useState<'blank' | 'template'>('blank');
-  const [selectedTemplate, setSelectedTemplate] = useState('redes');
+  // --- ESTADO UNIFICADO DE BORRADOR (DRAFT) DE PROYECTO ---
+  interface ProjectDraft {
+    projectName: string;
+    clientName: string;
+    projectMode: 'blank' | 'template';
+    selectedTemplate: string;
+    startDate: string;
+    endDate: string;
+    saleOrderNumber: string;
+    deliverablesCount: number | '';
+    description: string;
+    tags: string[];
+    customPhases: any[];
+    members: any[];
+    currency: string;
+    totalIncome: number | '';
+    roleHours: RoleHoursAllocation;
+  }
 
-  // --- PASO 2: GENERAL ---
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-  const [endDate, setEndDate] = useState('');
-  const [saleOrderNumber, setSaleOrderNumber] = useState('');
-  const [deliverablesCount, setDeliverablesCount] = useState<number | ''>('');
-  const [description, setDescription] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
+  const DEFAULT_DRAFT: ProjectDraft = {
+    projectName: '',
+    clientName: '',
+    projectMode: 'blank',
+    selectedTemplate: 'redes',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: '',
+    saleOrderNumber: '',
+    deliverablesCount: '',
+    description: '',
+    tags: [],
+    customPhases: [],
+    members: [],
+    currency: 'USD',
+    totalIncome: '',
+    roleHours: { 
+      coordinador: 0, 
+      sac: 0, 
+      contents: 0, 
+      contentd: 0 
+    }
+  };
 
-  // --- PASO 2: FASES (Solo para 'blank') ---
-  const [customPhases, setCustomPhases] = useState<any[]>([]);
+  const [draft, setDraft] = useState<ProjectDraft>(() => {
+    try {
+      const saved = localStorage.getItem('saas_phase_system_project_draft');
+      return saved ? JSON.parse(saved) : DEFAULT_DRAFT;
+    } catch {
+      return DEFAULT_DRAFT;
+    }
+  });
+
+  // Guardar automáticamente el borrador cuando cambia
+  useEffect(() => {
+    if (isOpen) {
+      try {
+        localStorage.setItem('saas_phase_system_project_draft', JSON.stringify(draft));
+      } catch (err) {
+        console.error('Error saving project draft to localStorage:', err);
+      }
+    }
+  }, [draft, isOpen]);
+
+  // --- TRANSICIONES Y ESTADOS DE INTERFAZ TRANSITORIOS ---
   const [isGeneratingPhases, setIsGeneratingPhases] = useState(false);
   const [aiPrompt, setAiPrompt] = useState('');
-
-  // --- PASO 2: INTEGRANTES (Drag & Drop + Roles) ---
-  const [members, setMembers] = useState<any[]>([]);
-
-  // --- PASO 2: RENTABILIDAD ---
-  const [currency, setCurrency] = useState('USD');
-  const [totalIncome, setTotalIncome] = useState<number | ''>('');
-  const [roleHours, setRoleHours] = useState<RoleHoursAllocation>({ 
-    coordinador: 0, 
-    sac: 0, 
-    contents: 0, 
-    contentd: 0 
-  });
 
   if (!isOpen) return null;
 
   const totalHoursCalculated = 
-    Number(roleHours.coordinador || 0) + 
-    Number(roleHours.sac || 0) + 
-    Number(roleHours.contents || 0) + 
-    Number(roleHours.contentd || 0);
+    Number(draft.roleHours.coordinador || 0) + 
+    Number(draft.roleHours.sac || 0) + 
+    Number(draft.roleHours.contents || 0) + 
+    Number(draft.roleHours.contentd || 0);
 
   // Funciones de Etiquetas
   const toggleTag = (tag: string) => {
-    setTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
+    setDraft(prev => ({
+      ...prev,
+      tags: prev.tags.includes(tag) ? prev.tags.filter(t => t !== tag) : [...prev.tags, tag]
+    }));
   };
 
   // Drag and Drop para Integrantes
@@ -105,26 +134,35 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
   const handleDropToRole = (e: React.DragEvent, newRole: 'Principal' | 'Apoyo' | 'Observador') => {
     e.preventDefault();
     if (draggedMemberId) {
-      setMembers(prev => prev.map(m => m.id === draggedMemberId ? { ...m, participationRole: newRole } : m));
+      setDraft(prev => ({
+        ...prev,
+        members: prev.members.map(m => m.id === draggedMemberId ? { ...m, participationRole: newRole } : m)
+      }));
       setDraggedMemberId(null);
     }
   };
 
   // Agregar al hacer clic
   const handleAddMemberClick = (user: any) => {
-    if (!members.some(m => m.id === user.id)) {
-      setMembers([...members, { 
-        id: user.id, 
-        name: user.name, 
-        role: user.roleBase, 
-        participationRole: 'Principal',
-        avatar: user.avatar 
-      }]);
+    if (!draft.members.some(m => m.id === user.id)) {
+      setDraft(prev => ({
+        ...prev,
+        members: [...prev.members, { 
+          id: user.id, 
+          name: user.name, 
+          role: user.roleBase, 
+          participationRole: 'Principal',
+          avatar: user.avatar 
+        }]
+      }));
     }
   };
 
   const handleRemoveMember = (id: string) => {
-    setMembers(prev => prev.filter(m => m.id !== id));
+    setDraft(prev => ({
+      ...prev,
+      members: prev.members.filter(m => m.id !== id)
+    }));
   };
 
   // Funciones de Fases (IA y Markdown)
@@ -175,7 +213,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
         fields: {}
       }));
 
-      setCustomPhases(formatted);
+      setDraft(prev => ({ ...prev, customPhases: formatted }));
       setIsGeneratingPhases(false);
       setAiPrompt('');
     }, 2000);
@@ -211,55 +249,61 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
           }
         });
         if (currentPhase) parsedPhases.push(currentPhase);
-        setCustomPhases(parsedPhases.length ? parsedPhases : [{ id: '1', label: 'A1. Fase Importada', status: 'active', completedAt: null, checklist: [], fields: {} }]);
+        setDraft(prev => ({
+          ...prev,
+          customPhases: parsedPhases.length ? parsedPhases : [{ id: '1', label: 'A1. Fase Importada', status: 'active', completedAt: null, checklist: [], fields: {} }]
+        }));
       };
       reader.readAsText(file);
     }
   };
 
   const handleRoleHourChange = (role: keyof RoleHoursAllocation, val: string) => {
-    setRoleHours(prev => ({ ...prev, [role]: parseInt(val, 10) || 0 }));
+    setDraft(prev => ({
+      ...prev,
+      roleHours: {
+        ...prev.roleHours,
+        [role]: parseInt(val, 10) || 0
+      }
+    }));
   };
 
-  // Resetear estados
+  // Resetear estados y borrar borrador temporal de localStorage
   const handleResetAndClose = () => {
     setStep(1);
     setActiveTab('general');
-    setProjectName('');
-    setClientName('');
-    setProjectMode('blank');
-    setTags([]);
-    setMembers([]);
-    setCustomPhases([]);
+    setDraft(DEFAULT_DRAFT);
     setAiPrompt('');
-    setCurrency('USD');
-    setTotalIncome('');
-    setRoleHours({ coordinador: 0, sac: 0, contents: 0, contentd: 0 });
+    try {
+      localStorage.removeItem('saas_phase_system_project_draft');
+    } catch (err) {
+      console.error(err);
+    }
     onClose();
   };
 
   // Guardar proyecto
   const handleFinish = () => {
-    const finalPhases = projectMode === 'template' 
-      ? generatePhasesForTemplate(selectedTemplate) 
-      : (customPhases.length > 0 ? customPhases : [
+    const finalPhases = draft.projectMode === 'template' 
+      ? generatePhasesForTemplate(draft.selectedTemplate) 
+      : (draft.customPhases.length > 0 ? draft.customPhases : [
           { id: 'A1', label: 'A1. Fase Inicial', status: 'active', completedAt: null, checklist: [], fields: {} }
         ]);
 
     onCreateProject({
-      name: projectName,
-      clientName,
-      templateType: projectMode === 'template' ? selectedTemplate : 'custom',
-      startDate, 
-      endDate, 
-      saleOrderNumber, 
-      deliverablesCount: Number(deliverablesCount) || 0, 
-      description, 
-      tags, 
-      members: members.map(m => ({ id: m.id, name: m.name, role: m.role, participationRole: m.participationRole })), 
-      currency, 
-      totalIncome: Number(totalIncome) || 0, 
-      roleHours, 
+      name: draft.projectName,
+      clientName: draft.clientName,
+      templateType: draft.projectMode === 'template' ? draft.selectedTemplate : 'custom',
+      startDate: draft.startDate, 
+      endDate: draft.endDate, 
+      saleOrderNumber: draft.saleOrderNumber, 
+      deliverablesCount: Number(draft.deliverablesCount) || 0, 
+      description: draft.description, 
+      tags: draft.tags, 
+      members: draft.members.map(m => ({ id: m.id, name: m.name, role: m.role, participationRole: m.participationRole })), 
+      currency: draft.currency, 
+      totalIncome: Number(draft.totalIncome) || 0, 
+      roleHours: draft.roleHours, 
       hoursTotal: totalHoursCalculated, 
       phases: finalPhases
     });
@@ -267,7 +311,16 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     handleResetAndClose();
   };
 
-  const filteredRoster = AGENCY_TEAM.filter(member => 
+  const rosterUsers = (users || [])
+    .filter(u => u.role !== 'invitado')
+    .map(u => ({
+      id: u.id,
+      name: u.username.charAt(0).toUpperCase() + u.username.slice(1),
+      roleBase: u.puesto || 'Colaborador',
+      avatar: u.avatar || `https://i.pravatar.cc/150?u=${u.username}`
+    }));
+
+  const filteredRoster = rosterUsers.filter(member => 
     member.name.toLowerCase().includes(rosterSearch.toLowerCase()) || 
     member.roleBase.toLowerCase().includes(rosterSearch.toLowerCase())
   );
@@ -291,8 +344,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   <input 
                     type="text" 
                     placeholder="Ej: Rediseño Portal Clientes"
-                    value={projectName} 
-                    onChange={(e) => setProjectName(e.target.value)} 
+                    value={draft.projectName} 
+                    onChange={(e) => setDraft(prev => ({ ...prev, projectName: e.target.value }))} 
                     className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-cyan-500 bg-slate-50" 
                   />
                 </div>
@@ -302,8 +355,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                     type="text"
                     list="clients-list-suggestions"
                     placeholder="Introduce o selecciona cliente *"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
+                    value={draft.clientName}
+                    onChange={(e) => setDraft(prev => ({ ...prev, clientName: e.target.value }))}
                     className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-cyan-500 bg-slate-50"
                   />
                   <datalist id="clients-list-suggestions">
@@ -318,9 +371,9 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Tipo de proyecto *</label>
                 <div className="grid grid-cols-2 gap-3">
                   <div 
-                    onClick={() => setProjectMode('blank')} 
+                    onClick={() => setDraft(prev => ({ ...prev, projectMode: 'blank' }))} 
                     className={`cursor-pointer p-4 rounded-2xl border-2 flex flex-col items-center justify-center text-center h-32 transition-all ${
-                      projectMode === 'blank' 
+                      draft.projectMode === 'blank' 
                         ? 'border-cyan-500 bg-cyan-50/30 text-cyan-700' 
                         : 'border-slate-200 hover:border-slate-300 text-slate-500'
                     }`}
@@ -329,9 +382,9 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                     <span className="text-xs font-bold">En blanco / Builder</span>
                   </div>
                   <div 
-                    onClick={() => setProjectMode('template')} 
+                    onClick={() => setDraft(prev => ({ ...prev, projectMode: 'template' }))} 
                     className={`cursor-pointer p-4 rounded-2xl border-2 flex flex-col items-center justify-center text-center h-32 transition-all ${
-                      projectMode === 'template' 
+                      draft.projectMode === 'template' 
                         ? 'border-cyan-500 bg-cyan-50/30 text-cyan-700' 
                         : 'border-slate-200 hover:border-slate-300 text-slate-500'
                     }`}
@@ -340,10 +393,10 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                     <span className="text-xs font-bold">Plantilla</span>
                   </div>
                 </div>
-                {projectMode === 'template' && (
+                {draft.projectMode === 'template' && (
                   <select 
-                    value={selectedTemplate} 
-                    onChange={(e) => setSelectedTemplate(e.target.value)} 
+                    value={draft.selectedTemplate} 
+                    onChange={(e) => setDraft(prev => ({ ...prev, selectedTemplate: e.target.value }))} 
                     className="mt-4 w-full px-4 py-2.5 rounded-xl border border-cyan-200 text-xs font-bold bg-cyan-50 text-cyan-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
                   >
                     {PROJECT_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
@@ -354,7 +407,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
 
             <div className="flex justify-end pt-4 border-t border-slate-100">
               <button 
-                disabled={!projectName.trim() || !clientName.trim()} 
+                disabled={!draft.projectName.trim() || !draft.clientName.trim()} 
                 onClick={() => setStep(2)} 
                 className="px-8 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-sm disabled:opacity-40 transition-colors cursor-pointer shadow-sm"
               >
@@ -377,7 +430,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                 ⚙️ General
               </button>
               
-              {projectMode === 'blank' && (
+              {draft.projectMode === 'blank' && (
                 <button 
                   onClick={() => setActiveTab('fases')} 
                   className={`flex-1 py-4 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 cursor-pointer transition-all ${
@@ -416,8 +469,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       <label className="block text-[11px] font-bold text-slate-500 mb-1">Inicio</label>
                       <input 
                         type="date" 
-                        value={startDate} 
-                        onChange={(e) => setStartDate(e.target.value)} 
+                        value={draft.startDate} 
+                        onChange={(e) => setDraft(prev => ({ ...prev, startDate: e.target.value }))} 
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none" 
                       />
                     </div>
@@ -425,8 +478,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       <label className="block text-[11px] font-bold text-slate-500 mb-1">Final *</label>
                       <input 
                         type="date" 
-                        value={endDate} 
-                        onChange={(e) => setEndDate(e.target.value)} 
+                        value={draft.endDate} 
+                        onChange={(e) => setDraft(prev => ({ ...prev, endDate: e.target.value }))} 
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none" 
                       />
                     </div>
@@ -435,8 +488,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       <input 
                         type="text" 
                         placeholder="OV-104" 
-                        value={saleOrderNumber} 
-                        onChange={(e) => setSaleOrderNumber(e.target.value)} 
+                        value={draft.saleOrderNumber} 
+                        onChange={(e) => setDraft(prev => ({ ...prev, saleOrderNumber: e.target.value }))} 
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none" 
                       />
                     </div>
@@ -448,8 +501,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       <input 
                         type="number" 
                         placeholder="Ej: 5" 
-                        value={deliverablesCount} 
-                        onChange={(e) => setDeliverablesCount(e.target.value ? Number(e.target.value) : '')} 
+                        value={draft.deliverablesCount} 
+                        onChange={(e) => setDraft(prev => ({ ...prev, deliverablesCount: e.target.value ? Number(e.target.value) : '' }))} 
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none" 
                       />
                     </div>
@@ -457,8 +510,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       <label className="block text-[11px] font-bold text-slate-500 mb-1">Descripción / Brief</label>
                       <textarea 
                         rows={1} 
-                        value={description} 
-                        onChange={(e) => setDescription(e.target.value)} 
+                        value={draft.description} 
+                        onChange={(e) => setDraft(prev => ({ ...prev, description: e.target.value }))} 
                         placeholder="Breve explicación de las metas acordadas..."
                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs resize-none font-medium focus:outline-none" 
                       />
@@ -478,7 +531,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                               type="button"
                               onClick={() => toggleTag(tag)}
                               className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all border cursor-pointer ${
-                                tags.includes(tag) 
+                                draft.tags.includes(tag) 
                                   ? 'bg-cyan-500 text-white border-cyan-600 shadow-xs' 
                                   : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                               }`}
@@ -494,7 +547,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
               )}
 
               {/* TAB FASES (CUSTOM BUILDER) */}
-              {activeTab === 'fases' && projectMode === 'blank' && (
+              {activeTab === 'fases' && draft.projectMode === 'blank' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Generador IA */}
@@ -536,14 +589,14 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   </div>
 
                   {/* Lista de Fases Generadas */}
-                  {customPhases.length > 0 && (
+                  {draft.customPhases.length > 0 && (
                     <div className="mt-4">
                       <h4 className="text-xs font-bold uppercase text-slate-500 mb-3 flex items-center gap-1.5">
                         <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                        Fases Estructuradas en el Builder ({customPhases.length}):
+                        Fases Estructuradas en el Builder ({draft.customPhases.length}):
                       </h4>
                       <div className="space-y-2 max-h-[220px] overflow-y-auto">
-                        {customPhases.map(ph => (
+                        {draft.customPhases.map(ph => (
                           <div key={ph.id} className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs font-bold flex justify-between items-center shadow-xs">
                             <span className="text-slate-800">{ph.label}</span>
                             <span className="text-[10px] bg-slate-200 text-slate-600 px-2.5 py-0.5 rounded-full font-semibold">
@@ -567,17 +620,17 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       <div className="mb-3">
                         <span className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">Roster de Integrantes</span>
                         <input 
-                          type="text" 
-                          placeholder="Buscar por nombre o rol..."
-                          value={rosterSearch}
-                          onChange={(e) => setRosterSearch(e.target.value)}
-                          className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white outline-none focus:border-cyan-500"
+                           type="text" 
+                           placeholder="Buscar por nombre o rol..."
+                           value={rosterSearch}
+                           onChange={(e) => setRosterSearch(e.target.value)}
+                           className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white outline-none focus:border-cyan-500"
                         />
                       </div>
                       
                       <div className="flex-1 overflow-y-auto space-y-2 max-h-[280px]">
                         {filteredRoster.map(member => {
-                          const isAssigned = members.some(m => m.id === member.id);
+                          const isAssigned = draft.members.some(m => m.id === member.id);
                           return (
                             <div 
                               key={member.id} 
@@ -617,11 +670,11 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       >
                         <div className="flex items-center justify-between mb-3 border-b border-amber-200 pb-2">
                           <span className="text-xs font-black text-amber-800 uppercase tracking-wider flex items-center gap-1">
-                            👑 Principal ({members.filter(m => m.participationRole === 'Principal').length})
+                            👑 Principal ({draft.members.filter(m => m.participationRole === 'Principal').length})
                           </span>
                         </div>
                         <div className="flex-1 overflow-y-auto space-y-2">
-                          {members.filter(m => m.participationRole === 'Principal').map(m => (
+                          {draft.members.filter(m => m.participationRole === 'Principal').map(m => (
                             <div 
                               key={m.id}
                               draggable
@@ -654,11 +707,11 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       >
                         <div className="flex items-center justify-between mb-3 border-b border-blue-200 pb-2">
                           <span className="text-xs font-black text-blue-800 uppercase tracking-wider flex items-center gap-1">
-                            🤝 Apoyo ({members.filter(m => m.participationRole === 'Apoyo').length})
+                            🤝 Apoyo ({draft.members.filter(m => m.participationRole === 'Apoyo').length})
                           </span>
                         </div>
                         <div className="flex-1 overflow-y-auto space-y-2">
-                          {members.filter(m => m.participationRole === 'Apoyo').map(m => (
+                          {draft.members.filter(m => m.participationRole === 'Apoyo').map(m => (
                             <div 
                               key={m.id}
                               draggable
@@ -691,11 +744,11 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       >
                         <div className="flex items-center justify-between mb-3 border-b border-slate-300 pb-2">
                           <span className="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                            👁️ Observador ({members.filter(m => m.participationRole === 'Observador').length})
+                            👁️ Observador ({draft.members.filter(m => m.participationRole === 'Observador').length})
                           </span>
                         </div>
                         <div className="flex-1 overflow-y-auto space-y-2">
-                          {members.filter(m => m.participationRole === 'Observador').map(m => (
+                          {draft.members.filter(m => m.participationRole === 'Observador').map(m => (
                             <div 
                               key={m.id}
                               draggable
@@ -739,8 +792,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       <div>
                         <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Moneda base</label>
                         <select
-                          value={currency}
-                          onChange={(e) => setCurrency(e.target.value)}
+                          value={draft.currency}
+                          onChange={(e) => setDraft(prev => ({ ...prev, currency: e.target.value }))}
                           className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none"
                         >
                           <option value="USD">USD ($)</option>
@@ -754,8 +807,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                         <input
                           type="number"
                           placeholder="Ej: 5000"
-                          value={totalIncome}
-                          onChange={(e) => setTotalIncome(e.target.value ? Number(e.target.value) : '')}
+                          value={draft.totalIncome}
+                          onChange={(e) => setDraft(prev => ({ ...prev, totalIncome: e.target.value ? Number(e.target.value) : '' }))}
                           className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none"
                         />
                       </div>
@@ -777,7 +830,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                         <input
                           type="number"
                           min="0"
-                          value={roleHours.coordinador}
+                          value={draft.roleHours.coordinador}
                           onChange={(e) => handleRoleHourChange('coordinador', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-bold text-center"
                         />
@@ -788,7 +841,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                         <input
                           type="number"
                           min="0"
-                          value={roleHours.sac}
+                          value={draft.roleHours.sac}
                           onChange={(e) => handleRoleHourChange('sac', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-bold text-center"
                         />
@@ -799,7 +852,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                         <input
                           type="number"
                           min="0"
-                          value={roleHours.contents}
+                          value={draft.roleHours.contents}
                           onChange={(e) => handleRoleHourChange('contents', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-bold text-center"
                         />
@@ -810,7 +863,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                         <input
                           type="number"
                           min="0"
-                          value={roleHours.contentd}
+                          value={draft.roleHours.contentd}
                           onChange={(e) => handleRoleHourChange('contentd', e.target.value)}
                           className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-bold text-center"
                         />
@@ -830,7 +883,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   if (activeTab === 'rentabilidad') {
                     setActiveTab('integrantes');
                   } else if (activeTab === 'integrantes') {
-                    if (projectMode === 'blank') {
+                    if (draft.projectMode === 'blank') {
                       setActiveTab('fases');
                     } else {
                       setActiveTab('general');
@@ -851,7 +904,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   type="button"
                   onClick={() => {
                     if (activeTab === 'general') {
-                      if (projectMode === 'blank') {
+                      if (draft.projectMode === 'blank') {
                         setActiveTab('fases');
                       } else {
                         setActiveTab('integrantes');
@@ -870,7 +923,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                 <button 
                   type="button"
                   onClick={handleFinish} 
-                  disabled={!endDate || totalIncome === ''}
+                  disabled={!draft.endDate || draft.totalIncome === ''}
                   className="px-8 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer disabled:opacity-40"
                 >
                   Crear Proyecto

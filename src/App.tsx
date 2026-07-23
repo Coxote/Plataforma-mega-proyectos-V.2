@@ -624,6 +624,7 @@ export default function App() {
         isOpen={isNewProjectModalOpen}
         onClose={() => setIsNewProjectModalOpen(false)}
         onCreateProject={handleAddProject}
+        users={usersList}
       />
     </MainLayout>
   );
