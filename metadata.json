@@ -1,0 +1,8 @@
+{
+  "name": "Remix: Remix: Sistema de Fases SaaS v.3",
+  "description": "Herramienta interna de gestión y seguimiento de proyectos por fases para plataformas SaaS.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
