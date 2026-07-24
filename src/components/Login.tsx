@@ -85,162 +85,195 @@ export default function Login({ onLogin, usersList }: LoginProps) {
 
   return (
     <div 
-      className="min-h-screen w-screen flex flex-col items-center justify-center bg-slate-50 p-4"
+      className="min-h-screen w-screen flex items-center justify-center bg-white oa-pixel-grid-orange p-4 md:p-8"
       id="login-page-container"
     >
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden"
+        className="w-full max-w-4xl bg-white rounded-2xl border border-slate-200 shadow-2xl shadow-slate-900/10 overflow-hidden md:flex"
         id="login-card"
       >
-        {/* Card Header */}
-        <div className="bg-slate-900 px-8 py-6 text-white text-center space-y-2">
-          <div className="inline-flex p-3 bg-slate-800 rounded-xl border border-slate-700 mb-1">
-            <Shield className="w-6 h-6 text-lime-400" />
-          </div>
-          <h1 className="text-xl font-bold tracking-tight">Plataforma Proyectos</h1>
-          <p className="text-xs text-slate-400">Ingresa tus credenciales para acceder al panel</p>
-        </div>
-
-        {/* Card Body / Form */}
-        <form onSubmit={handleSubmit} className="p-8 space-y-6" id="login-form">
-          {error && (
-            <div className="bg-rose-50 border border-rose-100 text-rose-700 text-xs rounded-xl p-3 font-semibold flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
-              {error}
+        {/* Left Side: Form */}
+        <div className="w-full md:w-1/2 p-6 sm:p-10 flex flex-col justify-between">
+          <div>
+            {/* Logo / Brand Header */}
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center shadow-md">
+                <Shield className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h1 className="font-black text-sm tracking-tight text-slate-950 uppercase leading-none">Operations Atelier</h1>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Consola de Control</p>
+              </div>
             </div>
-          )}
 
-          {/* Username Input */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Usuario
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-3.5 text-slate-400">
-                <User className="w-4 h-4" />
-              </span>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Ej: carlos, ana, o tu nombre"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all font-medium"
-                id="login-username"
-              />
+            <div className="space-y-1 mb-6">
+              <h2 className="text-xl font-extrabold text-slate-900">Iniciar Sesión</h2>
+              <p className="text-xs text-slate-500">Ingresa tus credenciales para acceder a la sala de control</p>
             </div>
-          </div>
 
-          {/* Job Selection Dropdown */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Puesto / Rol
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-3.5 text-slate-400">
-                <Briefcase className="w-4 h-4" />
-              </span>
-              <select
-                value={puesto}
-                onChange={(e) => setPuesto(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all font-medium appearance-none cursor-pointer"
-                id="login-puesto"
+            {error && (
+              <div className="bg-rose-50 border border-rose-100 text-rose-700 text-xs rounded-xl p-3 font-semibold flex items-center gap-2 mb-6">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"></span>
+                {error}
+              </div>
+            )}
+
+            {/* Card Body / Form */}
+            <form onSubmit={handleSubmit} className="space-y-4" id="login-form">
+              {/* Username Input */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">
+                  Usuario
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-3 text-slate-400">
+                    <User className="w-4 h-4" />
+                  </span>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Ej: carlos, ana..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:bg-white outline-none transition-all font-medium"
+                    id="login-username"
+                  />
+                </div>
+              </div>
+
+              {/* Job Selection Dropdown */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">
+                  Puesto / Rol
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-3 text-slate-400">
+                    <Briefcase className="w-4 h-4" />
+                  </span>
+                  <select
+                    value={puesto}
+                    onChange={(e) => setPuesto(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-slate-800 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:bg-white outline-none transition-all font-medium appearance-none cursor-pointer"
+                    id="login-puesto"
+                  >
+                    <option value="Coordinador">Coordinador</option>
+                    <option value="SAC">SAC</option>
+                    <option value="ContentS">ContentS</option>
+                    <option value="ContentD">ContentD</option>
+                    <option value="Cliente / Invitado">Cliente / Invitado</option>
+                  </select>
+                  <span className="absolute right-4 top-3.5 text-slate-400 pointer-events-none text-[10px]">▼</span>
+                </div>
+              </div>
+
+              {/* Password Input */}
+              <div className="space-y-1.5">
+                <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wide">
+                  Contraseña
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-3 text-slate-400">
+                    <Lock className="w-4 h-4" />
+                  </span>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-800 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/15 focus:bg-white outline-none transition-all font-medium"
+                    id="login-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-extrabold py-3 rounded-xl text-xs transition-colors shadow-lg shadow-orange-600/10 cursor-pointer uppercase tracking-wider"
+                id="login-submit-btn"
               >
-                <option value="Coordinador">Coordinador</option>
-                <option value="SAC">SAC</option>
-                <option value="ContentS">ContentS</option>
-                <option value="ContentD">ContentD</option>
-                <option value="Cliente / Invitado">Cliente / Invitado</option>
-              </select>
-              <span className="absolute right-4 top-4 text-slate-400 pointer-events-none text-[10px]">▼</span>
-            </div>
+                Acceder a la Consola
+              </button>
+            </form>
           </div>
 
-          {/* Password Input */}
-          <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Contraseña
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-3.5 text-slate-400">
-                <Lock className="w-4 h-4" />
-              </span>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-11 py-3 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all font-medium"
-                id="login-password"
-              />
+          {/* Quick Fill Demos */}
+          <div className="mt-8 border-t border-slate-100 pt-6 space-y-3">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Accesos de Prueba
+            </p>
+            <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600 transition-colors"
+                onClick={() => handleDemoFill('carlos', 'Coordinador')}
+                className="px-3 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                <span>Carlos</span>
+                <span className="text-[9px] text-slate-400 font-medium">Coordinador</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDemoFill('ana', 'SAC')}
+                className="px-3 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
+              >
+                <span>Ana</span>
+                <span className="text-[9px] text-slate-400 font-medium">Ejecutivo SAC</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDemoFill('lucia', 'ContentS')}
+                className="px-3 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
+              >
+                <span>Lucía</span>
+                <span className="text-[9px] text-slate-400 font-medium">Content S</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDemoFill('pedro', 'ContentD')}
+                className="px-3 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
+              >
+                <span>Pedro</span>
+                <span className="text-[9px] text-slate-400 font-medium">Content D</span>
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-xl text-xs transition-colors shadow-lg shadow-slate-200 cursor-pointer"
-            id="login-submit-btn"
-          >
-            Iniciar Sesión
-          </button>
-        </form>
+        {/* Right Side: Editorial Panel */}
+        <div className="hidden md:flex md:w-1/2 bg-slate-950 p-10 flex-col justify-between text-white relative overflow-hidden oa-pixel-grid-lime">
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent z-10" />
+          
+          <div className="relative z-20">
+            <span className="text-[10px] font-black tracking-widest text-lime-400 uppercase bg-lime-950/80 px-2.5 py-1 rounded-full border border-lime-800/40">
+              TPP LINEA GRAFICA V1.0
+            </span>
+          </div>
 
-        {/* Quick Fill Demos */}
-        <div className="bg-slate-50 border-t border-slate-100 px-8 py-6 space-y-3">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">
-            Acceso Rápido de Prueba (Contraseña: 123)
-          </p>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => handleDemoFill('carlos', 'Coordinador')}
-              className="px-3 py-2 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
-            >
-              <span>Carlos</span>
-              <span className="text-[9px] text-slate-400 font-medium">Coordinador</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDemoFill('ana', 'SAC')}
-              className="px-3 py-2 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
-            >
-              <span>Ana</span>
-              <span className="text-[9px] text-slate-400 font-medium">Ejecutivo SAC</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDemoFill('lucia', 'ContentS')}
-              className="px-3 py-2 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
-            >
-              <span>Lucía</span>
-              <span className="text-[9px] text-slate-400 font-medium">Content S</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDemoFill('pedro', 'ContentD')}
-              className="px-3 py-2 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
-            >
-              <span>Pedro</span>
-              <span className="text-[9px] text-slate-400 font-medium">Content D</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => handleDemoFill('invitado', 'Cliente / Invitado')}
-              className="px-3 py-2 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-750 text-left flex flex-col transition-all cursor-pointer col-span-2"
-            >
-              <span>Invitado (Acme Corp)</span>
-              <span className="text-[9px] text-slate-400 font-medium">Ver Proyecto Acme Corp</span>
-            </button>
+          <div className="space-y-4 relative z-20 max-w-sm">
+            <h3 className="text-3xl font-black tracking-tight leading-none text-white">
+              Tu operación merece mejores entregas.
+            </h3>
+            <p className="text-xs text-slate-350 leading-relaxed font-medium">
+              Operations Atelier combina una consola operativa SaaS con la energía gráfica de TPP: blanco dominante, bloques naranjas, acentos de selección lima y datos con precisión milimétrica.
+            </p>
+          </div>
+
+          <div className="relative z-20 flex items-center justify-between border-t border-slate-800/80 pt-6">
+            <div className="text-xs font-bold text-slate-400">
+              © 2026 Operations Atelier
+            </div>
+            <div className="w-6 h-6 rounded-lg bg-orange-600 flex items-center justify-center shadow-md">
+              <span className="text-[10px] font-black text-white">OA</span>
+            </div>
           </div>
         </div>
       </motion.div>

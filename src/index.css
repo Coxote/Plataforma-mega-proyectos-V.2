@@ -10,6 +10,25 @@
   }
 }
 
+/* Pixel Grid utilities matching the design system */
+.oa-pixel-grid-orange {
+  background:
+    linear-gradient(90deg, rgba(255, 59, 10, 0.04) 1px, transparent 1px),
+    linear-gradient(rgba(255, 59, 10, 0.04) 1px, transparent 1px),
+    radial-gradient(circle at 85% 85%, rgba(255, 59, 10, 0.08), transparent 50%),
+    #ffffff;
+  background-size: 32px 32px, 32px 32px, auto, auto;
+}
+
+.oa-pixel-grid-lime {
+  background:
+    linear-gradient(90deg, rgba(154, 216, 15, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(154, 216, 15, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 0% 0%, rgba(154, 216, 15, 0.1), transparent 50%),
+    #ffffff;
+  background-size: 32px 32px, 32px 32px, auto, auto;
+}
+
 /* Custom scrollbar matching design requirements */
 ::-webkit-scrollbar {
   width: 6px;

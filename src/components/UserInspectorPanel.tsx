@@ -1,7 +1,15 @@
 import React from 'react';
 import { X, Clock, Briefcase, Award, TrendingUp, Sparkles, AlertCircle, CheckCircle, Calendar } from 'lucide-react';
 import { VitaminizedMember } from './TeamCard';
-import { Project } from '../types';
+import { Project, getUserAvatarUrl } from '../types';
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer
+} from 'recharts';
 
 interface UserInspectorPanelProps {
   member: VitaminizedMember | null;
@@ -9,6 +17,83 @@ interface UserInspectorPanelProps {
   getUserColor: (role: string) => string;
   projects: Project[];
 }
+
+// Map roles to hexadecimal colors for the chart fill and stroke
+const getRoleHexColor = (role: string): string => {
+  switch (role) {
+    case 'coordinador':
+      return '#0f172a'; // slate-900
+    case 'sac':
+      return '#059669'; // emerald-600
+    case 'contents':
+      return '#9333ea'; // purple-600
+    case 'contentd':
+      return '#2563eb'; // blue-600
+    case 'invitado':
+      return '#f59e0b'; // amber-500
+    default:
+      return '#64748b'; // slate-500
+  }
+};
+
+// Map skills to values
+const getSkillsData = (role: string, skills: string[]) => {
+  const skillValues: Record<string, number> = {
+    // Coordinador
+    'Gestión': 95,
+    'Finanzas': 90,
+    'Liderazgo': 92,
+    'Planificación': 88,
+    'Comunicación': 85,
+    // SAC
+    'Cuentas': 92,
+    'Figma Inspect': 85,
+    'Copywriting': 80,
+    'Soporte': 95,
+    'Negociación': 88,
+    // ContentS
+    'Social Media': 94,
+    'Estrategia': 90,
+    'SEO': 85,
+    'Redacción': 88,
+    'Analítica': 80,
+    // ContentD
+    'UI/UX Refactor': 92,
+    'Illustrator': 95,
+    'Branding': 90,
+    'Animación': 80,
+    'Prototipado': 85,
+    // Other / Dynamic
+    'Game Dev': 75,
+    'UX/UI': 90,
+    'Marketing': 85,
+    'Invitado': 60,
+  };
+
+  const baseSkills = [...skills];
+  
+  let defaultRoleSkills: string[] = [];
+  if (role === 'coordinador') {
+    defaultRoleSkills = ['Gestión', 'Finanzas', 'Liderazgo', 'Planificación', 'Comunicación'];
+  } else if (role === 'sac') {
+    defaultRoleSkills = ['Cuentas', 'Figma Inspect', 'Copywriting', 'Soporte', 'Negociación'];
+  } else if (role === 'contents') {
+    defaultRoleSkills = ['Social Media', 'Estrategia', 'SEO', 'Redacción', 'Analítica'];
+  } else if (role === 'contentd') {
+    defaultRoleSkills = ['UI/UX Refactor', 'Illustrator', 'Branding', 'Animación', 'Prototipado'];
+  } else {
+    defaultRoleSkills = ['Feedback', 'Revisión', 'Colaboración', 'Priorización', 'Validaciones'];
+  }
+
+  const allSkillsSet = new Set([...baseSkills, ...defaultRoleSkills]);
+  const finalSkills = Array.from(allSkillsSet).slice(0, 5);
+
+  return finalSkills.map(skill => ({
+    subject: skill,
+    value: skillValues[skill] || (75 + (skill.charCodeAt(0) % 15)),
+    fullMark: 100,
+  }));
+};
 
 export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({ 
   member, 
@@ -31,26 +116,38 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
       className="fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-slate-200/80 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300"
       id="team-inspector-panel"
     >
-      {/* Header del Inspector */}
-      <div className="p-6 border-b border-slate-150 bg-slate-900 text-white flex justify-between items-center relative overflow-hidden">
-        <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-emerald-500/5 to-transparent pointer-events-none" />
+      {/* Header del Inspector - Estilo Centrado con Foto de Perfil Grande */}
+      <div className="p-8 border-b border-slate-200 bg-slate-50 text-slate-900 flex flex-col items-center relative overflow-hidden text-center" id="team-inspector-header">
+        <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-slate-100 to-transparent pointer-events-none" />
         
-        <div className="z-10">
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className={`w-2.5 h-2.5 rounded-full ${getUserColor(member.role)} border border-white/20`} />
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Ficha Inspector Operativo</p>
-          </div>
-          <h2 className="font-extrabold text-2xl capitalize text-white tracking-tight">{member.username}</h2>
-          <p className="text-xs text-emerald-400 font-bold uppercase tracking-wider mt-0.5">{member.puesto || member.role}</p>
-        </div>
-        
+        {/* Close button top-right */}
         <button 
           onClick={onClose} 
-          className="p-2 hover:bg-slate-800 text-slate-400 hover:text-white rounded-xl transition-all cursor-pointer z-10 border border-slate-800"
+          className="absolute top-4 right-4 p-2 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-full transition-all cursor-pointer z-10 border border-slate-200 bg-white shadow-xs"
           title="Cerrar inspector"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
+
+        {/* Large Profile Photo - Circular with soft shadow and white border */}
+        <div className="relative mt-2 z-10 flex flex-col items-center">
+          <div className="w-24 h-24 rounded-full border-4 border-white bg-slate-100 shadow-md overflow-hidden relative">
+            <img 
+              src={getUserAvatarUrl(member.username)} 
+              alt={member.username}
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          {/* Circular role dot badge */}
+          <span className={`absolute bottom-0 right-1 w-5 h-5 rounded-full ${getUserColor(member.role)} border-2 border-white shadow-xs`} />
+        </div>
+        
+        <div className="z-10 mt-4">
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Ficha Inspector Operativo</p>
+          <h2 className="font-black text-2xl capitalize text-slate-900 tracking-tight leading-tight">{member.username}</h2>
+          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">{member.puesto || member.role}</p>
+        </div>
       </div>
 
       {/* Contenido Desglosado */}
@@ -74,18 +171,44 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
           </div>
         </div>
 
-        {/* Especialidades Asignadas */}
-        <div>
-          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-            <Award className="w-4 h-4 text-emerald-600" /> Especialidades Asignadas
+        {/* Especialidades Asignadas - Representadas en un Gráfico Radial */}
+        <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-200/60" id="specialties-radar-container">
+          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+            <Award className="w-4 h-4 text-slate-500" /> Especialidades y Perfil Radar
           </h3>
-          <div className="flex flex-wrap gap-2">
+          
+          <div className="w-full h-[220px] flex items-center justify-center mb-3">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={getSkillsData(member.role, member.skills)}>
+                <PolarGrid stroke="#e2e8f0" />
+                <PolarAngleAxis 
+                  dataKey="subject" 
+                  tick={{ fill: '#475569', fontSize: 9, fontWeight: 700 }}
+                />
+                <PolarRadiusAxis 
+                  angle={30} 
+                  domain={[0, 100]} 
+                  tick={false}
+                  axisLine={false}
+                />
+                <Radar
+                  name={member.username}
+                  dataKey="value"
+                  stroke={getRoleHexColor(member.role)}
+                  fill={getRoleHexColor(member.role)}
+                  fillOpacity={0.15}
+                />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5 justify-center pt-3 border-t border-slate-200/40">
             {member.skills.length === 0 ? (
               <span className="text-xs text-slate-400 font-medium italic">Sin habilidades registradas en este período.</span>
             ) : (
               member.skills.map((skill) => (
-                <span key={skill} className="text-xs bg-slate-50 text-slate-700 px-3 py-1.5 rounded-lg font-bold border border-slate-200/80 flex items-center gap-1.5 uppercase tracking-wider transition-all hover:bg-slate-100">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <span key={skill} className="text-[10px] bg-white text-slate-700 px-2.5 py-1 rounded-full font-bold border border-slate-200 flex items-center gap-1 uppercase tracking-wider transition-all hover:bg-slate-50 shadow-2xs">
+                  <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
                   {skill}
                 </span>
               ))

@@ -217,13 +217,13 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
         </div>
 
         {/* Sub-tab view toggles */}
-        <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-xs self-start shrink-0">
+        <div className="flex items-center gap-1 bg-white p-1 rounded-full border border-slate-200 shadow-xs self-start shrink-0">
           <button
             onClick={() => {
               setSubView('cards');
               setSelectedMember(null);
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
               subView === 'cards'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'text-slate-500 hover:text-slate-800'
@@ -238,7 +238,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
               setSubView('admin');
               setSelectedMember(null);
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
               subView === 'admin'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'text-slate-500 hover:text-slate-800'

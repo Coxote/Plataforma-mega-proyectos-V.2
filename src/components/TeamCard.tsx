@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserSession } from '../types';
+import { UserSession, getUserAvatarUrl } from '../types';
 import { Clock, AlertCircle, CheckCircle, Flame } from 'lucide-react';
 
 export interface VitaminizedMember {
@@ -24,35 +24,32 @@ interface TeamCardProps {
 export const TeamCard: React.FC<TeamCardProps> = ({ member, onSelect, getUserColor }) => {
   const saturation = member.saturation;
   
-  // Custom states based on saturation
+  // Custom states based on saturation - Operations Atelier Style Chips (no emojis, neat design)
   const getStatusConfig = (sat: number) => {
     if (sat > 95) {
       return {
         label: 'Sobre-saturado',
-        bg: 'bg-rose-50/70',
-        text: 'text-rose-700',
-        border: 'border-rose-100',
+        bg: 'bg-rose-50',
+        text: 'text-rose-750',
+        border: 'border-rose-200',
         bullet: 'bg-rose-500',
-        icon: <Flame className="w-3.5 h-3.5 text-rose-500" />
       };
     }
     if (sat > 75) {
       return {
         label: 'Carga Elevada',
-        bg: 'bg-amber-50/70',
-        text: 'text-amber-700',
-        border: 'border-amber-100',
+        bg: 'bg-amber-50',
+        text: 'text-amber-750',
+        border: 'border-amber-200',
         bullet: 'bg-amber-500',
-        icon: <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
       };
     }
     return {
       label: 'Óptimo',
-      bg: 'bg-lime-50/70',
-      text: 'text-lime-700',
-      border: 'border-lime-100',
-      bullet: 'bg-lime-500',
-      icon: <CheckCircle className="w-3.5 h-3.5 text-lime-600" />
+      bg: 'bg-emerald-50',
+      text: 'text-emerald-750',
+      border: 'border-emerald-200',
+      bullet: 'bg-emerald-500',
     };
   };
 
@@ -61,24 +58,26 @@ export const TeamCard: React.FC<TeamCardProps> = ({ member, onSelect, getUserCol
   return (
     <div 
       onClick={() => onSelect(member)}
-      className="bg-white p-5 rounded-xl border border-slate-200/60 shadow-xs hover:border-slate-300 hover:shadow-md cursor-pointer transition-all duration-300 flex flex-col justify-between group h-full relative overflow-hidden"
+      className="bg-white p-5 rounded-xl border border-slate-200 hover:border-slate-300 hover:shadow-sm cursor-pointer transition-all duration-200 flex flex-col justify-between group h-full relative"
       id={`team-card-${member.id}`}
     >
-      {/* Decorative hover gradient corner */}
-      <div className="absolute top-0 right-0 w-16 h-16 bg-radial from-slate-100/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-      
       <div>
-        <div className="flex justify-between items-start mb-4">
+        <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-3">
-            {/* Elegant avatar */}
-            <div className={`w-11 h-11 ${getUserColor(member.role)} text-white rounded-xl flex items-center justify-center font-bold text-base capitalize shadow-sm transition-transform duration-300 group-hover:scale-105 border border-white/15`}>
-              {member.username.charAt(0)}
+            {/* Elegant profile image avatar matching shared style */}
+            <div className="w-10 h-10 rounded-full border border-slate-200 shadow-xs overflow-hidden relative transition-transform duration-200 group-hover:scale-105 shrink-0 bg-slate-100 flex items-center justify-center">
+              <img 
+                src={getUserAvatarUrl(member.username)} 
+                alt={member.username} 
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 capitalize transition-colors group-hover:text-slate-900 text-[14px]">
+              <h3 className="font-extrabold text-slate-900 capitalize transition-colors text-sm">
                 {member.username}
               </h3>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide block">
                 {member.puesto || member.role}
               </span>
             </div>
@@ -86,38 +85,26 @@ export const TeamCard: React.FC<TeamCardProps> = ({ member, onSelect, getUserCol
         </div>
 
         {/* Status Badge */}
-        <div className="mb-4">
-          <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-lg border ${status.bg} ${status.text} ${status.border}`}>
-            {status.icon}
+        <div className="mb-3">
+          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-bold ${status.bg} ${status.text} ${status.border}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${status.bullet}`} />
             <span>{status.label} ({saturation.toFixed(0)}%)</span>
           </span>
         </div>
-
-        {/* Dynamic Skills Tag List */}
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {member.skills.map((skill) => (
-            <span 
-              key={skill} 
-              className="text-[9px] bg-slate-50/90 text-slate-500 hover:text-slate-700 hover:bg-slate-100 px-2 py-0.5 rounded-md border border-slate-100/85 font-semibold uppercase tracking-wider transition-colors duration-150"
-            >
-              {skill}
-            </span>
-          ))}
-        </div>
       </div>
 
-      <div className="pt-3 border-t border-slate-100/80 mt-2">
+      <div className="pt-3 border-t border-slate-100 mt-2">
         <div className="flex justify-between text-[11px] font-semibold text-slate-500 mb-1.5">
           <span className="flex items-center gap-1">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            <span>Horas Cargadas</span>
+            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span>Horas</span>
           </span>
-          <span className="text-slate-700 font-bold">{member.loadedHours}h / {member.assignedHours}h</span>
+          <span className="text-slate-900 font-bold tabular-nums">{member.loadedHours}h / {member.assignedHours}h</span>
         </div>
         <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
           <div 
-            className={`h-full rounded-full transition-all duration-500 ${
-              saturation > 95 ? 'bg-rose-500' : saturation > 75 ? 'bg-amber-400' : 'bg-lime-500'
+            className={`h-full rounded-full transition-all duration-300 ${
+              saturation > 95 ? 'bg-rose-500' : saturation > 75 ? 'bg-amber-400' : 'bg-emerald-500'
             }`}
             style={{ width: `${Math.min(saturation, 100)}%` }}
           />

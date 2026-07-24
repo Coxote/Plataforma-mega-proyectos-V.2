@@ -8,6 +8,35 @@ export const ROLE_HOURLY_RATES: Record<Role, number> = {
   invitado: 0.00
 };
 
+export const getUserAvatarUrl = (username: string): string => {
+  const name = username.toLowerCase();
+  if (name.includes('carlos')) {
+    return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256';
+  }
+  if (name.includes('ana')) {
+    return 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256';
+  }
+  if (name.includes('lucia')) {
+    return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256';
+  }
+  if (name.includes('pedro')) {
+    return 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=256';
+  }
+  if (name.includes('invitado') || name.includes('cliente')) {
+    return 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=256';
+  }
+  
+  // Deterministic fallback based on username length or first character
+  const index = username.length % 4;
+  const fallbacks = [
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256',
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256',
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256',
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=256'
+  ];
+  return fallbacks[index];
+};
+
 export interface UserSession {
   id: string;
   username: string;
