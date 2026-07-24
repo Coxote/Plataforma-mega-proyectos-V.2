@@ -7,10 +7,13 @@ export interface VitaminizedMember {
   username: string;
   role: string;
   puesto?: string;
-  monthlyCapacity: number; // e.g. 160h
-  loadedHours: number;     // e.g. consumed hours or assigned hours
+  monthlyCapacity: number; // 192h gross
+  effectiveCapacity?: number; // 153.6h (80% target)
+  idleBuffer?: number; // 38.4h (20% margin)
+  loadedHours: number;     // consumed hours
   assignedHours: number;
   saturation: number;
+  effectiveSaturation?: number;
   skills: string[];        // Autocalculated or customized tags
   activeProjectsCount: number;
 }
@@ -93,14 +96,20 @@ export const TeamCard: React.FC<TeamCardProps> = ({ member, onSelect, getUserCol
         </div>
       </div>
 
-      <div className="pt-3 border-t border-slate-100 mt-2">
-        <div className="flex justify-between text-[11px] font-semibold text-slate-500 mb-1.5">
+      <div className="pt-3 border-t border-slate-100 mt-2 space-y-1.5">
+        <div className="flex justify-between text-[11px] font-semibold text-slate-500">
           <span className="flex items-center gap-1">
             <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-            <span>Horas</span>
+            <span>Consumo / Asignado</span>
           </span>
           <span className="text-slate-900 font-bold tabular-nums">{member.loadedHours}h / {member.assignedHours}h</span>
         </div>
+
+        <div className="flex justify-between text-[10px] text-slate-400 font-medium">
+          <span>Capacidad Bruta: <strong className="text-slate-700">{member.monthlyCapacity || 192}h</strong></span>
+          <span>Target Neta (80%): <strong className="text-indigo-600">{member.effectiveCapacity || 153.6}h</strong></span>
+        </div>
+
         <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
           <div 
             className={`h-full rounded-full transition-all duration-300 ${

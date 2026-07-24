@@ -376,19 +376,6 @@ export default function PhaseContent({
           <Users className="w-3.5 h-3.5 text-lime-500" />
           Matriz RACI
         </button>
-        {userRole !== 'invitado' && (
-          <button
-            onClick={() => setActiveTab('financials')}
-            className={`py-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
-              activeTab === 'financials'
-                ? 'border-indigo-600 text-indigo-700 font-extrabold'
-                : 'border-transparent text-slate-400 hover:text-slate-600'
-            }`}
-          >
-            <TrendingUp className="w-3.5 h-3.5 text-indigo-500" />
-            Finanzas y Horas
-          </button>
-        )}
       </div>
 
       {/* WORKSPACE CONTENT SCROLL CONTAINER */}
@@ -1192,13 +1179,6 @@ export default function PhaseContent({
                   });
                 }}
               />
-            </div>
-          )}
-
-          {/* TAB 6: FINANCIAL OVERVIEW */}
-          {activeTab === 'financials' && userRole !== 'invitado' && (
-            <div className="space-y-6 animate-in fade-in duration-200" id="financials-tab-content">
-              <ProjectFinancialOverview project={project} />
             </div>
           )}
 

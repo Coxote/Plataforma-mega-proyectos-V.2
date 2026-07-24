@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
-import { Project, UserSession, Role, ProjectBudget } from '../types';
-import { AlertTriangle, Info, AlertCircle, Clock, Settings, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Project, UserSession, Role, ProjectBudget, TimeEntryType } from '../types';
+import { AlertTriangle, Info, AlertCircle, Clock, Settings, ShieldAlert, CheckCircle2, RotateCcw } from 'lucide-react';
 
 interface Props {
   project: Project;
   currentUser: UserSession;
-  onLogTime: (hours: number, description: string) => void;
+  onLogTime: (
+    hours: number, 
+    description: string, 
+    type?: TimeEntryType, 
+    retrabajoOrigen?: 'cliente' | 'interno' | 'proveedor', 
+    retrabajoMotivo?: string, 
+    deliverableId?: string
+  ) => void;
   onUpdateBudget?: (newBudget: ProjectBudget) => void; 
 }
 
@@ -17,6 +24,10 @@ export const RoleTimeTracker: React.FC<Props> = ({
 }) => {
   const [hoursToLog, setHoursToLog] = useState<number | ''>('');
   const [description, setDescription] = useState('');
+  const [entryType, setEntryType] = useState<TimeEntryType>('normal');
+  const [retrabajoOrigen, setRetrabajoOrigen] = useState<'cliente' | 'interno' | 'proveedor'>('cliente');
+  const [retrabajoMotivo, setRetrabajoMotivo] = useState('');
+  const [deliverableId, setDeliverableId] = useState('');
   const [showBudgetEditor, setShowBudgetEditor] = useState(false);
 
   // Form states for updating budget
@@ -68,10 +79,26 @@ export const RoleTimeTracker: React.FC<Props> = ({
   }
 
   const handleLog = () => {
-    if (Number(hoursToLog) > 0 && description.trim()) {
-      onLogTime(Number(hoursToLog), description.trim());
+    const finalDesc = description.trim() || retrabajoMotivo.trim();
+    const finalMotivo = retrabajoMotivo.trim() || description.trim();
+
+    if (Number(hoursToLog) > 0 && finalDesc) {
+      if (entryType === 'retrabajo' && !finalMotivo) {
+        return;
+      }
+      onLogTime(
+        Number(hoursToLog),
+        finalDesc,
+        entryType,
+        entryType === 'retrabajo' ? retrabajoOrigen : undefined,
+        entryType === 'retrabajo' ? finalMotivo : undefined,
+        entryType === 'retrabajo' && deliverableId ? deliverableId : undefined
+      );
       setHoursToLog('');
       setDescription('');
+      setRetrabajoMotivo('');
+      setDeliverableId('');
+      setEntryType('normal');
     }
   };
 
@@ -204,7 +231,41 @@ export const RoleTimeTracker: React.FC<Props> = ({
       {/* Log Time Form (Only if user has budget and is not guest) */}
       {currentUser.role !== 'invitado' && userBudget && (
         <div className="border-t border-slate-100 pt-4 space-y-3">
-          <span className="text-xs font-bold text-slate-700 block">Cargar Horas de Trabajo</span>
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-700 block">Cargar Horas de Trabajo</span>
+            
+            {/* Type Selector */}
+            <div className="flex gap-1 bg-slate-100 p-0.5 rounded-lg text-[10px]">
+              <button
+                type="button"
+                onClick={() => setEntryType('normal')}
+                className={`px-2 py-0.5 rounded-md font-bold transition-all cursor-pointer ${
+                  entryType === 'normal' ? 'bg-white text-slate-800 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Normal
+              </button>
+              <button
+                type="button"
+                onClick={() => setEntryType('retrabajo')}
+                className={`px-2 py-0.5 rounded-md font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  entryType === 'retrabajo' ? 'bg-amber-500 text-white shadow-xs' : 'text-amber-700 hover:bg-amber-50'
+                }`}
+              >
+                <RotateCcw className="w-2.5 h-2.5" />
+                Retrabajo
+              </button>
+              <button
+                type="button"
+                onClick={() => setEntryType('no_facturable')}
+                className={`px-2 py-0.5 rounded-md font-bold transition-all cursor-pointer ${
+                  entryType === 'no_facturable' ? 'bg-slate-700 text-white shadow-xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                No Facturable
+              </button>
+            </div>
+          </div>
           
           <div className="flex flex-col sm:flex-row gap-2">
             <input 
@@ -221,19 +282,74 @@ export const RoleTimeTracker: React.FC<Props> = ({
             />
             <input 
               type="text" 
-              placeholder="¿Qué actividades realizaste?" 
+              placeholder={entryType === 'retrabajo' ? '¿Qué ajuste o corrección realizaste?' : '¿Qué actividades realizaste?'} 
               className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-lime-400 focus:border-lime-400"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
             <button 
               onClick={handleLog}
-              disabled={!hoursToLog || !description.trim()}
-              className="bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-xs hover:bg-slate-800 disabled:opacity-40 transition-colors shrink-0"
+              disabled={!hoursToLog || (!description.trim() && !retrabajoMotivo.trim()) || (entryType === 'retrabajo' && !retrabajoMotivo.trim() && !description.trim())}
+              className={`font-bold px-4 py-2 rounded-xl text-xs disabled:opacity-40 transition-colors shrink-0 cursor-pointer ${
+                entryType === 'retrabajo' 
+                  ? 'bg-amber-600 hover:bg-amber-700 text-white' 
+                  : 'bg-slate-900 hover:bg-slate-800 text-white'
+              }`}
             >
-              Cargar
+              {entryType === 'retrabajo' ? 'Cargar Retrabajo' : 'Cargar'}
             </button>
           </div>
+
+          {/* Additional fields if Retrabajo */}
+          {entryType === 'retrabajo' && (
+            <div className="bg-amber-50/80 border border-amber-200 p-3 rounded-xl space-y-2.5 animate-fadeIn">
+              <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">
+                Detalles del Retrabajo (Obligatorio)
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] font-bold text-amber-800 block mb-1">Origen del Retrabajo</label>
+                  <select
+                    value={retrabajoOrigen}
+                    onChange={(e) => setRetrabajoOrigen(e.target.value as any)}
+                    className="w-full bg-white border border-amber-200 text-xs text-slate-800 rounded-lg p-1.5 font-medium outline-none"
+                  >
+                    <option value="cliente">Cliente (Cambio de brief / nuevas solicitudes)</option>
+                    <option value="interno">Interno (Error de diseño/dev / re-trabajo interno)</option>
+                    <option value="proveedor">Proveedor / Tercero</option>
+                  </select>
+                </div>
+
+                {project.deliverables && project.deliverables.length > 0 && (
+                  <div>
+                    <label className="text-[10px] font-bold text-amber-800 block mb-1">Entregable Vinculado (Opcional)</label>
+                    <select
+                      value={deliverableId}
+                      onChange={(e) => setDeliverableId(e.target.value)}
+                      className="w-full bg-white border border-amber-200 text-xs text-slate-800 rounded-lg p-1.5 font-medium outline-none"
+                    >
+                      <option value="">-- Sin vincular --</option>
+                      {project.deliverables.map(d => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-amber-800 block mb-1">Motivo Específico</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Cambio de brief del cliente, ajuste de maquetación..."
+                  value={retrabajoMotivo}
+                  onChange={(e) => setRetrabajoMotivo(e.target.value)}
+                  className="w-full bg-white border border-amber-200 text-xs text-slate-800 rounded-lg px-2.5 py-1.5 outline-none font-medium"
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
 

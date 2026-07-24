@@ -44,7 +44,10 @@ export interface UserSession {
   role: Role;
   password?: string;
   projectId?: string; // Restringir invitado a un proyecto específico
+  capacidadMensualHoras?: number; // Capacidad mensual (default 176h)
 }
+
+export type TimeEntryType = 'normal' | 'retrabajo' | 'no_facturable';
 
 // Registro de horas apiladas por rol
 export interface TimeEntry {
@@ -56,6 +59,13 @@ export interface TimeEntry {
   date: string;
   description: string;
   phaseId: string;
+  projectId?: string;
+  type?: TimeEntryType;
+  retrabajoMotivo?: string;
+  retrabajoOrigen?: 'cliente' | 'interno' | 'proveedor';
+  deliverableId?: string;
+  ovId?: string;
+  createdAt?: string;
 }
 
 // 1. Presupuesto de horas por Rol
@@ -219,6 +229,29 @@ export interface Client {
   email?: string;
   sitioWebRedes?: string;
   brandBible?: BrandBible;
+  estado?: 'activo' | 'inactivo' | 'pausado';
+  fechaUltimaActividad?: string;
+  fechaAlta?: string;
+}
+
+export interface OrdenVenta {
+  id: string;
+  numero: string;
+  monto: number;
+  moneda: string;
+  horasAsociadas: number;
+  fechaEmision: string;
+  descripcion?: string;
+  estado: 'activa' | 'facturada' | 'cancelada';
+}
+
+export interface CargaMensualUsuario {
+  userId: string;
+  anioMes: string; // 'YYYY-MM'
+  horasDisponibles: number;
+  horasVendidas: number;
+  horasConsumidas: number;
+  horasRetrabajo: number;
 }
 
 export type ProjectTemplateType = 
@@ -257,9 +290,10 @@ export interface Project {
   auditLog: AuditLogEntry[];
   deliverables: DeliverableItem[];
   phases: Phase[];
-  ovNumber?: string;       // Número de Orden de Venta
+  ordenesVenta?: OrdenVenta[]; // Múltiples Órdenes de Venta por proyecto
+  ovNumber?: string;       // Número de Orden de Venta (Deprecated / Compatibilidad)
   hoursSold?: number;      // Horas vendidas
-  saleOrderNumber?: number | string; // No. de Orden de Venta (OV)
+  saleOrderNumber?: number | string; // No. de Orden de Venta (OV - Deprecated / Compatibilidad)
   roleHours?: RoleHoursAllocation;   // Desglose de horas por rol
   templateType?: string;
 }

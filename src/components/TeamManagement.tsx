@@ -134,7 +134,9 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
         username: load.username,
         role: load.role,
         puesto: load.puesto,
-        monthlyCapacity: 160, // Standard capacity in hours per month
+        monthlyCapacity: 192, // 192h brutas al mes
+        effectiveCapacity: 153.6, // 153.6h neta (80%)
+        idleBuffer: 38.4, // 20% margen tiempos muertos/ocio
         loadedHours: load.consumedHours,
         assignedHours: load.assignedHours,
         saturation: load.assignedHours > 0 ? (load.consumedHours / load.assignedHours) * 100 : 0,

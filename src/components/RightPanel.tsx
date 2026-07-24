@@ -1,4 +1,4 @@
-import { Phase, Project, TimeEntry, UserSession } from '../types';
+import { Phase, Project, TimeEntry, TimeEntryType, UserSession } from '../types';
 import { 
   Heart, 
   Clock, 
@@ -13,13 +13,16 @@ import {
   Calendar,
   Layers,
   MessageSquare,
-  AlertTriangle
+  AlertTriangle,
+  RotateCcw,
+  ShieldAlert
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { StackedHoursBar } from './StackedHoursBar';
 import { generateObsidianMarkdownBundle, downloadObsidianFile } from '../obsidianExporter';
 import { RoleTimeTracker } from './RoleTimeTracker';
 import { exportProjectToZip } from '../projectArchiver';
+import { getRetrabajoStats, getRetrabajoBadgeStyle } from '../dashboardUtils';
 
 interface RightPanelProps {
   project: Project;
@@ -174,11 +177,73 @@ ${phaseListStr}
           <div className="space-y-3">
             <StackedHoursBar timeEntries={timeEntries} hoursTotal={hoursTotal} />
 
+            {/* BLOCK 2B: ANÁLISIS DE RETRABAJOS (FASE 1) */}
+            {(() => {
+              const retrabajoStats = getRetrabajoStats(project);
+              const retrabajoBadge = getRetrabajoBadgeStyle(retrabajoStats.porcentajeRetrabajo);
+              return (
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-500" />
+                      Retrabajo del Proyecto
+                    </span>
+                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${retrabajoBadge.bg} ${retrabajoBadge.text} ${retrabajoBadge.border}`}>
+                      {retrabajoStats.porcentajeRetrabajo.toFixed(1)}% ({retrabajoStats.horasRetrabajo}h / {retrabajoStats.totalHoras}h)
+                    </span>
+                  </div>
+
+                  {retrabajoStats.totalHoras > 0 ? (
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+                        <div className="bg-amber-50/80 border border-amber-100 rounded-lg p-1.5">
+                          <span className="text-slate-500 block">Cliente</span>
+                          <strong className="text-amber-900 font-bold">{retrabajoStats.porOrigen.cliente}h</strong>
+                        </div>
+                        <div className="bg-slate-50 border border-slate-100 rounded-lg p-1.5">
+                          <span className="text-slate-500 block">Interno</span>
+                          <strong className="text-slate-800 font-bold">{retrabajoStats.porOrigen.interno}h</strong>
+                        </div>
+                        <div className="bg-slate-50 border border-slate-100 rounded-lg p-1.5">
+                          <span className="text-slate-500 block">Proveedor</span>
+                          <strong className="text-slate-800 font-bold">{retrabajoStats.porOrigen.proveedor}h</strong>
+                        </div>
+                      </div>
+
+                      {retrabajoStats.entriesRetrabajo.length > 0 && (
+                        <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                          <span className="text-[10px] font-bold text-slate-500 block uppercase tracking-wider">Últimos Retrabajos</span>
+                          <div className="max-h-28 overflow-y-auto space-y-1 pr-1 text-[11px]">
+                            {retrabajoStats.entriesRetrabajo.slice(-3).reverse().map(e => (
+                              <div key={e.id} className="bg-slate-50 border border-slate-100 p-2 rounded-lg flex justify-between items-start gap-2">
+                                <div>
+                                  <span className="font-bold text-slate-800">{e.username}</span>
+                                  <span className="text-[9px] text-amber-700 bg-amber-100/80 px-1.5 py-0.2 rounded-md ml-1 font-medium capitalize">
+                                    {e.retrabajoOrigen || 'interno'}
+                                  </span>
+                                  <p className="text-slate-600 text-[10px] mt-0.5 leading-snug">{e.retrabajoMotivo || e.description}</p>
+                                </div>
+                                <span className="font-mono text-amber-800 font-bold text-[10px] shrink-0 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                                  {e.hours}h
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-slate-400 font-medium">Sin registro de horas todavía.</p>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Hours Logger Section (Role Budget Tracker) */}
             <RoleTimeTracker
               project={project}
               currentUser={currentUser}
-              onLogTime={(hours, description) => {
+              onLogTime={(hours, description, type: TimeEntryType = 'normal', retrabajoOrigen, retrabajoMotivo, deliverableId) => {
                 const role = currentUser.role;
                 const newEntry: TimeEntry = {
                   id: `time-${Date.now()}`,
@@ -189,6 +254,12 @@ ${phaseListStr}
                   date: new Date().toISOString().split('T')[0],
                   description: description,
                   phaseId: activePhase.id,
+                  projectId: project.id,
+                  type: type,
+                  retrabajoOrigen: retrabajoOrigen,
+                  retrabajoMotivo: retrabajoMotivo,
+                  deliverableId: deliverableId,
+                  createdAt: new Date().toISOString(),
                 };
 
                 const updatedEntries = [...timeEntries, newEntry];
@@ -202,6 +273,11 @@ ${phaseListStr}
                   };
                 }
 
+                const actionText = type === 'retrabajo' ? 'Registro Retrabajo' : 'Registro Horas';
+                const detailText = type === 'retrabajo'
+                  ? `Cargó ${hours}h de retrabajo [Origen: ${retrabajoOrigen}] en fase ${activePhase.id}: "${retrabajoMotivo || description}"`
+                  : `Cargó ${hours}h en fase ${activePhase.id}: "${description}"`;
+
                 const newAuditLog = [
                   {
                     id: `audit-${Date.now()}`,
@@ -209,9 +285,9 @@ ${phaseListStr}
                     userId: currentUser.id,
                     username: currentUser.username,
                     userRole: currentUser.role,
-                    action: 'Registro Horas',
+                    action: actionText,
                     entityType: 'Horas',
-                    details: `Cargó ${hours}h en fase ${activePhase.id}: "${description}"`,
+                    details: detailText,
                   },
                   ...(project.auditLog || []),
                 ];

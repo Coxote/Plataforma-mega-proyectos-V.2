@@ -1,7 +1,8 @@
-import React from 'react';
-import { X, Clock, Briefcase, Award, TrendingUp, Sparkles, AlertCircle, CheckCircle, Calendar } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { X, Clock, Briefcase, Award, TrendingUp, Sparkles, AlertCircle, CheckCircle, Calendar, RotateCcw } from 'lucide-react';
 import { VitaminizedMember } from './TeamCard';
 import { Project, getUserAvatarUrl } from '../types';
+import { getRetrabajoBadgeStyle } from '../dashboardUtils';
 import {
   Radar,
   RadarChart,
@@ -111,6 +112,26 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
     return allocated > 0;
   });
 
+  // Retrabajo calculation for this member
+  const userRetrabajo = useMemo(() => {
+    let total = 0;
+    let retrabajo = 0;
+    projects.forEach(p => {
+      (p.timeEntries || []).forEach(e => {
+        if (e.userId === member.id || e.username?.toLowerCase() === member.username?.toLowerCase()) {
+          total += e.hours || 0;
+          if (e.type === 'retrabajo') {
+            retrabajo += e.hours || 0;
+          }
+        }
+      });
+    });
+    const percent = total > 0 ? (retrabajo / total) * 100 : 0;
+    return { total, retrabajo, percent };
+  }, [projects, member]);
+
+  const retrabajoBadge = getRetrabajoBadgeStyle(userRetrabajo.percent);
+
   return (
     <div 
       className="fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-slate-200/80 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300"
@@ -153,21 +174,46 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
       {/* Contenido Desglosado */}
       <div className="flex-1 p-6 overflow-y-auto space-y-6">
         
-        {/* Bloque de Capacidad y Horas */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/50 hover:bg-slate-50 transition-colors">
-            <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">Capacidad Mensual</span>
-            <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-black text-slate-900">{member.monthlyCapacity}</span>
-              <span className="text-xs text-slate-400 font-bold">horas</span>
+        {/* Bloque de Capacidad, Horas y Retrabajo */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Capacidad Mensual</span>
+              <span className="text-[9px] bg-indigo-50 text-indigo-700 font-extrabold px-1.5 py-0.5 rounded border border-indigo-100">
+                192h Brutas
+              </span>
             </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-black text-slate-900">{member.effectiveCapacity || 153.6}</span>
+              <span className="text-[10px] text-slate-400 font-bold">h efectivas (80%)</span>
+            </div>
+            <span className="text-[9px] text-slate-400 block mt-1">
+              Margen de ocio (20%): <strong className="text-slate-600">{member.idleBuffer || 38.4}h</strong>
+            </span>
           </div>
-          <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200/50 hover:bg-slate-50 transition-colors">
-            <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">Horas Consumidas</span>
+
+          <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70">
+            <span className="text-[9px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">Horas Ejecutadas</span>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-black text-emerald-600">{member.loadedHours}</span>
-              <span className="text-xs text-emerald-400 font-bold">horas</span>
+              <span className="text-xl font-black text-emerald-600">{member.loadedHours}</span>
+              <span className="text-[10px] text-emerald-500 font-bold">h / {member.assignedHours}h asig.</span>
             </div>
+            <span className="text-[9px] text-slate-400 block mt-1">
+              Saturación Objetivo: <strong className={member.loadedHours > (member.effectiveCapacity || 153.6) ? 'text-rose-600' : 'text-slate-700'}>
+                {(((member.loadedHours) / (member.effectiveCapacity || 153.6)) * 100).toFixed(0)}%
+              </strong>
+            </span>
+          </div>
+
+          <div className={`p-3.5 rounded-2xl border ${retrabajoBadge.bg} ${retrabajoBadge.border}`}>
+            <span className={`text-[9px] font-bold block mb-1 uppercase tracking-wider ${retrabajoBadge.text}`}>Retrabajo Reg.</span>
+            <div className="flex items-baseline gap-1">
+              <span className={`text-xl font-black ${retrabajoBadge.text}`}>{userRetrabajo.retrabajo}</span>
+              <span className={`text-[10px] font-bold ${retrabajoBadge.text}`}>h ({userRetrabajo.percent.toFixed(0)}%)</span>
+            </div>
+            <span className="text-[9px] text-slate-500 block mt-1 truncate">
+              {retrabajoBadge.label}
+            </span>
           </div>
         </div>
 

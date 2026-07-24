@@ -241,9 +241,11 @@ export const INITIAL_PROJECTS: Project[] = [
       }
     },
     timeEntries: [
-      { id: 't1', userId: 'u1', username: 'carlos', role: 'coordinador', hours: 10, date: '2026-07-11', description: 'Reunión kickoff & cronograma', phaseId: 'A1' },
-      { id: 't2', userId: 'u2', username: 'ana', role: 'sac', hours: 8, date: '2026-07-13', description: 'Minutas de acuerdos iniciales', phaseId: 'A1' },
-      { id: 't3', userId: 'u3', username: 'lucia', role: 'contents', hours: 10, date: '2026-07-15', description: 'Identidad y bocetos en Figma', phaseId: 'A3' }
+      { id: 't1', userId: 'u1', username: 'carlos', role: 'coordinador', hours: 10, date: '2026-07-11', description: 'Reunión kickoff & cronograma', phaseId: 'A1', type: 'normal' },
+      { id: 't2', userId: 'u2', username: 'ana', role: 'sac', hours: 8, date: '2026-07-13', description: 'Minutas de acuerdos iniciales', phaseId: 'A1', type: 'normal' },
+      { id: 't3', userId: 'u3', username: 'lucia', role: 'contents', hours: 8, date: '2026-07-15', description: 'Identidad y bocetos en Figma', phaseId: 'A3', type: 'normal' },
+      { id: 't3-r1', userId: 'u3', username: 'lucia', role: 'contents', hours: 4, date: '2026-07-17', description: 'Rediseño de logotipo por cambio de paleta del cliente', phaseId: 'A3', type: 'retrabajo', retrabajoOrigen: 'cliente', retrabajoMotivo: 'Cliente modificó colores corporativos a mitad de diseño' },
+      { id: 't3-r2', userId: 'u4', username: 'diego', role: 'contentd', hours: 2, date: '2026-07-18', description: 'Ajuste de exportación SVG por error de capas', phaseId: 'A3', type: 'retrabajo', retrabajoOrigen: 'interno', retrabajoMotivo: 'Corrección interna de maquetación de vectores' }
     ],
     auditLog: [],
     deliverables: [],

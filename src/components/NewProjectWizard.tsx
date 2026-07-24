@@ -24,6 +24,17 @@ interface NewProjectWizardProps {
   users: UserSession[];
 }
 
+export interface ProjectDraftOV {
+  id: string;
+  numero: string;
+  monto: number | '';
+  moneda: string;
+  horasAsociadas: number | '';
+  fechaEmision: string;
+  descripcion: string;
+  estado: 'activa' | 'facturada' | 'cancelada';
+}
+
 export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onClose, onCreateProject, users }) => {
   const [step, setStep] = useState<1 | 2>(1);
   const [activeTab, setActiveTab] = useState<'general' | 'fases' | 'integrantes' | 'rentabilidad'>('general');
@@ -55,49 +66,62 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     }
   }, [isOpen]);
 
-  // --- ESTADO UNIFICADO DE BORRADOR (DRAFT) DE PROYECTO ---
-  interface ProjectDraft {
-    projectName: string;
-    clientName: string;
-    projectMode: 'blank' | 'template';
-    selectedTemplate: string;
-    startDate: string;
-    endDate: string;
-    saleOrderNumber: string;
-    deliverablesCount: number | '';
-    description: string;
-    riskMitigationText: string;
-    tags: string[];
-    customPhases: any[];
-    members: any[];
-    currency: string;
-    totalIncome: number | '';
-    roleHours: RoleHoursAllocation;
-  }
+// --- ESTADO UNIFICADO DE BORRADOR (DRAFT) DE PROYECTO ---
+interface ProjectDraft {
+  projectName: string;
+  clientName: string;
+  projectMode: 'blank' | 'template';
+  selectedTemplate: string;
+  startDate: string;
+  endDate: string;
+  saleOrderNumber: string;
+  ordenesVenta: ProjectDraftOV[];
+  deliverablesCount: number | '';
+  description: string;
+  riskMitigationText: string;
+  tags: string[];
+  customPhases: any[];
+  members: any[];
+  currency: string;
+  totalIncome: number | '';
+  roleHours: RoleHoursAllocation;
+}
 
-  const DEFAULT_DRAFT: ProjectDraft = {
-    projectName: '',
-    clientName: '',
-    projectMode: 'blank',
-    selectedTemplate: 'redes',
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: '',
-    saleOrderNumber: '',
-    deliverablesCount: '',
-    description: '',
-    riskMitigationText: '',
-    tags: [],
-    customPhases: [],
-    members: [],
-    currency: 'USD',
-    totalIncome: '',
-    roleHours: { 
-      coordinador: 0, 
-      sac: 0, 
-      contents: 0, 
-      contentd: 0 
+const DEFAULT_DRAFT: ProjectDraft = {
+  projectName: '',
+  clientName: '',
+  projectMode: 'blank',
+  selectedTemplate: 'redes',
+  startDate: new Date().toISOString().split('T')[0],
+  endDate: '',
+  saleOrderNumber: 'OV-001',
+  ordenesVenta: [
+    {
+      id: `ov-draft-1`,
+      numero: 'OV-001',
+      monto: '',
+      moneda: 'USD',
+      horasAsociadas: '',
+      fechaEmision: new Date().toISOString().split('T')[0],
+      descripcion: 'Orden de Venta Inicial',
+      estado: 'activa'
     }
-  };
+  ],
+  deliverablesCount: '',
+  description: '',
+  riskMitigationText: '',
+  tags: [],
+  customPhases: [],
+  members: [],
+  currency: 'USD',
+  totalIncome: '',
+  roleHours: { 
+    coordinador: 0, 
+    sac: 0, 
+    contents: 0, 
+    contentd: 0 
+  }
+};
 
   const [draft, setDraft] = useState<ProjectDraft>(() => {
     try {
@@ -320,6 +344,58 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     }));
   };
 
+  // --- HANDLERS MULTI-OV DRAFT ---
+  const handleAddDraftOV = () => {
+    setDraft(prev => {
+      const nextNum = `OV-${String(prev.ordenesVenta.length + 1).padStart(3, '0')}`;
+      const newOV: ProjectDraftOV = {
+        id: `ov-draft-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+        numero: nextNum,
+        monto: '',
+        moneda: prev.currency || 'USD',
+        horasAsociadas: '',
+        fechaEmision: prev.startDate || new Date().toISOString().split('T')[0],
+        descripcion: 'Orden de Venta Adicional',
+        estado: 'activa'
+      };
+      const updatedOVs = [...prev.ordenesVenta, newOV];
+      const sumIncome = updatedOVs.reduce((s, o) => s + (typeof o.monto === 'number' ? o.monto : 0), 0);
+      return {
+        ...prev,
+        ordenesVenta: updatedOVs,
+        totalIncome: sumIncome > 0 ? sumIncome : prev.totalIncome,
+        saleOrderNumber: updatedOVs.map(o => o.numero).join(', ')
+      };
+    });
+  };
+
+  const handleRemoveDraftOV = (ovId: string) => {
+    setDraft(prev => {
+      if (prev.ordenesVenta.length <= 1) return prev;
+      const updatedOVs = prev.ordenesVenta.filter(o => o.id !== ovId);
+      const sumIncome = updatedOVs.reduce((s, o) => s + (typeof o.monto === 'number' ? o.monto : 0), 0);
+      return {
+        ...prev,
+        ordenesVenta: updatedOVs,
+        totalIncome: sumIncome,
+        saleOrderNumber: updatedOVs.map(o => o.numero).join(', ')
+      };
+    });
+  };
+
+  const handleUpdateDraftOV = (ovId: string, field: keyof ProjectDraftOV, value: any) => {
+    setDraft(prev => {
+      const updatedOVs = prev.ordenesVenta.map(o => o.id === ovId ? { ...o, [field]: value } : o);
+      const sumIncome = updatedOVs.reduce((s, o) => s + (typeof o.monto === 'number' ? o.monto : 0), 0);
+      return {
+        ...prev,
+        ordenesVenta: updatedOVs,
+        totalIncome: sumIncome > 0 ? sumIncome : prev.totalIncome,
+        saleOrderNumber: updatedOVs.map(o => o.numero).join(', ')
+      };
+    });
+  };
+
   // Resetear estados y borrar borrador temporal de localStorage
   const handleResetAndClose = () => {
     setStep(1);
@@ -342,20 +418,37 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
           { id: 'A1', label: 'A1. Fase Inicial', status: 'active', completedAt: null, checklist: [], fields: {} }
         ]);
 
+    const formattedOVs = draft.ordenesVenta.map((ov, idx) => ({
+      id: ov.id || `ov-${Date.now()}-${idx + 1}`,
+      numero: ov.numero.trim() || `OV-${String(idx + 1).padStart(3, '0')}`,
+      monto: typeof ov.monto === 'number' ? ov.monto : 0,
+      moneda: ov.moneda || draft.currency || 'USD',
+      horasAsociadas: typeof ov.horasAsociadas === 'number' ? ov.horasAsociadas : 0,
+      fechaEmision: ov.fechaEmision || draft.startDate || new Date().toISOString().split('T')[0],
+      descripcion: ov.descripcion || 'Orden de Venta',
+      estado: ov.estado || 'activa'
+    }));
+
+    const activeOVs = formattedOVs.filter(o => o.estado !== 'cancelada');
+    const computedTotalIncome = activeOVs.reduce((sum, o) => sum + o.monto, 0);
+    const combinedOVNumbers = formattedOVs.map(o => o.numero).join(', ') || 'OV-001';
+
     onCreateProject({
       name: draft.projectName,
       clientName: draft.clientName,
       templateType: draft.projectMode === 'template' ? draft.selectedTemplate : 'custom',
       startDate: draft.startDate, 
       endDate: draft.endDate, 
-      saleOrderNumber: draft.saleOrderNumber, 
+      saleOrderNumber: combinedOVNumbers, 
+      ovNumber: combinedOVNumbers,
+      ordenesVenta: formattedOVs,
       deliverablesCount: Number(draft.deliverablesCount) || 0, 
       description: draft.description, 
       riesgos: draft.riskMitigationText || '',
       tags: draft.tags, 
       members: draft.members.map(m => ({ id: m.id, name: m.name, role: m.role, participationRole: m.participationRole })), 
       currency: draft.currency, 
-      totalIncome: Number(draft.totalIncome) || 0, 
+      totalIncome: computedTotalIncome || Number(draft.totalIncome) || 0, 
       roleHours: draft.roleHours, 
       hoursTotal: totalHoursCalculated, 
       phases: finalPhases
@@ -414,9 +507,27 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   />
                   <datalist id="clients-list-suggestions">
                     {clients.map((c: any) => (
-                      <option key={c.id} value={c.nombreComercial} />
+                      <option key={c.id} value={c.nombreComercial}>
+                        {c.nombreComercial} {c.estado && c.estado !== 'activo' ? `(${c.estado.toUpperCase()})` : ''}
+                      </option>
                     ))}
                   </datalist>
+
+                  {/* Warning banner if selected client is inactive or paused */}
+                  {(() => {
+                    const matched = clients.find((c: any) => c.nombreComercial?.toLowerCase() === draft.clientName?.trim().toLowerCase());
+                    if (matched && (matched.estado === 'inactivo' || matched.estado === 'pausado')) {
+                      return (
+                        <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center gap-2 animate-in fade-in">
+                          <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                          <span>
+                            El cliente <strong>{matched.nombreComercial}</strong> se encuentra como <strong>{matched.estado}</strong>. Se reactivará automáticamente a estar <strong>Activo</strong> al guardar.
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
 
@@ -935,39 +1046,125 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                 </div>
               )}
 
-              {/* TAB RENTABILIDAD */}
+              {/* TAB RENTABILIDAD CON SOPORTE MULTI-OV (FASE A) */}
               {activeTab === 'rentabilidad' && (
                 <div className="space-y-6">
-                  <h3 className="text-base font-black text-slate-900">Mide la rentabilidad del proyecto</h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <div>
+                      <h3 className="text-base font-black text-slate-900">Configuración Financiera y Múltiples OVs (Fase A)</h3>
+                      <p className="text-xs text-slate-500 font-medium">Asocia una o más Órdenes de Venta (OV) al crear el proyecto.</p>
+                    </div>
 
-                  {/* Tipo de Ingreso */}
+                    <div className="flex items-center gap-2">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase">Moneda Base:</label>
+                      <select
+                        value={draft.currency}
+                        onChange={(e) => setDraft(prev => ({ ...prev, currency: e.target.value }))}
+                        className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none"
+                      >
+                        <option value="USD">USD ($)</option>
+                        <option value="GTQ">GTQ (Q)</option>
+                        <option value="EUR">EUR (€)</option>
+                        <option value="CLP">CLP ($)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* BLOQUE DE MULTI-OV DRAFT */}
                   <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
-                    <span className="text-xs font-bold text-slate-700 block uppercase tracking-wider">Configuración de Ingreso</span>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Moneda base</label>
-                        <select
-                          value={draft.currency}
-                          onChange={(e) => setDraft(prev => ({ ...prev, currency: e.target.value }))}
-                          className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none"
-                        >
-                          <option value="USD">USD ($)</option>
-                          <option value="GTQ">GTQ (Q)</option>
-                          <option value="EUR">EUR (€)</option>
-                        </select>
+                    <div className="flex justify-between items-center border-b border-slate-200/80 pb-3">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-cyan-600" />
+                        <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                          Órdenes de Venta del Proyecto ({draft.ordenesVenta.length})
+                        </span>
                       </div>
+                      <button
+                        type="button"
+                        onClick={handleAddDraftOV}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Añadir OV
+                      </button>
+                    </div>
 
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ingreso Total (Monto Manual) *</label>
-                        <input
-                          type="number"
-                          placeholder="Ej: 5000"
-                          value={draft.totalIncome}
-                          onChange={(e) => setDraft(prev => ({ ...prev, totalIncome: e.target.value ? Number(e.target.value) : '' }))}
-                          className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none"
-                        />
-                      </div>
+                    <div className="space-y-3">
+                      {draft.ordenesVenta.map((ov, index) => (
+                        <div key={ov.id} className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-xs space-y-3">
+                          <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                            <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+                              <span className="w-5 h-5 bg-cyan-100 text-cyan-800 rounded-full flex items-center justify-center text-[10px] font-black">
+                                {index + 1}
+                              </span>
+                              Orden de Venta #{ov.numero}
+                            </span>
+                            {draft.ordenesVenta.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveDraftOV(ov.id)}
+                                className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors cursor-pointer"
+                                title="Eliminar OV"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                            <div>
+                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Número / Código OV</label>
+                              <input
+                                type="text"
+                                value={ov.numero}
+                                onChange={(e) => handleUpdateDraftOV(ov.id, 'numero', e.target.value)}
+                                placeholder="Ej: OV-104"
+                                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Monto ({draft.currency}) *</label>
+                              <input
+                                type="number"
+                                value={ov.monto}
+                                onChange={(e) => handleUpdateDraftOV(ov.id, 'monto', e.target.value ? Number(e.target.value) : '')}
+                                placeholder="Ej: 2500"
+                                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Horas Vendidas OV</label>
+                              <input
+                                type="number"
+                                value={ov.horasAsociadas}
+                                onChange={(e) => handleUpdateDraftOV(ov.id, 'horasAsociadas', e.target.value ? Number(e.target.value) : '')}
+                                placeholder="Ej: 40"
+                                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Descripción / Concepto</label>
+                              <input
+                                type="text"
+                                value={ov.descripcion}
+                                onChange={(e) => handleUpdateDraftOV(ov.id, 'descripcion', e.target.value)}
+                                placeholder="Ej: Fase Inicial o Fee Mensual"
+                                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-200/80">
+                      <span className="text-xs font-bold text-slate-500">Ingreso Total Proyectado de OVs:</span>
+                      <span className="text-sm font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-100">
+                        ${(typeof draft.totalIncome === 'number' ? draft.totalIncome : 0).toLocaleString('es-CL')} {draft.currency}
+                      </span>
                     </div>
                   </div>
 
@@ -1079,7 +1276,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                 <button 
                   type="button"
                   onClick={handleFinish} 
-                  disabled={!draft.endDate || draft.totalIncome === ''}
+                  disabled={!draft.endDate || (draft.totalIncome === '' && !draft.ordenesVenta.some(o => typeof o.monto === 'number' && o.monto > 0))}
                   className="px-8 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer disabled:opacity-40"
                 >
                   Crear Proyecto

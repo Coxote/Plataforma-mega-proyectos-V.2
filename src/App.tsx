@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Project, UserSession, RoleHoursAllocation, Client } from './types';
+import { Project, UserSession, RoleHoursAllocation, Client, TimeEntryType } from './types';
 import { INITIAL_PROJECTS, createDefaultPhases, createDefaultBudget, createDefaultRaci } from './initialData';
 import ProjectSelector from './components/ProjectSelector';
 import Sidebar from './components/Sidebar';
@@ -14,6 +14,7 @@ import { TeamManagement } from './components/TeamManagement';
 import { PlannerGrid } from './components/PlannerGrid';
 import { GanttView } from './components/GanttView';
 import { ClientsManagement } from './components/ClientsManagement';
+import { MyProfileView } from './components/MyProfileView';
 import { Sparkles, Shield, Users, LogOut, Activity } from 'lucide-react';
 import { generatePhasesForTemplate } from './projectTemplates';
 import { NewProjectWizard } from './components/NewProjectWizard';
@@ -33,6 +34,8 @@ const DEFAULT_CLIENTS: Client[] = [
     email: 'mlopez@acme.com',
     telefono: '+502 5555-1234',
     sitioWebRedes: 'https://acme.com',
+    estado: 'activo',
+    fechaAlta: '2026-01-15T08:00:00.000Z',
     brandBible: {
       archetype: 'El Creador / El Sabio',
       misionVision: 'Automatizar el autoservicio de clientes con soluciones eficientes y transparentes.',
@@ -49,6 +52,8 @@ const DEFAULT_CLIENTS: Client[] = [
     email: 'aruiz@fintechgo.com',
     telefono: '+502 5555-5678',
     sitioWebRedes: 'https://fintechgo.com',
+    estado: 'activo',
+    fechaAlta: '2026-02-01T08:00:00.000Z',
     brandBible: {
       archetype: 'El Mago / El Héroe',
       misionVision: 'Disrumpir el onboarding financiero haciéndolo express y sin fricciones.',
@@ -65,6 +70,8 @@ const DEFAULT_CLIENTS: Client[] = [
     email: 'rtoro@globex.com',
     telefono: '+502 5555-9012',
     sitioWebRedes: 'https://globex.com',
+    estado: 'activo',
+    fechaAlta: '2026-03-10T08:00:00.000Z',
     brandBible: {
       archetype: 'El Gobernante / El Creador',
       misionVision: 'Brindar infraestructura logística robusta y de alta disponibilidad global.',
@@ -76,11 +83,11 @@ const DEFAULT_CLIENTS: Client[] = [
 ];
 
 const DEFAULT_USERS: UserSession[] = [
-  { id: 'u1', username: 'carlos', puesto: 'Coordinador', role: 'coordinador', password: '123' },
-  { id: 'u2', username: 'ana', puesto: 'SAC', role: 'sac', password: '123' },
-  { id: 'u3', username: 'lucia', puesto: 'ContentS', role: 'contents', password: '123' },
-  { id: 'u5', username: 'pedro', puesto: 'ContentD', role: 'contentd', password: '123' },
-  { id: 'u4', username: 'invitado', puesto: 'Cliente / Invitado', role: 'invitado', password: '123', projectId: 'p1' },
+  { id: 'u1', username: 'carlos', puesto: 'Coordinador', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u2', username: 'ana', puesto: 'SAC', role: 'sac', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u3', username: 'lucia', puesto: 'ContentS', role: 'contents', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u5', username: 'pedro', puesto: 'ContentD', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u4', username: 'invitado', puesto: 'Cliente / Invitado', role: 'invitado', password: '123', projectId: 'p1', capacidadMensualHoras: 0 },
 ];
 
 export default function App() {
@@ -96,6 +103,48 @@ export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>('planner');
   const [clients, setClients] = useState<Client[]>([]);
 
+  // Normalizador de proyectos para migración automática Fase 0
+  const normalizeProject = (p: any): Project => {
+    const timeEntries = (p.timeEntries || []).map((e: any) => ({
+      ...e,
+      type: e.type || 'normal'
+    }));
+
+    const ordenesVenta = p.ordenesVenta || (p.saleOrderNumber || p.ovNumber ? [{
+      id: `ov-${p.id}-1`,
+      numero: String(p.saleOrderNumber || p.ovNumber || 'OV-001'),
+      monto: p.totalIncome || 0,
+      moneda: p.currency || 'USD',
+      horasAsociadas: p.hoursTotal || 0,
+      fechaEmision: p.createdAt || new Date().toISOString(),
+      estado: 'activa'
+    }] : []);
+
+    return {
+      ...p,
+      timeEntries,
+      ordenesVenta,
+      auditLog: p.auditLog || [],
+      deliverables: p.deliverables || [],
+      budget: p.budget || createDefaultBudget(p.hoursTotal || 40),
+      raciMatrix: p.raciMatrix || createDefaultRaci(),
+      brandBible: p.brandBible || {
+        companyContext: { historyAndBackground: '', missionVisionUvp: '' },
+        brandPersona: { archetype: '', buyerPersonas: '' },
+        voiceAndTone: { personalityTraits: [], dosAndDonts: '', coreMessages: '' },
+        visualIdentity: { logoRules: '', colorPaletteHex: [], typographyHierarchy: '', moodboardLinks: [] },
+        resources: { driveFolderUrl: '', figmaUrl: '' }
+      }
+    };
+  };
+
+  // Normalizador de clientes
+  const normalizeClient = (c: any): Client => ({
+    ...c,
+    estado: c.estado || 'activo',
+    fechaAlta: c.fechaAlta || new Date().toISOString()
+  });
+
   // Load from local storage or default
   useEffect(() => {
     // 1. Load Projects
@@ -105,61 +154,19 @@ export default function App() {
     if (stored) {
       try {
         const parsed = JSON.parse(stored) as Project[];
-        const normalized = parsed.map(p => ({
-          ...p,
-          timeEntries: p.timeEntries || [],
-          auditLog: p.auditLog || [],
-          deliverables: p.deliverables || [],
-          budget: p.budget || createDefaultBudget(p.hoursTotal || 40),
-          raciMatrix: p.raciMatrix || createDefaultRaci(),
-          brandBible: p.brandBible || {
-            companyContext: { historyAndBackground: '', missionVisionUvp: '' },
-            brandPersona: { archetype: '', buyerPersonas: '' },
-            voiceAndTone: { personalityTraits: [], dosAndDonts: '', coreMessages: '' },
-            visualIdentity: { logoRules: '', colorPaletteHex: [], typographyHierarchy: '', moodboardLinks: [] },
-            resources: { driveFolderUrl: '', figmaUrl: '' }
-          }
-        }));
+        const normalized = parsed.map(normalizeProject);
         setProjects(normalized);
         if (normalized.length > 0) {
           const defaultActive = normalized.find((p) => p.id === storedActiveId) || normalized[0];
           setActiveProjectId(defaultActive.id);
         }
       } catch (err) {
-        const defaults = INITIAL_PROJECTS.map(p => ({
-          ...p,
-          timeEntries: p.timeEntries || [],
-          auditLog: p.auditLog || [],
-          deliverables: p.deliverables || [],
-          budget: p.budget || createDefaultBudget(p.hoursTotal || 40),
-          raciMatrix: p.raciMatrix || createDefaultRaci(),
-          brandBible: p.brandBible || {
-            companyContext: { historyAndBackground: '', missionVisionUvp: '' },
-            brandPersona: { archetype: '', buyerPersonas: '' },
-            voiceAndTone: { personalityTraits: [], dosAndDonts: '', coreMessages: '' },
-            visualIdentity: { logoRules: '', colorPaletteHex: [], typographyHierarchy: '', moodboardLinks: [] },
-            resources: { driveFolderUrl: '', figmaUrl: '' }
-          }
-        }));
+        const defaults = INITIAL_PROJECTS.map(normalizeProject);
         setProjects(defaults);
         setActiveProjectId(defaults[0].id);
       }
     } else {
-      const defaults = INITIAL_PROJECTS.map(p => ({
-        ...p,
-        timeEntries: p.timeEntries || [],
-        auditLog: p.auditLog || [],
-        deliverables: p.deliverables || [],
-        budget: p.budget || createDefaultBudget(p.hoursTotal || 40),
-        raciMatrix: p.raciMatrix || createDefaultRaci(),
-        brandBible: p.brandBible || {
-          companyContext: { historyAndBackground: '', missionVisionUvp: '' },
-          brandPersona: { archetype: '', buyerPersonas: '' },
-          voiceAndTone: { personalityTraits: [], dosAndDonts: '', coreMessages: '' },
-          visualIdentity: { logoRules: '', colorPaletteHex: [], typographyHierarchy: '', moodboardLinks: [] },
-          resources: { driveFolderUrl: '', figmaUrl: '' }
-        }
-      }));
+      const defaults = INITIAL_PROJECTS.map(normalizeProject);
       setProjects(defaults);
       setActiveProjectId(defaults[0].id);
     }
@@ -168,7 +175,12 @@ export default function App() {
     const storedUsers = localStorage.getItem(USERS_LIST_KEY);
     if (storedUsers) {
       try {
-        setUsersList(JSON.parse(storedUsers));
+        const parsedUsers = JSON.parse(storedUsers) as UserSession[];
+        const normalizedUsers = parsedUsers.map(u => ({
+          ...u,
+          capacidadMensualHoras: u.capacidadMensualHoras ?? (u.role === 'invitado' ? 0 : 176)
+        }));
+        setUsersList(normalizedUsers);
       } catch (err) {
         setUsersList(DEFAULT_USERS);
         localStorage.setItem(USERS_LIST_KEY, JSON.stringify(DEFAULT_USERS));
@@ -196,7 +208,9 @@ export default function App() {
     const storedClients = localStorage.getItem(CLIENTS_STORAGE_KEY);
     if (storedClients) {
       try {
-        setClients(JSON.parse(storedClients));
+        const parsedClients = JSON.parse(storedClients);
+        const normalizedClients = parsedClients.map(normalizeClient);
+        setClients(normalizedClients);
       } catch (err) {
         setClients(DEFAULT_CLIENTS);
         localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(DEFAULT_CLIENTS));
@@ -225,6 +239,54 @@ export default function App() {
     saveClientsToStorage(updated);
   };
 
+  const handleUpdateClientStatus = (clientId: string, nuevoEstado: 'activo' | 'inactivo' | 'pausado') => {
+    const updatedClients = clients.map(c => {
+      if (c.id === clientId) {
+        return { ...c, estado: nuevoEstado };
+      }
+      return c;
+    });
+    setClients(updatedClients);
+    saveClientsToStorage(updatedClients);
+  };
+
+  const updateClientLastActivity = (clientName: string) => {
+    if (!clientName) return;
+    const today = new Date().toISOString().split('T')[0];
+    const normalizedName = clientName.trim().toLowerCase();
+    
+    let found = false;
+    const updatedClients = clients.map(c => {
+      if (c.nombreComercial.trim().toLowerCase() === normalizedName) {
+        found = true;
+        return {
+          ...c,
+          fechaUltimaActividad: today,
+          estado: (c.estado === 'inactivo' || c.estado === 'pausado') ? 'activo' as const : (c.estado || 'activo' as const)
+        };
+      }
+      return c;
+    });
+
+    if (!found) {
+      const newClient: Client = {
+        id: `client-${Date.now()}`,
+        nombreComercial: clientName,
+        categoria: 'General',
+        contactoPrincipal: 'Por asignar',
+        estado: 'activo',
+        fechaAlta: today,
+        fechaUltimaActividad: today
+      };
+      const newClientsList = [newClient, ...clients];
+      setClients(newClientsList);
+      saveClientsToStorage(newClientsList);
+    } else {
+      setClients(updatedClients);
+      saveClientsToStorage(updatedClients);
+    }
+  };
+
   // Find currently active project
   const activeProject = projects.find((p) => p.id === activeProjectId) || projects[0];
 
@@ -239,6 +301,11 @@ export default function App() {
     const updatedList = projects.map((p) => (p.id === updated.id ? updated : p));
     setProjects(updatedList);
     saveProjectsToStorage(updatedList);
+
+    // Actualizar actividad del cliente si cambió
+    if (updated.clientName) {
+      updateClientLastActivity(updated.clientName);
+    }
   };
 
   // Create new project
@@ -299,6 +366,10 @@ export default function App() {
     setActiveProjectId(newProject.id);
     localStorage.setItem(ACTIVE_PROJECT_KEY, newProject.id);
     saveProjectsToStorage(updatedList);
+
+    if (data.clientName) {
+      updateClientLastActivity(data.clientName);
+    }
 
     // Flash toast
     handleSave();
@@ -508,6 +579,55 @@ export default function App() {
     );
   }
 
+  const handleLogTimeGlobal = (
+    projectId: string,
+    phaseId: string,
+    hours: number,
+    description: string,
+    type: TimeEntryType = 'normal',
+    retrabajoOrigen?: 'cliente' | 'interno' | 'proveedor',
+    retrabajoMotivo?: string
+  ) => {
+    if (!currentUser) return;
+    const targetProj = projects.find(p => p.id === projectId);
+    if (!targetProj) return;
+
+    const newEntry = {
+      id: `time-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      userId: currentUser.id,
+      username: currentUser.username,
+      role: (currentUser.role || 'contents') as any,
+      hours: hours,
+      date: new Date().toISOString().split('T')[0],
+      description: description,
+      phaseId: phaseId,
+      type: type,
+      retrabajoOrigen: retrabajoOrigen,
+      retrabajoMotivo: retrabajoMotivo
+    };
+
+    const updatedEntries = [...(targetProj.timeEntries || []), newEntry];
+
+    // Actualizar presupuesto del rol
+    const userRoleKey = currentUser.role === 'coordinador' ? 'coordinador' : currentUser.role;
+    const currentBudget = targetProj.budget || createDefaultBudget();
+    const updatedRoleBudget = {
+      ...currentBudget[userRoleKey],
+      consumed: (currentBudget[userRoleKey]?.consumed || 0) + hours
+    };
+
+    const updatedProject: Project = {
+      ...targetProj,
+      timeEntries: updatedEntries,
+      budget: {
+        ...currentBudget,
+        [userRoleKey]: updatedRoleBudget
+      }
+    };
+
+    handleUpdateProject(updatedProject);
+  };
+
   const activePhase = activeProject.phases.find((p) => p.id === activeProject.activePhaseId) || activeProject.phases[0];
 
   return (
@@ -518,8 +638,16 @@ export default function App() {
       onNavigate={(view) => setCurrentView(view)}
       projects={projects}
       users={usersList}
+      onLogTimeGlobal={handleLogTimeGlobal}
     >
-      {currentView === 'dashboard' && currentUser.role === 'coordinador' ? (
+      {currentView === 'profile' ? (
+        <div className="flex-1 overflow-y-auto h-full">
+          <MyProfileView
+            currentUser={currentUser}
+            projects={projects}
+          />
+        </div>
+      ) : currentView === 'dashboard' && currentUser.role === 'coordinador' ? (
         <div className="flex-1 overflow-hidden h-full">
           <CoordinatorDashboard 
             projects={projects} 
@@ -558,6 +686,7 @@ export default function App() {
           <ClientsManagement
             clients={clients}
             onAddClient={handleAddClient}
+            onUpdateClientStatus={handleUpdateClientStatus}
           />
         </div>
       ) : (

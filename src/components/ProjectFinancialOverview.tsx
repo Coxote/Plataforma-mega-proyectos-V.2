@@ -20,12 +20,19 @@ import {
   Activity 
 } from 'lucide-react';
 import { Project, ROLE_HOURLY_RATES, Role } from '../types';
+import { MultiOVManager } from './MultiOVManager';
 
 interface ProjectFinancialOverviewProps {
   project: Project;
+  onUpdateProject?: (updated: Project) => void;
+  userRole?: string;
 }
 
-export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> = ({ project }) => {
+export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> = ({ 
+  project, 
+  onUpdateProject, 
+  userRole = 'coordinador' 
+}) => {
   // Extract or calculate hours sold (allocated) and hours consumed per role
   const stats = useMemo(() => {
     const roles: Role[] = ['coordinador', 'sac', 'contents', 'contentd'];
@@ -385,6 +392,21 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
           </div>
         </div>
       </div>
+
+      {/* 3. MULTI-ORDEN DE VENTA (MULTI-OV) MANAGER */}
+      {onUpdateProject ? (
+        <MultiOVManager 
+          project={project} 
+          onUpdateProject={onUpdateProject} 
+          isCoordinador={userRole === 'coordinador'} 
+        />
+      ) : (
+        <MultiOVManager 
+          project={project} 
+          onUpdateProject={() => {}} 
+          isCoordinador={false} 
+        />
+      )}
     </div>
   );
 };
