@@ -1,10 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   X, Plus, Trash2, FileText, Users, TrendingUp, ArrowLeft, ArrowRight, 
-  FolderPlus, Tag, Sparkles, FileCode2, CheckCircle2, ShieldAlert
+  FolderPlus, Tag, Sparkles, FileCode2, CheckCircle2, ShieldAlert, ShieldCheck
 } from 'lucide-react';
 import { RoleHoursAllocation, ProjectMember, UserSession } from '../types';
 import { PROJECT_TEMPLATES, generatePhasesForTemplate } from '../projectTemplates';
+import { 
+  generateProjectDescriptionWithGemini, 
+  generateRiskMitigationWithGemini, 
+  RiskAnalysisResult 
+} from '../geminiService';
 
 const PREDEFINED_TAGS = {
   'Entregable': ['#RedesSociales', '#Branding', '#UI/UX', '#VideoMotion', '#PixelArt', '#GameDev', '#DesarrolloWeb'],
@@ -30,6 +35,13 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
   // Drag & drop state
   const [draggedMemberId, setDraggedMemberId] = useState<string | null>(null);
 
+  // Estados de generación Asistida por Gemini
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [isGeneratingRisks, setIsGeneratingRisks] = useState(false);
+  const [riskAnalysis, setRiskAnalysis] = useState<RiskAnalysisResult | null>(null);
+  const [riskErrorMessage, setRiskErrorMessage] = useState<string | null>(null);
+  const [descriptionErrorMessage, setDescriptionErrorMessage] = useState<string | null>(null);
+
   useEffect(() => {
     if (isOpen) {
       try {
@@ -54,6 +66,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     saleOrderNumber: string;
     deliverablesCount: number | '';
     description: string;
+    riskMitigationText: string;
     tags: string[];
     customPhases: any[];
     members: any[];
@@ -72,6 +85,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     saleOrderNumber: '',
     deliverablesCount: '',
     description: '',
+    riskMitigationText: '',
     tags: [],
     customPhases: [],
     members: [],
@@ -93,6 +107,44 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
       return DEFAULT_DRAFT;
     }
   });
+
+  // Funciones de Generación con Gemini API
+  const handleGenerateDescription = async () => {
+    setIsGeneratingDescription(true);
+    setDescriptionErrorMessage(null);
+    try {
+      const desc = await generateProjectDescriptionWithGemini(draft);
+      if (desc) {
+        setDraft(prev => ({ ...prev, description: desc }));
+      }
+    } catch (error: any) {
+      console.error('Error generating project description:', error);
+      setDescriptionErrorMessage(error.message || 'Error al conectar con la API de Gemini.');
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
+
+  const handleGenerateRisks = async () => {
+    setIsGeneratingRisks(true);
+    setRiskErrorMessage(null);
+    try {
+      const result = await generateRiskMitigationWithGemini(draft);
+      setRiskAnalysis(result);
+      if (result && result.risks && result.risks.length > 0) {
+        const formattedRiesgos = result.risks.map(r => `• [${r.severity.toUpperCase()} - ${r.category}] ${r.risk}: ${r.mitigation}`).join('\n');
+        setDraft(prev => ({ 
+          ...prev, 
+          riskMitigationText: formattedRiesgos 
+        }));
+      }
+    } catch (error: any) {
+      console.error('Error generating risk mitigation:', error);
+      setRiskErrorMessage(error.message || 'Error al conectar con la API de Gemini.');
+    } finally {
+      setIsGeneratingRisks(false);
+    }
+  };
 
   // Guardar automáticamente el borrador cuando cambia
   useEffect(() => {
@@ -299,6 +351,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
       saleOrderNumber: draft.saleOrderNumber, 
       deliverablesCount: Number(draft.deliverablesCount) || 0, 
       description: draft.description, 
+      riesgos: draft.riskMitigationText || '',
       tags: draft.tags, 
       members: draft.members.map(m => ({ id: m.id, name: m.name, role: m.role, participationRole: m.participationRole })), 
       currency: draft.currency, 
@@ -507,14 +560,29 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-500 mb-1">Descripción / Brief</label>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-[11px] font-bold text-slate-500">Descripción / Brief</label>
+                        <button
+                          type="button"
+                          onClick={handleGenerateDescription}
+                          disabled={isGeneratingDescription}
+                          className="inline-flex items-center gap-1.5 text-[11px] font-bold text-cyan-600 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 px-2.5 py-0.5 rounded-full transition-all cursor-pointer disabled:opacity-50"
+                          title="Generar borrador de la descripción con Gemini API"
+                        >
+                          <Sparkles className={`w-3.5 h-3.5 text-cyan-500 ${isGeneratingDescription ? 'animate-spin' : ''}`} />
+                          {isGeneratingDescription ? 'Redactando...' : '✨ Borrador con Gemini'}
+                        </button>
+                      </div>
                       <textarea 
-                        rows={1} 
+                        rows={3} 
                         value={draft.description} 
                         onChange={(e) => setDraft(prev => ({ ...prev, description: e.target.value }))} 
-                        placeholder="Breve explicación de las metas acordadas..."
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs resize-none font-medium focus:outline-none" 
+                        placeholder="Breve explicación de las metas acordadas... Presiona '✨ Borrador con Gemini' para redactarlo automáticamente."
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs resize-none font-medium focus:outline-none focus:border-cyan-500" 
                       />
+                      {descriptionErrorMessage && (
+                        <p className="text-[10px] text-rose-500 font-semibold mt-1">{descriptionErrorMessage}</p>
+                      )}
                     </div>
                   </div>
 
@@ -542,6 +610,94 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                         </div>
                       ))}
                     </div>
+                  </div>
+
+                  {/* MÓDULO DE MITIGACIÓN DE RIESGOS CON GEMINI */}
+                  <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 space-y-4 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20 text-amber-400">
+                          <ShieldAlert className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-100">Mitigación de Riesgos Asistida por Gemini</h4>
+                          <p className="text-[10px] text-slate-400 font-medium">Analiza alcance, entregables, plazos y carga de trabajo para prevenir cuellos de botella.</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleGenerateRisks}
+                        disabled={isGeneratingRisks}
+                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50 shrink-0"
+                      >
+                        <Sparkles className={`w-3.5 h-3.5 ${isGeneratingRisks ? 'animate-spin' : ''}`} />
+                        {isGeneratingRisks ? 'Analizando Riesgos...' : '✨ Analizar Riesgos con IA'}
+                      </button>
+                    </div>
+
+                    {riskErrorMessage && (
+                      <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs font-semibold">
+                        {riskErrorMessage}
+                      </div>
+                    )}
+
+                    {riskAnalysis ? (
+                      <div className="space-y-3 animate-in fade-in duration-300">
+                        <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700 text-xs text-slate-300 leading-relaxed">
+                          <span className="font-bold text-amber-400 block mb-0.5">Diagnóstico Operativo de Gemini:</span>
+                          {riskAnalysis.summary}
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {riskAnalysis.risks.map((item, idx) => {
+                            const isHigh = item.severity.toLowerCase().includes('alta');
+                            const isMed = item.severity.toLowerCase().includes('media');
+                            return (
+                              <div key={idx} className="bg-slate-800/90 border border-slate-700/80 p-3.5 rounded-xl space-y-2 flex flex-col justify-between">
+                                <div>
+                                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                      isHigh ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' :
+                                      isMed ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
+                                      'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
+                                    }`}>
+                                      Riesgo {item.severity}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-bold bg-slate-900/60 px-2 py-0.5 rounded-md border border-slate-700">
+                                      {item.category}
+                                    </span>
+                                  </div>
+                                  <h5 className="text-xs font-bold text-slate-100 leading-snug">{item.risk}</h5>
+                                </div>
+
+                                <div className="pt-2 border-t border-slate-700/60 mt-1">
+                                  <p className="text-[11px] text-slate-300 font-medium leading-relaxed">
+                                    <strong className="text-emerald-400 font-bold">Mitigación: </strong>
+                                    {item.mitigation}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-slate-800/40 rounded-xl border border-slate-800 border-dashed text-center">
+                        <p className="text-xs text-slate-400 font-medium">
+                          Haz clic en <strong className="text-amber-400 font-bold">✨ Analizar Riesgos con IA</strong> para obtener la evaluación inteligente de cuellos de botella y las recomendaciones preventivas de Gemini basadas en los parámetros del Wizard.
+                        </p>
+                      </div>
+                    )}
+
+                    {draft.riskMitigationText && (
+                      <div className="p-3 bg-slate-800/60 rounded-xl border border-amber-500/30 text-xs space-y-1">
+                        <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block flex items-center gap-1">
+                          <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
+                          Plan de Mitigación que se guardará en la ficha del Proyecto:
+                        </span>
+                        <p className="text-slate-300 whitespace-pre-line text-[11px] font-medium leading-relaxed">{draft.riskMitigationText}</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

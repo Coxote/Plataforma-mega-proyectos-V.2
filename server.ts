@@ -117,6 +117,168 @@ app.post('/api/analyze-brief', async (req, res) => {
   }
 });
 
+// Endpoint to generate draft project description based on wizard parameters
+app.post('/api/generate-project-description', async (req, res) => {
+  const { 
+    projectName, 
+    clientName, 
+    projectMode, 
+    selectedTemplate, 
+    deliverablesCount, 
+    tags, 
+    startDate, 
+    endDate, 
+    roleHours, 
+    totalIncome, 
+    currency 
+  } = req.body;
+
+  if (!apiKey) {
+    return res.status(500).json({ 
+      error: 'GEMINI_API_KEY no está configurada. Por favor configúrala en el panel de Secrets.' 
+    });
+  }
+
+  const model = 'gemini-3.6-flash';
+
+  const totalHours = (roleHours?.coordinador || 0) + (roleHours?.sac || 0) + (roleHours?.contents || 0) + (roleHours?.contentd || 0);
+
+  const prompt = `
+    Eres un Director de Proyectos y Estratega Digital Senior en una agencia SaaS boutique.
+    Genera un borrador de descripción / brief operativo ejecutivo (en español, 2 a 3 párrafos bien estructurados) para un nuevo proyecto con los siguientes parámetros:
+
+    - Nombre del Proyecto: ${projectName || 'Sin especificar'}
+    - Cliente: ${clientName || 'Sin especificar'}
+    - Modo/Plantilla: ${projectMode === 'template' ? selectedTemplate : 'Personalizado (Builder)'}
+    - Entregables Estimados: ${deliverablesCount || 'No especificados'}
+    - Etiquetas/Categorías: ${tags && tags.length > 0 ? tags.join(', ') : 'Ninguna'}
+    - Fecha Inicio: ${startDate || 'N/A'}
+    - Fecha Finalización: ${endDate || 'N/A'}
+    - Horas Totales Estimadas: ${totalHours} hrs (Coordinador: ${roleHours?.coordinador || 0}h, SAC: ${roleHours?.sac || 0}h, ContentS: ${roleHours?.contents || 0}h, ContentD: ${roleHours?.contentd || 0}h)
+    - Presupuesto/Ingreso: ${totalIncome ? `${totalIncome} ${currency || 'USD'}` : 'No definido'}
+
+    INSTRUCCIONES DE FORMATO:
+    - Redacta una descripción clara, motivadora y profesional que resuma el alcance principal, el valor para el cliente y el enfoque de trabajo del escuadrón.
+    - Utiliza párrafos concisos sin tecnicismos innecesarios.
+    - Devuelve ÚNICAMENTE un objeto JSON con la clave "description" conteniendo el texto formateado.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            description: { type: Type.STRING }
+          },
+          required: ['description']
+        }
+      }
+    });
+
+    if (response.text) {
+      const parsed = JSON.parse(response.text);
+      return res.json(parsed);
+    }
+    throw new Error('No se recibió respuesta de Gemini.');
+  } catch (error: any) {
+    console.error('Error generating project description with Gemini:', error);
+    return res.status(500).json({ error: error.message || 'Error al generar la descripción del proyecto.' });
+  }
+});
+
+// Endpoint to generate risk analysis and mitigation suggestions based on project parameters
+app.post('/api/generate-risk-mitigation', async (req, res) => {
+  const { 
+    projectName, 
+    clientName, 
+    projectMode, 
+    selectedTemplate, 
+    deliverablesCount, 
+    tags, 
+    startDate, 
+    endDate, 
+    roleHours, 
+    totalIncome, 
+    currency,
+    description
+  } = req.body;
+
+  if (!apiKey) {
+    return res.status(500).json({ 
+      error: 'GEMINI_API_KEY no está configurada. Por favor configúrala en el panel de Secrets.' 
+    });
+  }
+
+  const model = 'gemini-3.6-flash';
+
+  const totalHours = (roleHours?.coordinador || 0) + (roleHours?.sac || 0) + (roleHours?.contents || 0) + (roleHours?.contentd || 0);
+
+  const prompt = `
+    Eres un Risk Manager Senior y Director de Operaciones especializado en agencias digitales y desarrollo SaaS.
+    Analiza los parámetros operativos y financieros de este nuevo proyecto para identificar los riesgos potenciales más críticos y proponer planes de mitigación concretos y accionables.
+
+    PARÁMETROS DEL PROYECTO:
+    - Nombre del Proyecto: ${projectName || 'Sin especificar'}
+    - Cliente: ${clientName || 'Sin especificar'}
+    - Modo/Plantilla: ${projectMode === 'template' ? selectedTemplate : 'Personalizado'}
+    - Entregables Esperados: ${deliverablesCount || 'Sin definir'}
+    - Etiquetas: ${tags && tags.length > 0 ? tags.join(', ') : 'Ninguna'}
+    - Período: Del ${startDate || 'N/A'} al ${endDate || 'N/A'}
+    - Presupuesto Horas: Total ${totalHours} hrs (Coordinador: ${roleHours?.coordinador || 0}h, SAC: ${roleHours?.sac || 0}h, ContentS: ${roleHours?.contents || 0}h, ContentD: ${roleHours?.contentd || 0}h)
+    - Ingreso Total: ${totalIncome ? `${totalIncome} ${currency || 'USD'}` : 'Sin definir'}
+    - Descripción actual: ${description || 'Sin descripción redactada'}
+
+    OBJETIVO:
+    Identifica entre 3 y 4 riesgos operativos, temporales, de alcance o financieros (por ejemplo: desproporción de horas por rol, entregables elevados en plazo corto, riesgo de iteraciones con cliente, riesgo de presupuesto).
+    Proporciona para cada riesgo una estrategia de mitigación realista y preventiva.
+
+    Devuelve la información en formato JSON siguiendo estrictamente el esquema especificado.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            summary: { type: Type.STRING },
+            risks: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  risk: { type: Type.STRING },
+                  severity: { type: Type.STRING, description: 'Alta, Media o Baja' },
+                  category: { type: Type.STRING, description: 'Plazos, Alcance, Carga de Trabajo, Cliente, Financiero' },
+                  mitigation: { type: Type.STRING }
+                },
+                required: ['risk', 'severity', 'category', 'mitigation']
+              }
+            }
+          },
+          required: ['summary', 'risks']
+        }
+      }
+    });
+
+    if (response.text) {
+      const parsed = JSON.parse(response.text);
+      return res.json(parsed);
+    }
+    throw new Error('No se recibió respuesta de Gemini.');
+  } catch (error: any) {
+    console.error('Error generating risk mitigation with Gemini:', error);
+    return res.status(500).json({ error: error.message || 'Error al generar mitigaciones de riesgos.' });
+  }
+});
+
 // Endpoint for AI Assistant to answer questions about the squad, capacity, workloads, and projects
 app.post('/api/ai-assistant', async (req, res) => {
   const { prompt, users, projects, history } = req.body;
