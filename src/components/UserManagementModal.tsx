@@ -84,6 +84,7 @@ export default function UserManagementModal({
       role: getRoleFromPuesto(newPuesto),
       password: newPassword || '123',
       projectId: newPuesto === 'Cliente / Invitado' ? (assignedProjectId || projects[0]?.id) : undefined,
+      estado: 'activo',
     };
 
     onAddUser(newUser);
@@ -112,6 +113,19 @@ export default function UserManagementModal({
     const updated: UserSession = {
       ...userToUpdate,
       projectId: projectId,
+    };
+
+    onUpdateUser(updated);
+  };
+
+  const handleToggleUserStatus = (userId: string) => {
+    const userToUpdate = usersList.find((u) => u.id === userId);
+    if (!userToUpdate) return;
+
+    const newStatus = (userToUpdate.estado === 'inactivo' ? 'activo' : 'inactivo') as 'activo' | 'inactivo';
+    const updated: UserSession = {
+      ...userToUpdate,
+      estado: newStatus,
     };
 
     onUpdateUser(updated);
@@ -255,6 +269,7 @@ export default function UserManagementModal({
                   <tr className="border-b border-slate-100 text-[10px] uppercase text-slate-400 font-bold tracking-wider">
                     <th className="py-2.5 px-3">Usuario</th>
                     <th className="py-2.5 px-3">Puesto</th>
+                    <th className="py-2.5 px-3">Estado</th>
                     <th className="py-2.5 px-3">Rol / Nivel</th>
                     <th className="py-2.5 px-3 text-right">Acciones</th>
                   </tr>
@@ -262,8 +277,9 @@ export default function UserManagementModal({
                 <tbody className="divide-y divide-slate-50">
                   {usersList.map((user) => {
                     const isSelf = user.username.toLowerCase() === currentUser.username.toLowerCase();
+                    const isActive = user.estado !== 'inactivo';
                     return (
-                      <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr key={user.id} className={`hover:bg-slate-50/50 transition-colors ${!isActive ? 'opacity-60 bg-slate-50/30' : ''}`}>
                         <td className="py-3 px-3 font-semibold text-slate-800">
                           <div className="flex flex-col">
                             <span>{user.username}</span>
@@ -276,6 +292,20 @@ export default function UserManagementModal({
                         </td>
                         <td className="py-3 px-3 font-medium text-slate-500 max-w-[150px] truncate">
                           {user.puesto}
+                        </td>
+                        <td className="py-3 px-3">
+                          <button
+                            onClick={() => handleToggleUserStatus(user.id)}
+                            disabled={isSelf}
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border cursor-pointer transition-all ${
+                              isActive
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+                            } ${isSelf ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            title={isSelf ? 'No puedes desactivar tu propia cuenta' : 'Haz clic para cambiar estado'}
+                          >
+                            {isActive ? '● Activo' : '○ Inactivo'}
+                          </button>
                         </td>
                         <td className="py-3 px-3">
                           <div className="flex flex-col gap-1.5">

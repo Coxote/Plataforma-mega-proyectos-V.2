@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Project, UserSession, RoleHoursAllocation, Client, TimeEntryType } from './types';
 import { INITIAL_PROJECTS, createDefaultPhases, createDefaultBudget, createDefaultRaci } from './initialData';
 import ProjectSelector from './components/ProjectSelector';
@@ -18,6 +18,7 @@ import { MyProfileView } from './components/MyProfileView';
 import { Sparkles, Shield, Users, LogOut, Activity } from 'lucide-react';
 import { generatePhasesForTemplate } from './projectTemplates';
 import { NewProjectWizard } from './components/NewProjectWizard';
+import { useDeliverableMonitoring } from './hooks/useDeliverableMonitoring';
 
 const STORAGE_KEY = 'saas_phase_system_projects';
 const ACTIVE_PROJECT_KEY = 'saas_phase_system_active_project';
@@ -102,6 +103,10 @@ export default function App() {
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const [currentView, setCurrentView] = useState<ViewState>('planner');
   const [clients, setClients] = useState<Client[]>([]);
+  const isInitialized = useRef(false);
+
+  // Hook de monitoreo de entregables y SLAs del sistema
+  const deliverableMonitoring = useDeliverableMonitoring(projects);
 
   // Normalizador de proyectos para migración automática Fase 0
   const normalizeProject = (p: any): Project => {
@@ -219,35 +224,42 @@ export default function App() {
       setClients(DEFAULT_CLIENTS);
       localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(DEFAULT_CLIENTS));
     }
+
+    isInitialized.current = true;
   }, []);
 
-  // Sync to local storage
-  const saveProjectsToStorage = (updatedProjects: Project[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProjects));
-  };
+  // Centralized local storage synchronization (Single Source of Truth)
+  useEffect(() => {
+    if (isInitialized.current && projects.length > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    }
+  }, [projects]);
 
-  const saveClientsToStorage = (updatedClients: Client[]) => {
-    localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(updatedClients));
-  };
+  useEffect(() => {
+    if (isInitialized.current && clients.length > 0) {
+      localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(clients));
+    }
+  }, [clients]);
+
+  useEffect(() => {
+    if (isInitialized.current && usersList.length > 0) {
+      localStorage.setItem(USERS_LIST_KEY, JSON.stringify(usersList));
+    }
+  }, [usersList]);
 
   const handleAddClient = (newClient: Client) => {
-    const exists = clients.some((c) => c.id === newClient.id);
-    const updated = exists
-      ? clients.map((c) => (c.id === newClient.id ? newClient : c))
-      : [newClient, ...clients];
-    setClients(updated);
-    saveClientsToStorage(updated);
+    setClients((prevClients) => {
+      const exists = prevClients.some((c) => c.id === newClient.id);
+      return exists
+        ? prevClients.map((c) => (c.id === newClient.id ? newClient : c))
+        : [newClient, ...prevClients];
+    });
   };
 
   const handleUpdateClientStatus = (clientId: string, nuevoEstado: 'activo' | 'inactivo' | 'pausado') => {
-    const updatedClients = clients.map(c => {
-      if (c.id === clientId) {
-        return { ...c, estado: nuevoEstado };
-      }
-      return c;
-    });
-    setClients(updatedClients);
-    saveClientsToStorage(updatedClients);
+    setClients((prevClients) =>
+      prevClients.map((c) => (c.id === clientId ? { ...c, estado: nuevoEstado } : c))
+    );
   };
 
   const updateClientLastActivity = (clientName: string) => {
@@ -255,36 +267,34 @@ export default function App() {
     const today = new Date().toISOString().split('T')[0];
     const normalizedName = clientName.trim().toLowerCase();
     
-    let found = false;
-    const updatedClients = clients.map(c => {
-      if (c.nombreComercial.trim().toLowerCase() === normalizedName) {
-        found = true;
-        return {
-          ...c,
-          fechaUltimaActividad: today,
-          estado: (c.estado === 'inactivo' || c.estado === 'pausado') ? 'activo' as const : (c.estado || 'activo' as const)
-        };
-      }
-      return c;
-    });
+    setClients((prevClients) => {
+      let found = false;
+      const updatedClients = prevClients.map((c) => {
+        if (c.nombreComercial.trim().toLowerCase() === normalizedName) {
+          found = true;
+          return {
+            ...c,
+            fechaUltimaActividad: today,
+            estado: (c.estado === 'inactivo' || c.estado === 'pausado') ? ('activo' as const) : (c.estado || ('activo' as const))
+          };
+        }
+        return c;
+      });
 
-    if (!found) {
-      const newClient: Client = {
-        id: `client-${Date.now()}`,
-        nombreComercial: clientName,
-        categoria: 'General',
-        contactoPrincipal: 'Por asignar',
-        estado: 'activo',
-        fechaAlta: today,
-        fechaUltimaActividad: today
-      };
-      const newClientsList = [newClient, ...clients];
-      setClients(newClientsList);
-      saveClientsToStorage(newClientsList);
-    } else {
-      setClients(updatedClients);
-      saveClientsToStorage(updatedClients);
-    }
+      if (!found) {
+        const newClient: Client = {
+          id: `client-${Date.now()}`,
+          nombreComercial: clientName,
+          categoria: 'General',
+          contactoPrincipal: 'Por asignar',
+          estado: 'activo',
+          fechaAlta: today,
+          fechaUltimaActividad: today
+        };
+        return [newClient, ...prevClients];
+      }
+      return updatedClients;
+    });
   };
 
   // Find currently active project
@@ -296,11 +306,11 @@ export default function App() {
     setCurrentView('project');
   };
 
-  // General project updates
+  // General project updates (Single Source of Truth)
   const handleUpdateProject = (updated: Project) => {
-    const updatedList = projects.map((p) => (p.id === updated.id ? updated : p));
-    setProjects(updatedList);
-    saveProjectsToStorage(updatedList);
+    setProjects((prevProjects) =>
+      prevProjects.map((p) => (p.id === updated.id ? updated : p))
+    );
 
     // Actualizar actividad del cliente si cambió
     if (updated.clientName) {
@@ -361,11 +371,9 @@ export default function App() {
       templateType: data.templateType,
     };
 
-    const updatedList = [newProject, ...projects];
-    setProjects(updatedList);
+    setProjects((prevProjects) => [newProject, ...prevProjects]);
     setActiveProjectId(newProject.id);
     localStorage.setItem(ACTIVE_PROJECT_KEY, newProject.id);
-    saveProjectsToStorage(updatedList);
 
     if (data.clientName) {
       updateClientLastActivity(data.clientName);
@@ -379,14 +387,14 @@ export default function App() {
   const handleDeleteProject = (id: string) => {
     if (projects.length <= 1) return;
 
-    const filtered = projects.filter((p) => p.id !== id);
-    setProjects(filtered);
-    saveProjectsToStorage(filtered);
-
-    if (activeProjectId === id) {
-      setActiveProjectId(filtered[0].id);
-      localStorage.setItem(ACTIVE_PROJECT_KEY, filtered[0].id);
-    }
+    setProjects((prevProjects) => {
+      const filtered = prevProjects.filter((p) => p.id !== id);
+      if (activeProjectId === id && filtered.length > 0) {
+        setActiveProjectId(filtered[0].id);
+        localStorage.setItem(ACTIVE_PROJECT_KEY, filtered[0].id);
+      }
+      return filtered;
+    });
   };
 
   // Temporary save indicator
@@ -401,6 +409,14 @@ export default function App() {
 
     const currentPhaseIndex = activeProject.phases.findIndex((p) => p.id === activeProject.activePhaseId);
     if (currentPhaseIndex === -1) return;
+
+    const currentPhase = activeProject.phases[currentPhaseIndex];
+    const pendingTasks = (currentPhase.checklist || []).filter(item => !item.completed);
+
+    if (pendingTasks.length > 0) {
+      alert(`⚠️ No se puede cerrar la fase "${currentPhase.label}" porque existen ${pendingTasks.length} tarea(s) sin completar en la checklist de la fase.\n\nCompleta todas las tareas para habilitar el cierre.`);
+      return;
+    }
 
     const updatedPhases = activeProject.phases.map((p, idx) => {
       if (idx === currentPhaseIndex) {
@@ -490,7 +506,7 @@ export default function App() {
         userRole: currentUser ? currentUser.role : 'invitado' as const,
         action: 'Feedback de Cliente',
         entityType: 'Entregable',
-        details: `Anotó comentario en entregable: "${comment.substring(0, 40)}..."`,
+        details: `Anotó comentario en entregable: "${(comment || '').substring(0, 40)}..."`,
       },
       ...(activeProject.auditLog || [])
     ];
@@ -701,6 +717,8 @@ export default function App() {
               onAddProject={() => setIsNewProjectModalOpen(true)}
               onDeleteProject={handleDeleteProject}
               userRole={currentUser.role}
+              overdueProjectIds={deliverableMonitoring.overdueProjectIds}
+              approachingProjectIds={deliverableMonitoring.approachingProjectIds}
             />
             <div className="flex-1 overflow-hidden">
               <Sidebar

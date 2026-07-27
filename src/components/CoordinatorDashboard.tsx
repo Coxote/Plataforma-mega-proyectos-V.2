@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Project, UserSession } from '../types';
+import { runSlaRuleEngine } from '../utils/slaRuleEngine';
 import { 
   calculateGlobalFinancials, 
   calculateTeamWorkload, 
@@ -37,7 +38,8 @@ import {
   Trophy,
   BarChart3,
   Zap,
-  Target
+  Target,
+  BellRing
 } from 'lucide-react';
 import { TeamCard, VitaminizedMember } from './TeamCard';
 import { UserInspectorPanel } from './UserInspectorPanel';
@@ -52,6 +54,20 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, onSelec
   const [selectedMember, setSelectedMember] = useState<VitaminizedMember | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'saturation' | 'name'>('saturation');
+  const [alertFilter, setAlertFilter] = useState<'all' | 'critical' | 'warning' | 'deliverable' | 'phase'>('all');
+
+  // Motor de Reglas SLA
+  const slaAlerts = useMemo(() => runSlaRuleEngine(projects), [projects]);
+
+  const filteredAlerts = useMemo(() => {
+    return slaAlerts.filter(alert => {
+      if (alertFilter === 'critical') return alert.severity === 'critical';
+      if (alertFilter === 'warning') return alert.severity === 'warning';
+      if (alertFilter === 'deliverable') return alert.targetType === 'entregable';
+      if (alertFilter === 'phase') return alert.targetType === 'fase' || alert.targetType === 'proyecto';
+      return true;
+    });
+  }, [slaAlerts, alertFilter]);
 
   // Métricas unificadas desde utils/metrics.ts
   const financials = useMemo(() => calculateGlobalFinancials(projects), [projects]);
@@ -299,6 +315,166 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, onSelec
 
         </div>
 
+        {/* MOTOR DE REGLAS: ALERTAS DE VENCIMIENTOS Y CUMPLIMIENTO DE SLA */}
+        <div className="space-y-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs" id="sla-rule-engine-section">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div>
+              <div className="flex items-center gap-2">
+                <BellRing className="w-4 h-4 text-rose-600 animate-bounce" />
+                <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">
+                  Motor de Reglas & Control de Alertas SLA
+                </h2>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-900 text-white">
+                  {slaAlerts.length} {slaAlerts.length === 1 ? 'Alerta' : 'Alertas'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
+                Monitoreo automatizado en tiempo real de plazos de fases, entregables en revisión y fechas límite de SLA.
+              </p>
+            </div>
+
+            {/* Filter Chips */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setAlertFilter('all')}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+                  alertFilter === 'all'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                Todas ({slaAlerts.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAlertFilter('critical')}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+                  alertFilter === 'critical'
+                    ? 'bg-rose-600 text-white border-rose-600 shadow-xs'
+                    : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                }`}
+              >
+                🚨 Críticas ({slaAlerts.filter(a => a.severity === 'critical').length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAlertFilter('warning')}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+                  alertFilter === 'warning'
+                    ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                    : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
+                }`}
+              >
+                ⚠️ Próximas ({slaAlerts.filter(a => a.severity === 'warning').length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAlertFilter('deliverable')}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+                  alertFilter === 'deliverable'
+                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
+                    : 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
+                }`}
+              >
+                📦 Entregables ({slaAlerts.filter(a => a.targetType === 'entregable').length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAlertFilter('phase')}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border ${
+                  alertFilter === 'phase'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                    : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                }`}
+              >
+                📋 Fases / Proyectos ({slaAlerts.filter(a => a.targetType === 'fase' || a.targetType === 'proyecto').length})
+              </button>
+            </div>
+          </div>
+
+          {/* Alert Cards Container */}
+          {filteredAlerts.length === 0 ? (
+            <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-2xl p-6 text-center space-y-2">
+              <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
+              <h3 className="text-sm font-black text-emerald-900">¡SLA y Plazos en Orden!</h3>
+              <p className="text-xs text-emerald-700 font-medium max-w-md mx-auto">
+                No hay alertas pendientes para el filtro seleccionado. Todas las fases y entregables activos cumplen sus fechas límites y niveles de servicio.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredAlerts.map(alert => {
+                const isCritical = alert.severity === 'critical';
+                return (
+                  <div
+                    key={alert.id}
+                    className={`p-4 rounded-2xl border transition-all duration-200 shadow-xs flex flex-col justify-between space-y-3 ${
+                      isCritical
+                        ? 'bg-rose-50/70 border-rose-200 hover:border-rose-300'
+                        : 'bg-amber-50/70 border-amber-200 hover:border-amber-300'
+                    }`}
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                              isCritical ? 'bg-rose-100 text-rose-800 border border-rose-300' : 'bg-amber-100 text-amber-900 border border-amber-300'
+                            }`}
+                          >
+                            {isCritical ? <AlertTriangle className="w-3 h-3 text-rose-600" /> : <Clock className="w-3 h-3 text-amber-600" />}
+                            {isCritical ? 'Vencido / Crítico' : 'Próximo a Vencer'}
+                          </span>
+
+                          <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-extrabold text-slate-700 uppercase">
+                            {alert.targetType === 'entregable' ? '📦 Entregable' : alert.targetType === 'fase' ? `📋 Fase ${alert.phaseLabel || ''}` : '💼 Proyecto'}
+                          </span>
+                        </div>
+
+                        {/* Days Diff Pill */}
+                        <span className={`text-[11px] font-black font-mono px-2.5 py-0.5 rounded-lg border ${
+                          alert.daysDiff < 0 ? 'bg-rose-100 text-rose-900 border-rose-300' : 'bg-amber-100 text-amber-900 border-amber-300'
+                        }`}>
+                          {alert.daysDiff < 0 ? `${Math.abs(alert.daysDiff)}d vencido` : `${alert.daysDiff}d restante(s)`}
+                        </span>
+                      </div>
+
+                      <div>
+                        <h3 className="text-xs font-black text-slate-900 leading-snug">{alert.title}</h3>
+                        <p className="text-xs text-slate-600 font-medium mt-1 leading-relaxed">{alert.message}</p>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                      <div className="text-[11px] font-medium text-slate-500">
+                        <strong className="text-slate-800">{alert.projectName}</strong> ({alert.clientName})
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => onSelectProject(alert.projectId)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-colors cursor-pointer ${
+                          isCritical
+                            ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-xs'
+                            : 'bg-amber-600 hover:bg-amber-700 text-white shadow-xs'
+                        }`}
+                      >
+                        <span>Intervenir</span>
+                        <Briefcase className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* SECCIÓN DE CARGA Y SATURACIÓN DEL EQUIPO */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -394,7 +570,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, onSelec
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2.5">
                             <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-black ${getUserColor(item.role)}`}>
-                              {item.username.substring(0, 2).toUpperCase()}
+                              {(item.username || '').substring(0, 2).toUpperCase()}
                             </div>
                             <div>
                               <strong className="text-xs font-bold text-slate-900 block">{item.username}</strong>
@@ -521,7 +697,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, onSelec
                           >
                             <div className="flex items-center gap-2.5">
                               <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px] font-extrabold ${getUserColor(u.role)}`}>
-                                {u.username.substring(0, 2).toUpperCase()}
+                                {(u.username || '').substring(0, 2).toUpperCase()}
                               </div>
                               <div>
                                 <strong className="text-xs font-bold text-slate-800 block">{u.username}</strong>

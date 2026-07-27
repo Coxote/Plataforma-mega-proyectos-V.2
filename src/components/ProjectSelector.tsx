@@ -1,6 +1,6 @@
 import { Project } from '../types';
-import { FolderKanban, Plus, Trash2, FolderGit } from 'lucide-react';
-import React, { useState } from 'react';
+import { FolderKanban, Plus, Trash2, FolderGit, AlertCircle, AlertTriangle } from 'lucide-react';
+import React from 'react';
 
 interface ProjectSelectorProps {
   projects: Project[];
@@ -9,6 +9,8 @@ interface ProjectSelectorProps {
   onAddProject: () => void;
   onDeleteProject: (id: string) => void;
   userRole: 'coordinador' | 'sac' | 'contents' | 'contentd' | 'invitado';
+  overdueProjectIds?: Set<string>;
+  approachingProjectIds?: Set<string>;
 }
 
 export default function ProjectSelector({
@@ -18,20 +20,41 @@ export default function ProjectSelector({
   onAddProject,
   onDeleteProject,
   userRole,
+  overdueProjectIds = new Set(),
+  approachingProjectIds = new Set(),
 }: ProjectSelectorProps) {
 
   const activeProject = projects.find((p) => p.id === activeProjectId);
+  const isActiveOverdue = activeProject && overdueProjectIds.has(activeProject.id);
+  const isActiveApproaching = activeProject && approachingProjectIds.has(activeProject.id);
 
   return (
     <div className="border-b border-slate-200 bg-white" id="project-selector-container">
       {/* Current Project Header Bar */}
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-lime-400/20 text-lime-800 flex items-center justify-center shrink-0">
-            <FolderKanban className="w-5 h-5" />
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+            isActiveOverdue 
+              ? 'bg-rose-100 text-rose-700 ring-2 ring-rose-500/30 animate-pulse' 
+              : isActiveApproaching
+              ? 'bg-amber-100 text-amber-800'
+              : 'bg-lime-400/20 text-lime-800'
+          }`}>
+            {isActiveOverdue ? (
+              <AlertCircle className="w-5 h-5 text-rose-600" />
+            ) : isActiveApproaching ? (
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+            ) : (
+              <FolderKanban className="w-5 h-5" />
+            )}
           </div>
           <div className="min-w-0">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Proyecto Activo</label>
+            <div className="flex items-center gap-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Proyecto Activo</label>
+              {isActiveOverdue && (
+                <span className="text-[9px] font-black uppercase px-1.5 py-0.2 bg-rose-600 text-white rounded">Vencido</span>
+              )}
+            </div>
             <h3 className="font-bold text-sm text-slate-900 truncate">
               {activeProject ? activeProject.name : 'Seleccionar...'}
             </h3>
@@ -54,12 +77,18 @@ export default function ProjectSelector({
         {projects.map((project) => {
           const isActive = project.id === activeProjectId;
           const completedPhases = project.phases.filter((p) => p.status === 'completed').length;
+          const isOverdue = overdueProjectIds.has(project.id);
+          const isApproaching = approachingProjectIds.has(project.id);
           
           return (
             <div
               key={project.id}
               className={`group flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-all ${
-                isActive
+                isOverdue
+                  ? isActive
+                    ? 'bg-rose-50 font-bold text-rose-950 border border-rose-300 shadow-xs'
+                    : 'bg-rose-50/50 hover:bg-rose-100/70 text-rose-900 border border-rose-200/60'
+                  : isActive
                   ? 'bg-slate-100 font-bold text-slate-900 border border-slate-200/50 shadow-sm'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
               }`}
@@ -68,15 +97,30 @@ export default function ProjectSelector({
                 onClick={() => onSelectProject(project.id)}
                 className="flex-1 text-left min-w-0 flex items-center gap-2 cursor-pointer py-0.5"
               >
-                <FolderGit className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-lime-600' : 'text-slate-400'}`} />
+                {isOverdue ? (
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-600 animate-pulse" />
+                ) : isApproaching ? (
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-600" />
+                ) : (
+                  <FolderGit className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-lime-600' : 'text-slate-400'}`} />
+                )}
                 <div className="min-w-0">
-                  <p className="truncate font-semibold">{project.name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="truncate font-semibold">{project.name}</p>
+                    {isOverdue && (
+                      <span className="text-[9px] font-black px-1 py-0.2 bg-rose-600 text-white rounded shrink-0">SLA Vencido</span>
+                    )}
+                  </div>
                   <p className="text-[10px] text-slate-400 truncate font-medium">{project.clientName}</p>
                 </div>
               </button>
               
               <div className="flex items-center gap-2 shrink-0 ml-1">
-                <span className="text-[10px] bg-white border border-slate-200 px-1.5 py-0.5 rounded-full text-slate-500 font-bold">
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold border ${
+                  isOverdue 
+                    ? 'bg-rose-100 text-rose-800 border-rose-200' 
+                    : 'bg-white border-slate-200 text-slate-500'
+                }`}>
                   {completedPhases}/{project.phases.length}
                 </span>
                 
@@ -97,3 +141,4 @@ export default function ProjectSelector({
     </div>
   );
 }
+

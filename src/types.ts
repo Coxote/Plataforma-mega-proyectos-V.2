@@ -45,6 +45,8 @@ export interface UserSession {
   password?: string;
   projectId?: string; // Restringir invitado a un proyecto específico
   capacidadMensualHoras?: number; // Capacidad mensual (default 176h)
+  estado?: 'activo' | 'inactivo';
+  lastLoginAt?: string;
 }
 
 export type TimeEntryType = 'normal' | 'retrabajo' | 'no_facturable';
@@ -119,6 +121,9 @@ export interface DeliverableItem {
   createdAt: string;
   isVisibleToClient: boolean;
   annotations: ClientAnnotation[];
+  phaseId?: string;
+  status?: 'pendiente' | 'en_revision' | 'aprobado' | 'rechazado';
+  assignedTo?: string;
 }
 
 // 4. Brand Bible Ultra-Detallada y Expandida
@@ -189,6 +194,21 @@ export interface ChecklistItem {
   completed: boolean;
 }
 
+export interface DecisionLogEntry {
+  id: string;
+  timestamp: string;
+  author: string;
+  userRole: Role;
+  title: string;
+  description: string;
+  phaseId?: string;
+  category: 'alcance' | 'presupuesto' | 'aprobacion' | 'tecnica' | 'otro' | string;
+  date?: string;
+  rationale?: string;
+  approvedBy?: string;
+  createdAt?: string;
+}
+
 export interface Phase {
   id: string;
   label: string;
@@ -196,6 +216,7 @@ export interface Phase {
   completedAt: string | null;
   checklist: ChecklistItem[];
   fields: Record<string, string>;
+  exitCriteria?: string;
 }
 
 export interface RoleHoursAllocation {
@@ -262,6 +283,24 @@ export type ProjectTemplateType =
   | 'consultoria' 
   | 'custom';
 
+export interface SlaAlert {
+  id: string;
+  projectId: string;
+  projectName: string;
+  clientName: string;
+  phaseId?: string;
+  phaseLabel?: string;
+  deliverableId?: string;
+  deliverableTitle?: string;
+  type: 'phase_overdue' | 'phase_approaching' | 'deliverable_overdue' | 'deliverable_approaching' | 'hours_overflow';
+  severity: 'critical' | 'warning' | 'info';
+  title: string;
+  message: string;
+  dueDate: string;
+  daysDiff: number;
+  targetType: 'fase' | 'entregable' | 'proyecto';
+}
+
 // Modelo global del Proyecto
 export interface Project {
   id: string;
@@ -290,6 +329,7 @@ export interface Project {
   auditLog: AuditLogEntry[];
   deliverables: DeliverableItem[];
   phases: Phase[];
+  decisionLog?: DecisionLogEntry[];
   ordenesVenta?: OrdenVenta[]; // Múltiples Órdenes de Venta por proyecto
   ovNumber?: string;       // Número de Orden de Venta (Deprecated / Compatibilidad)
   hoursSold?: number;      // Horas vendidas

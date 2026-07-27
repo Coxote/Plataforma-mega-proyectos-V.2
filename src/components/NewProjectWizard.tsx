@@ -35,6 +35,162 @@ export interface ProjectDraftOV {
   estado: 'activa' | 'facturada' | 'cancelada';
 }
 
+// Componente para gestión unificada de Array de Órdenes de Venta (OV)
+const OrdenesVentaArrayManager: React.FC<{
+  draft: any;
+  onAddOV: () => void;
+  onRemoveOV: (id: string) => void;
+  onUpdateOV: (id: string, field: string, value: any) => void;
+}> = ({ draft, onAddOV, onRemoveOV, onUpdateOV }) => {
+  return (
+    <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-cyan-100 text-cyan-800 rounded-lg">
+            <FileText className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="text-xs font-black text-slate-800 uppercase tracking-wider block">
+              Órdenes de Venta (OV) del Proyecto ({draft.ordenesVenta.length})
+            </span>
+            <span className="text-[10px] text-slate-500 font-medium">
+              Agrega y administra múltiples OVs, montos, estados y horas vendidas.
+            </span>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onAddOV}
+          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs shrink-0"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Añadir Órden de Venta
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        {draft.ordenesVenta.map((ov: any, index: number) => (
+          <div key={ov.id} className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs space-y-3">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 bg-cyan-100 text-cyan-800 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">
+                  {index + 1}
+                </span>
+                <span className="text-xs font-extrabold text-slate-800">
+                  OV #{ov.numero || 'Sin número'}
+                </span>
+                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${
+                  ov.estado === 'activa' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                  ov.estado === 'facturada' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                  'bg-rose-50 text-rose-700 border-rose-200'
+                }`}>
+                  {ov.estado === 'activa' ? '• Activa' : ov.estado === 'facturada' ? '• Facturada' : '• Cancelada'}
+                </span>
+              </div>
+              {draft.ordenesVenta.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => onRemoveOV(ov.id)}
+                  className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors cursor-pointer"
+                  title="Eliminar esta OV"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+              <div>
+                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Número / Código *</label>
+                <input
+                  type="text"
+                  value={ov.numero}
+                  onChange={(e) => onUpdateOV(ov.id, 'numero', e.target.value)}
+                  placeholder="Ej: OV-104"
+                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Monto ({draft.currency}) *</label>
+                <input
+                  type="number"
+                  value={ov.monto}
+                  onChange={(e) => onUpdateOV(ov.id, 'monto', e.target.value ? Number(e.target.value) : '')}
+                  placeholder="Ej: 2500"
+                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Estado OV *</label>
+                <select
+                  value={ov.estado}
+                  onChange={(e) => onUpdateOV(ov.id, 'estado', e.target.value as any)}
+                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-cyan-500"
+                >
+                  <option value="activa">Activa</option>
+                  <option value="facturada">Facturada</option>
+                  <option value="cancelada">Cancelada</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Horas Vendidas</label>
+                <input
+                  type="number"
+                  value={ov.horasAsociadas}
+                  onChange={(e) => onUpdateOV(ov.id, 'horasAsociadas', e.target.value ? Number(e.target.value) : '')}
+                  placeholder="Ej: 40"
+                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Fecha Emisión</label>
+                <input
+                  type="date"
+                  value={ov.fechaEmision}
+                  onChange={(e) => onUpdateOV(ov.id, 'fechaEmision', e.target.value)}
+                  className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Descripción</label>
+                <input
+                  type="text"
+                  value={ov.descripcion}
+                  onChange={(e) => onUpdateOV(ov.id, 'descripcion', e.target.value)}
+                  placeholder="Concepto..."
+                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap justify-between items-center pt-3 border-t border-slate-200/80 gap-2 text-xs">
+        <div className="flex items-center gap-4">
+          <span className="font-bold text-slate-500">
+            Total OVs: <strong className="text-slate-800">{draft.ordenesVenta.length}</strong>
+          </span>
+          <span className="font-bold text-slate-500">
+            Horas Vendidas Totales: <strong className="text-indigo-600">{draft.ordenesVenta.reduce((s: number, o: any) => s + (typeof o.horasAsociadas === 'number' ? o.horasAsociadas : 0), 0)} hrs</strong>
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="font-bold text-slate-500">Monto Total OVs Válidas:</span>
+          <span className="font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-100">
+            ${(typeof draft.totalIncome === 'number' ? draft.totalIncome : 0).toLocaleString('es-CL')} {draft.currency}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onClose, onCreateProject, users }) => {
   const [step, setStep] = useState<1 | 2>(1);
   const [activeTab, setActiveTab] = useState<'general' | 'fases' | 'integrantes' | 'rentabilidad'>('general');
@@ -461,7 +617,7 @@ const DEFAULT_DRAFT: ProjectDraft = {
     .filter(u => u.role !== 'invitado')
     .map(u => ({
       id: u.id,
-      name: u.username.charAt(0).toUpperCase() + u.username.slice(1),
+      name: (u.username || 'Usuario').charAt(0).toUpperCase() + (u.username || 'Usuario').slice(1),
       roleBase: u.puesto || 'Colaborador',
       avatar: u.avatar || `https://i.pravatar.cc/150?u=${u.username}`
     }));
@@ -628,9 +784,9 @@ const DEFAULT_DRAFT: ProjectDraft = {
               {/* TAB GENERAL */}
               {activeTab === 'general' && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-500 mb-1">Inicio</label>
+                      <label className="block text-[11px] font-bold text-slate-500 mb-1">Fecha de Inicio</label>
                       <input 
                         type="date" 
                         value={draft.startDate} 
@@ -639,7 +795,7 @@ const DEFAULT_DRAFT: ProjectDraft = {
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-500 mb-1">Final *</label>
+                      <label className="block text-[11px] font-bold text-slate-500 mb-1">Fecha de Término *</label>
                       <input 
                         type="date" 
                         value={draft.endDate} 
@@ -647,17 +803,15 @@ const DEFAULT_DRAFT: ProjectDraft = {
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none" 
                       />
                     </div>
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 mb-1">ID / Orden de Venta</label>
-                      <input 
-                        type="text" 
-                        placeholder="OV-104" 
-                        value={draft.saleOrderNumber} 
-                        onChange={(e) => setDraft(prev => ({ ...prev, saleOrderNumber: e.target.value }))} 
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none" 
-                      />
-                    </div>
                   </div>
+
+                  {/* GESTOR MULTI-OV (REEMPLAZO DEL CAMPO UNICO SALEORDERNUMBER) */}
+                  <OrdenesVentaArrayManager
+                    draft={draft}
+                    onAddOV={handleAddDraftOV}
+                    onRemoveOV={handleRemoveDraftOV}
+                    onUpdateOV={handleUpdateDraftOV}
+                  />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -1070,103 +1224,13 @@ const DEFAULT_DRAFT: ProjectDraft = {
                     </div>
                   </div>
 
-                  {/* BLOQUE DE MULTI-OV DRAFT */}
-                  <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
-                    <div className="flex justify-between items-center border-b border-slate-200/80 pb-3">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-cyan-600" />
-                        <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
-                          Órdenes de Venta del Proyecto ({draft.ordenesVenta.length})
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleAddDraftOV}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        Añadir OV
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {draft.ordenesVenta.map((ov, index) => (
-                        <div key={ov.id} className="p-3.5 bg-white rounded-xl border border-slate-200 shadow-xs space-y-3">
-                          <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-                            <span className="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
-                              <span className="w-5 h-5 bg-cyan-100 text-cyan-800 rounded-full flex items-center justify-center text-[10px] font-black">
-                                {index + 1}
-                              </span>
-                              Orden de Venta #{ov.numero}
-                            </span>
-                            {draft.ordenesVenta.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveDraftOV(ov.id)}
-                                className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors cursor-pointer"
-                                title="Eliminar OV"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Número / Código OV</label>
-                              <input
-                                type="text"
-                                value={ov.numero}
-                                onChange={(e) => handleUpdateDraftOV(ov.id, 'numero', e.target.value)}
-                                placeholder="Ej: OV-104"
-                                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Monto ({draft.currency}) *</label>
-                              <input
-                                type="number"
-                                value={ov.monto}
-                                onChange={(e) => handleUpdateDraftOV(ov.id, 'monto', e.target.value ? Number(e.target.value) : '')}
-                                placeholder="Ej: 2500"
-                                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Horas Vendidas OV</label>
-                              <input
-                                type="number"
-                                value={ov.horasAsociadas}
-                                onChange={(e) => handleUpdateDraftOV(ov.id, 'horasAsociadas', e.target.value ? Number(e.target.value) : '')}
-                                placeholder="Ej: 40"
-                                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Descripción / Concepto</label>
-                              <input
-                                type="text"
-                                value={ov.descripcion}
-                                onChange={(e) => handleUpdateDraftOV(ov.id, 'descripcion', e.target.value)}
-                                placeholder="Ej: Fase Inicial o Fee Mensual"
-                                className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="flex justify-between items-center pt-2 border-t border-slate-200/80">
-                      <span className="text-xs font-bold text-slate-500">Ingreso Total Proyectado de OVs:</span>
-                      <span className="text-sm font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-100">
-                        ${(typeof draft.totalIncome === 'number' ? draft.totalIncome : 0).toLocaleString('es-CL')} {draft.currency}
-                      </span>
-                    </div>
-                  </div>
+                  {/* GESTOR MULTI-OV DE RENTABILIDAD */}
+                  <OrdenesVentaArrayManager
+                    draft={draft}
+                    onAddOV={handleAddDraftOV}
+                    onRemoveOV={handleRemoveDraftOV}
+                    onUpdateOV={handleUpdateDraftOV}
+                  />
 
                   {/* Desglose de Horas Vendidas por Rol */}
                   <div className="p-5 bg-slate-900 text-white rounded-2xl space-y-4">

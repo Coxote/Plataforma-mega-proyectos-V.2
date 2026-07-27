@@ -61,14 +61,24 @@ export default function Login({ onLogin, usersList }: LoginProps) {
     );
 
     if (existingUser) {
+      if (existingUser.estado === 'inactivo') {
+        setError('Tu usuario se encuentra inactivo. Contacta al coordinador de la plataforma.');
+        return;
+      }
+
       // Validate password
       if (existingUser.password && existingUser.password !== password) {
         setError('Contraseña incorrecta para este usuario.');
         return;
       }
       
+      const loggedUser = {
+        ...existingUser,
+        lastLoginAt: new Date().toISOString()
+      };
+
       // Update local storage active session
-      onLogin(existingUser);
+      onLogin(loggedUser);
     } else {
       // Create new user dynamically
       const newUser: UserSession = {

@@ -17,7 +17,8 @@ import {
   Clock, 
   CheckCircle2, 
   ShieldAlert, 
-  Activity 
+  Activity,
+  Sparkles
 } from 'lucide-react';
 import { Project, ROLE_HOURLY_RATES, Role } from '../types';
 import { MultiOVManager } from './MultiOVManager';
@@ -55,6 +56,7 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
 
     const totalHoursSold = Object.values(hoursSold).reduce((sum, h) => sum + h, 0);
     const totalHoursConsumed = Object.values(hoursConsumed).reduce((sum, h) => sum + h, 0);
+    const totalHoursRemaining = totalHoursSold - totalHoursConsumed;
 
     // Cost calculations
     const costSold = roles.reduce((sum, role) => sum + (hoursSold[role] * ROLE_HOURLY_RATES[role]), 0);
@@ -68,6 +70,14 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
     const marginPercentage = income > 0 ? (profitReal / income) * 100 : 0;
     const hourConsumptionRate = totalHoursSold > 0 ? (totalHoursConsumed / totalHoursSold) * 100 : 0;
 
+    // Financial Forecast & Burn Rate
+    const avgCostPerHour = totalHoursConsumed > 0 ? costConsumed / totalHoursConsumed : (costSold / (totalHoursSold || 1));
+    const projectedCostAtCompletion = totalHoursConsumed >= totalHoursSold 
+      ? costConsumed 
+      : costConsumed + (Math.max(0, totalHoursRemaining) * avgCostPerHour);
+    const projectedProfitAtCompletion = income - projectedCostAtCompletion;
+    const projectedMarginPercentage = income > 0 ? (projectedProfitAtCompletion / income) * 100 : 0;
+
     // Transform roles for chart data
     const chartData = [
       {
@@ -75,6 +85,7 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
         roleKey: 'coordinador',
         'Horas Vendidas': hoursSold.coordinador,
         'Horas Consumidas': hoursConsumed.coordinador,
+        'Horas Restantes': hoursSold.coordinador - hoursConsumed.coordinador,
         costSold: hoursSold.coordinador * ROLE_HOURLY_RATES.coordinador,
         costConsumed: hoursConsumed.coordinador * ROLE_HOURLY_RATES.coordinador,
         rate: ROLE_HOURLY_RATES.coordinador,
@@ -84,6 +95,7 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
         roleKey: 'sac',
         'Horas Vendidas': hoursSold.sac,
         'Horas Consumidas': hoursConsumed.sac,
+        'Horas Restantes': hoursSold.sac - hoursConsumed.sac,
         costSold: hoursSold.sac * ROLE_HOURLY_RATES.sac,
         costConsumed: hoursConsumed.sac * ROLE_HOURLY_RATES.sac,
         rate: ROLE_HOURLY_RATES.sac,
@@ -93,6 +105,7 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
         roleKey: 'contents',
         'Horas Vendidas': hoursSold.contents,
         'Horas Consumidas': hoursConsumed.contents,
+        'Horas Restantes': hoursSold.contents - hoursConsumed.contents,
         costSold: hoursSold.contents * ROLE_HOURLY_RATES.contents,
         costConsumed: hoursConsumed.contents * ROLE_HOURLY_RATES.contents,
         rate: ROLE_HOURLY_RATES.contents,
@@ -102,6 +115,7 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
         roleKey: 'contentd',
         'Horas Vendidas': hoursSold.contentd,
         'Horas Consumidas': hoursConsumed.contentd,
+        'Horas Restantes': hoursSold.contentd - hoursConsumed.contentd,
         costSold: hoursSold.contentd * ROLE_HOURLY_RATES.contentd,
         costConsumed: hoursConsumed.contentd * ROLE_HOURLY_RATES.contentd,
         rate: ROLE_HOURLY_RATES.contentd,
@@ -113,12 +127,16 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
       hoursConsumed,
       totalHoursSold,
       totalHoursConsumed,
+      totalHoursRemaining,
       costSold,
       costConsumed,
       income,
       profitReal,
       marginPercentage,
       hourConsumptionRate,
+      projectedCostAtCompletion,
+      projectedProfitAtCompletion,
+      projectedMarginPercentage,
       chartData,
     };
   }, [project]);
@@ -235,6 +253,53 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
         </div>
       </div>
 
+      {/* FORECAST & BURN RATE SUMMARY BANNER (Fase 3 Rentabilidad) */}
+      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-md space-y-4" id="forecast-burn-rate-card">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-400" />
+            <h3 className="font-extrabold text-xs uppercase tracking-widest text-slate-200">
+              Pronóstico de Rentabilidad al Cierre (Financial Forecast)
+            </h3>
+          </div>
+          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+            stats.projectedMarginPercentage >= 30 
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' 
+              : stats.projectedMarginPercentage >= 15 
+              ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' 
+              : 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+          }`}>
+            Proyección Margen: {stats.projectedMarginPercentage.toFixed(1)}%
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+          <div className="bg-white/5 p-3 rounded-xl border border-white/10 space-y-1">
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Costo Estimado Final</span>
+            <div className="text-base font-black text-slate-100 font-mono">
+              ${stats.projectedCostAtCompletion.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
+            </div>
+            <p className="text-[10px] text-slate-400">Basado en tendencia actual de consumo</p>
+          </div>
+
+          <div className="bg-white/5 p-3 rounded-xl border border-white/10 space-y-1">
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Utilidad Proyectada Cierre</span>
+            <div className={`text-base font-black font-mono ${stats.projectedProfitAtCompletion >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+              ${stats.projectedProfitAtCompletion.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
+            </div>
+            <p className="text-[10px] text-slate-400">Ingreso menos costo final estimado</p>
+          </div>
+
+          <div className="bg-white/5 p-3 rounded-xl border border-white/10 space-y-1">
+            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider">Burn Rate & Disponibilidad</span>
+            <div className="text-base font-black text-indigo-300 font-mono">
+              {stats.totalHoursRemaining > 0 ? `${stats.totalHoursRemaining}h disponibles` : '0h (Presupuesto Agotado)'}
+            </div>
+            <p className="text-[10px] text-slate-400">{stats.totalHoursConsumed}h ejecutadas de {stats.totalHoursSold}h vendidas</p>
+          </div>
+        </div>
+      </div>
+
       {/* 2. BAR CHART & DETAILED ROLES GRID (Grid split) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recharts Bar Chart Panel */}
@@ -342,6 +407,9 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
                     <div className="flex justify-between items-center text-[11px] text-slate-500">
                       <div>
                         <span className="font-mono font-bold text-slate-700">{cons}h</span> / <span className="font-semibold">{sold}h</span>
+                        <span className={`ml-1.5 font-bold ${data['Horas Restantes'] < 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                          ({data['Horas Restantes'] >= 0 ? `Restan ${data['Horas Restantes']}h` : `${Math.abs(data['Horas Restantes'])}h exceso`})
+                        </span>
                       </div>
                       <div className="font-mono font-semibold">
                         Costo: <span className="font-bold text-slate-800">${data.costConsumed.toLocaleString('es-CL', { maximumFractionDigits: 0 })}</span>
