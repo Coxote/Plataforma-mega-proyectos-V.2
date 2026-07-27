@@ -438,6 +438,18 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
     });
   }, [tasks, searchQuery, statusFilter, assignedFilter, currentUser]);
 
+  const formatHours = (hours: number) => Number(hours || 0).toFixed(1).replace(/\.0$/, '');
+
+  const getStatusMeta = (status: PlannerTask['status']) => {
+    if (status === 'completado') {
+      return { label: 'Completado', dot: 'bg-emerald-500', select: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+    }
+    if (status === 'proceso') {
+      return { label: 'En proceso', dot: 'bg-sky-500', select: 'bg-sky-50 text-sky-700 border-sky-200' };
+    }
+    return { label: 'Pendiente', dot: 'bg-rose-500', select: 'bg-rose-50 text-rose-700 border-rose-200' };
+  };
+
   return (
     <div className="p-3 sm:p-6 bg-slate-50/50 min-h-full overflow-y-auto overflow-x-hidden space-y-4 sm:space-y-6 flex flex-col max-w-full" id="planner-daily-grid">
       
@@ -446,17 +458,17 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
         <div>
           <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">
             <Calendar className="w-3.5 h-3.5 text-lime-600" />
-            Planificación Diaria & Dailys
+            Planificación Diaria
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Planner Dailys & Status del Proyecto</h1>
-          <p className="text-xs text-slate-500 font-medium">Asigna operadores al escuadrón arrastrando fichas de usuario y monitorea la salud del proyecto en tiempo real.</p>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Planner Diario y Estado del Proyecto</h1>
+          <p className="text-xs text-slate-500 font-medium">Asigna operadores con arrastre o selector y monitorea la salud del proyecto en tiempo real.</p>
         </div>
 
         {/* El "Banquillo" del equipo con fotos Y NOMBRES ABAJO */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-3 bg-white p-3 sm:p-3.5 rounded-2xl border border-slate-200 shadow-xs w-full lg:w-auto overflow-hidden">
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0 mr-1 flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-lime-500 animate-pulse" />
-            Arrastrar Equipo:
+            Asignar equipo:
           </div>
           <div className="flex items-center gap-2.5 sm:gap-3 overflow-x-auto max-w-full pb-1 sm:pb-0 scrollbar-none touch-pan-x flex-nowrap sm:flex-wrap">
             {operatorsList.length === 0 ? (
@@ -671,12 +683,12 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
               {operatorsList.length} Miembros
             </div>
             <p className="text-[11px] text-slate-500 font-medium mt-1">
-              Listos para asignaciones mediante drag & drop
+              Listos para asignaciones por arrastre o selector
             </p>
           </div>
         </div>
 
-        {/* KPI 4: Estado de Tareas Dailys */}
+        {/* KPI 4: Estado de Tareas Diarias */}
         <div className="p-4 bg-white rounded-2xl border border-slate-200/80 shadow-xs hover:shadow-md hover:-translate-y-1 hover:scale-[1.01] hover:border-lime-200 transition-all duration-300 flex flex-col justify-between cursor-pointer">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
@@ -691,8 +703,14 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
               {projectDashboardMetrics.completedTasksCount} / {projectDashboardMetrics.totalTasksCount}
             </div>
             <div className="flex items-center gap-2 text-[10px] font-bold mt-1 text-slate-500">
-              <span className="text-sky-600">🔵 {projectDashboardMetrics.inProgressTasksCount} en proceso</span>
-              <span className="text-rose-600">🔴 {projectDashboardMetrics.pendingTasksCount} pendientes</span>
+              <span className="inline-flex items-center gap-1 text-sky-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+                {projectDashboardMetrics.inProgressTasksCount} en proceso
+              </span>
+              <span className="inline-flex items-center gap-1 text-rose-700">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                {projectDashboardMetrics.pendingTasksCount} pendientes
+              </span>
             </div>
           </div>
         </div>
@@ -981,7 +999,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
           <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-lime-400" />
-              <h3 className="font-bold text-xs uppercase tracking-wider">Añadir Tarea al Tablero de Dailys</h3>
+              <h3 className="font-bold text-xs uppercase tracking-wider">Añadir Tarea al Planner Diario</h3>
             </div>
             <button 
               onClick={() => setShowAddForm(false)} 
@@ -1046,9 +1064,9 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                 onChange={(e) => setFormPriority(e.target.value as any)}
                 className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:ring-2 focus:ring-lime-400/40 outline-none transition-all font-semibold cursor-pointer"
               >
-                <option value="alta">🔥 Alta Prioridad</option>
-                <option value="media">⚡ Media Prioridad</option>
-                <option value="baja">🔹 Baja Prioridad</option>
+                <option value="alta">Alta Prioridad</option>
+                <option value="media">Media Prioridad</option>
+                <option value="baja">Baja Prioridad</option>
               </select>
             </div>
 
@@ -1169,7 +1187,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                           </span>
                           {task.estimatedHours ? (
                             <span className="text-[10px] font-mono text-slate-500 font-bold">
-                              Est: {task.estimatedHours}h
+                              Est: {formatHours(task.estimatedHours)}h
                             </span>
                           ) : null}
                         </div>
@@ -1189,18 +1207,16 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                           <select
                             value={task.status}
                             onChange={(e) => handleStatusChange(task.id, e.target.value as any)}
-                            className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border outline-none cursor-pointer transition-all ${
-                              task.status === 'completado'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : task.status === 'proceso'
-                                ? 'bg-sky-50 text-sky-700 border-sky-200'
-                                : 'bg-rose-50 text-rose-700 border-rose-200'
-                            }`}
+                            className={`px-3 py-1.5 rounded-xl text-[10px] font-bold border outline-none cursor-pointer transition-all ${getStatusMeta(task.status).select}`}
                           >
-                            <option value="pendiente">🔴 Pendiente</option>
-                            <option value="proceso">🔵 En Proceso</option>
-                            <option value="completado">🟢 Completado</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="proceso">En Proceso</option>
+                            <option value="completado">Completado</option>
                           </select>
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-slate-200 text-[10px] font-black text-slate-600 shadow-2xs">
+                            <span className={`w-1.5 h-1.5 rounded-full ${getStatusMeta(task.status).dot}`} />
+                            {getStatusMeta(task.status).label}
+                          </span>
                         </div>
                       </td>
 

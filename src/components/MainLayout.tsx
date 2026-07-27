@@ -165,7 +165,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           {/* GRUPO: ADMINISTRACIÓN & PERFIL */}
           <div className="space-y-1">
             <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-              Mi Espacio
+              Personal
             </div>
             <button 
               onClick={() => handleNavClick('profile')}
@@ -178,6 +178,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <User className="w-4 h-4 shrink-0" />
               Mi Perfil y Horas
             </button>
+
+            {currentUser.role === 'coordinador' && (
+              <div className="px-3 pt-3 pb-1 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+                Administración
+              </div>
+            )}
 
             {currentUser.role === 'coordinador' && (
               <button 

@@ -140,10 +140,10 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, onSelec
         monthlyCapacity: load.grossCapacity || GROSS_MONTHLY_CAPACITY,
         effectiveCapacity: load.effectiveCapacity || EFFECTIVE_MONTHLY_CAPACITY,
         idleBuffer: load.idleBuffer || IDLE_TIME_HOURS,
-        loadedHours: load.consumedHours,
-        assignedHours: load.assignedHours,
-        saturation: load.assignedHours > 0 ? (load.consumedHours / load.assignedHours) * 100 : 0,
-        effectiveSaturation: load.effectiveSaturation || 0,
+        loadedHours: Number((load.consumedHours || 0).toFixed(1)),
+        assignedHours: Number((load.assignedHours || 0).toFixed(1)),
+        saturation: load.assignedHours > 0 ? Number(((load.consumedHours / load.assignedHours) * 100).toFixed(1)) : 0,
+        effectiveSaturation: Number((load.effectiveSaturation || 0).toFixed(1)),
         skills: uniqueSkills,
         activeProjectsCount: load.activeProjectsCount
       };

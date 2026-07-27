@@ -33,13 +33,25 @@ interface GanttTask {
   details: string;
 }
 
-const STORAGE_KEY = 'saas_phase_system_planner_tasks_v1';
+const STORAGE_KEY = 'saas_phase_system_planner_tasks_v2';
 
 export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] }) => {
   const [viewType, setViewType] = useState<'all' | 'planner' | 'project'>('all');
   const [selectedUserFilter, setSelectedUserFilter] = useState<string>('todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredTask, setHoveredTask] = useState<GanttTask | null>(null);
+  const [visibleMonth, setVisibleMonth] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+
+  const today = new Date();
+  const visibleYear = visibleMonth.getFullYear();
+  const visibleMonthIndex = visibleMonth.getMonth();
+  const daysInVisibleMonth = new Date(visibleYear, visibleMonthIndex + 1, 0).getDate();
+  const monthLabel = visibleMonth.toLocaleDateString('es-GT', { month: 'long', year: 'numeric' });
+  const capitalizedMonthLabel = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+  const isCurrentVisibleMonth = today.getFullYear() === visibleYear && today.getMonth() === visibleMonthIndex;
 
   // Read daily tasks from localStorage to mirror the PlannerGrid state
   const [plannerTasks, setPlannerTasks] = useState<any[]>([]);
@@ -55,29 +67,48 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
     }
   }, []);
 
-  // Helper to parse dates like "2026-07-24" or "24/07" and get July day number
-  const getDayNumber = (dateStr: string, defaultDay: number): number => {
-    if (!dateStr) return defaultDay;
-    
-    // Check YYYY-MM-DD
+  const parseTaskDate = (dateStr: string): Date | null => {
+    if (!dateStr) return null;
     if (dateStr.includes('-')) {
-      const parts = dateStr.split('-');
-      if (parts.length === 3) {
-        const day = parseInt(parts[2], 10);
-        return isNaN(day) ? defaultDay : day;
-      }
+      const [year, month, day] = dateStr.split('-').map(Number);
+      if (year && month && day) return new Date(year, month - 1, day);
     }
-    // Check DD/MM
     if (dateStr.includes('/')) {
-      const parts = dateStr.split('/');
-      if (parts.length >= 2) {
-        const day = parseInt(parts[0], 10);
-        return isNaN(day) ? defaultDay : day;
-      }
+      const [day, month] = dateStr.split('/').map(Number);
+      if (day && month) return new Date(visibleYear, month - 1, day);
+    }
+    return null;
+  };
+
+  const getTaskPosition = (startStr: string, endStr: string, fallbackStart: number, fallbackDuration: number) => {
+    const startDate = parseTaskDate(startStr);
+    const endDate = parseTaskDate(endStr);
+
+    if (!startDate || !endDate) {
+      return { startDay: fallbackStart, durationDays: fallbackDuration, isInMonth: true };
     }
 
-    const dayNum = parseInt(dateStr, 10);
-    return isNaN(dayNum) ? defaultDay : dayNum;
+    const monthStart = new Date(visibleYear, visibleMonthIndex, 1);
+    const monthEnd = new Date(visibleYear, visibleMonthIndex, daysInVisibleMonth);
+    if (endDate < monthStart || startDate > monthEnd) {
+      return { startDay: 1, durationDays: 1, isInMonth: false };
+    }
+
+    const clippedStart = startDate < monthStart ? monthStart : startDate;
+    const clippedEnd = endDate > monthEnd ? monthEnd : endDate;
+    const startDay = clippedStart.getDate();
+    const durationDays = Math.max(clippedEnd.getDate() - startDay + 1, 1);
+    return { startDay, durationDays, isInMonth: true };
+  };
+
+  const formatDateLabel = (dateStr: string) => {
+    const date = parseTaskDate(dateStr);
+    if (!date) return dateStr || 'Sin fecha';
+    return date.toLocaleDateString('es-GT', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  const moveMonth = (offset: number) => {
+    setVisibleMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
   };
 
   // Get color for a task status or role
@@ -103,33 +134,35 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
     // 1. ADD PLANNER DAILY TASKS (Dynamic)
     if (viewType === 'all' || viewType === 'planner') {
       plannerTasks.forEach(task => {
-        if (!task.assignedTo) return; // Only show assigned tasks in the Gantt
+        const assignedUserIds = task.assignedToUsers || (task.assignedTo ? [task.assignedTo] : []);
+        if (assignedUserIds.length === 0) return;
 
-        const assignedUserObj = users.find(u => u.id === task.assignedTo);
-        if (!assignedUserObj) return;
+        assignedUserIds.forEach((userId: string) => {
+          const assignedUserObj = users.find(u => u.id === userId);
+          if (!assignedUserObj) return;
 
-        const startDay = getDayNumber(task.start, 5);
-        const endDay = getDayNumber(task.deadline, 10);
-        const duration = Math.max(endDay - startDay + 1, 1);
+          const position = getTaskPosition(task.start, task.deadline, 5, 5);
+          if (!position.isInMonth) return;
 
-        list.push({
-          id: task.id,
-          projectName: `[Daily] ${task.brand} - ${task.project}`,
-          assignedUser: assignedUserObj.username,
-          assignedUserId: assignedUserObj.id,
-          startDay: Math.min(Math.max(startDay, 1), 31),
-          durationDays: Math.min(duration, 31 - startDay + 1),
-          color: task.status === 'completado' 
-            ? 'bg-emerald-500/90 border-emerald-600/50' 
-            : task.status === 'proceso' 
-            ? 'bg-sky-500/90 border-sky-600/50' 
-            : 'bg-indigo-500/90 border-indigo-600/50',
-          status: task.status,
-          type: 'planner',
-          originalDates: `Del ${task.start} al ${task.deadline}`,
-          details: `Cliente: ${task.brand}. Estado: ${task.status.toUpperCase()}`
+          list.push({
+            id: `${task.id}-${userId}`,
+            projectName: `[Planner] ${task.brand} - ${task.project}`,
+            assignedUser: assignedUserObj.username,
+            assignedUserId: assignedUserObj.id,
+            startDay: Math.min(Math.max(position.startDay, 1), daysInVisibleMonth),
+            durationDays: Math.min(position.durationDays, daysInVisibleMonth - position.startDay + 1),
+            color: task.status === 'completado'
+              ? 'bg-emerald-500/90 border-emerald-600/50'
+              : task.status === 'proceso'
+              ? 'bg-sky-500/90 border-sky-600/50'
+              : 'bg-indigo-500/90 border-indigo-600/50',
+            status: task.status,
+            type: 'planner',
+            originalDates: `${formatDateLabel(task.start)} - ${formatDateLabel(task.deadline)}`,
+            details: `Cliente: ${task.brand}. Estado: ${task.status.toUpperCase()}`
+          });
+          colorIndex++;
         });
-        colorIndex++;
       });
     }
 
@@ -150,7 +183,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
           
           matchingUsers.forEach(user => {
             // Let's spread projects on the timeline using stable day algorithms based on project index or phase status
-            const startDay = ((projIdx * 3) % 20) + 1;
+            const startDay = ((projIdx * 3) % Math.max(daysInVisibleMonth - 10, 1)) + 1;
             const duration = 6 + (projIdx % 5) * 2; // stable duration
 
             list.push({
@@ -202,14 +235,14 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
           color: fb.color,
           status: fb.status as any,
           type: 'planner',
-          originalDates: `Julio ${fb.startDay} - Julio ${fb.startDay + fb.durationDays - 1}`,
+          originalDates: `${capitalizedMonthLabel}, dias ${fb.startDay}-${fb.startDay + fb.durationDays - 1}`,
           details: 'Planificación de prueba del sistema'
         });
       });
     }
 
     return list;
-  }, [plannerTasks, projects, users, viewType]);
+  }, [plannerTasks, projects, users, viewType, visibleYear, visibleMonthIndex, daysInVisibleMonth, capitalizedMonthLabel]);
 
   // Unique list of users that have any tasks
   const distinctUsers = useMemo(() => {
@@ -234,7 +267,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
     });
   }, [ganttTasks, searchQuery, selectedUserFilter]);
 
-  const DAYS_IN_MONTH = Array.from({ length: 31 }, (_, i) => i + 1);
+  const DAYS_IN_MONTH = Array.from({ length: daysInVisibleMonth }, (_, i) => i + 1);
 
   return (
     <div className="p-6 bg-slate-50/50 min-h-full overflow-y-auto space-y-6 flex flex-col relative" id="gantt-timeline-view">
@@ -247,18 +280,18 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
             Línea de Tiempo Operativa
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Gantt de Carga & Solapes</h1>
-          <p className="text-xs text-slate-500 font-medium">Visualiza solapes y asignación de tareas por colaborador a lo largo de Julio 2026.</p>
+          <p className="text-xs text-slate-500 font-medium">Visualiza solapes y asignación de tareas por colaborador durante {capitalizedMonthLabel}.</p>
         </div>
         
         {/* Date Selector Badge */}
         <div className="flex items-center gap-2.5 bg-white px-3.5 py-2 rounded-2xl border border-slate-200 shadow-xs self-start">
           <CalendarIcon className="w-4 h-4 text-lime-600" />
-          <span className="text-xs font-black text-slate-800">Julio 2026</span>
+          <span className="text-xs font-black text-slate-800">{capitalizedMonthLabel}</span>
           <div className="flex gap-1 border-l border-slate-200 pl-2 ml-1">
-            <button className="p-1 hover:bg-slate-100 rounded text-slate-400" disabled>
+            <button onClick={() => moveMonth(-1)} className="p-1 hover:bg-slate-100 rounded text-slate-500" title="Mes anterior">
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>
-            <button className="p-1 hover:bg-slate-100 rounded text-slate-400" disabled>
+            <button onClick={() => moveMonth(1)} className="p-1 hover:bg-slate-100 rounded text-slate-500" title="Mes siguiente">
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -373,10 +406,9 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
               </div>
               
               {/* Day numbers column grid */}
-              <div className="grid flex-1" style={{ gridTemplateColumns: 'repeat(31, minmax(0, 1fr))' }}>
+              <div className="grid flex-1" style={{ gridTemplateColumns: `repeat(${daysInVisibleMonth}, minmax(0, 1fr))` }}>
                 {DAYS_IN_MONTH.map(day => {
-                  // highlight current day (Julio 22, 2026 is current local time reference)
-                  const isToday = day === 22;
+                  const isToday = isCurrentVisibleMonth && day === today.getDate();
                   return (
                     <div 
                       key={day} 
@@ -385,7 +417,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                           ? 'bg-lime-400 text-slate-950 font-black shadow-inner' 
                           : 'text-slate-500 font-semibold bg-slate-50'
                       }`}
-                      title={isToday ? "Hoy (22 de Julio 2026)" : `Día ${day}`}
+                      title={isToday ? `Hoy (${today.toLocaleDateString('es-GT')})` : `Dia ${day}`}
                     >
                       <span>{day}</span>
                       <span className="text-[7.5px] uppercase tracking-tighter opacity-80 mt-0.5">
@@ -421,13 +453,13 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                     </div>
 
                     {/* Timeline bar container X-Axis */}
-                    <div className="grid flex-1 relative h-full items-center" style={{ gridTemplateColumns: 'repeat(31, minmax(0, 1fr))' }}>
+                    <div className="grid flex-1 relative h-full items-center" style={{ gridTemplateColumns: `repeat(${daysInVisibleMonth}, minmax(0, 1fr))` }}>
                       
                       {/* Grid background columns lines */}
                       {DAYS_IN_MONTH.map(day => (
                         <div 
                           key={day} 
-                          className={`border-r border-slate-100/60 h-full ${day === 22 ? 'bg-lime-500/5 border-r-lime-400/40' : ''}`} 
+                          className={`border-r border-slate-100/60 h-full ${isCurrentVisibleMonth && day === today.getDate() ? 'bg-lime-500/5 border-r-lime-400/40' : ''}`}
                         />
                       ))}
 
