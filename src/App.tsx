@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { Project, UserSession, RoleHoursAllocation, Client, TimeEntryType } from './types';
 import { INITIAL_PROJECTS, createDefaultPhases, createDefaultBudget, createDefaultRaci } from './initialData';
-import ProjectSelector from './components/ProjectSelector';
 import Sidebar from './components/Sidebar';
 import PhaseContent from './components/PhaseContent';
-import RightPanel from './components/RightPanel';
 import Login from './components/Login';
 import UserManagementModal from './components/UserManagementModal';
 import { ClientPortal } from './components/ClientPortal';
@@ -103,6 +101,7 @@ export default function App() {
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const [currentView, setCurrentView] = useState<ViewState>('planner');
   const [clients, setClients] = useState<Client[]>([]);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const isInitialized = useRef(false);
 
   // Hook de monitoreo de entregables y SLAs del sistema
@@ -668,6 +667,7 @@ export default function App() {
           <CoordinatorDashboard 
             projects={projects} 
             users={usersList} 
+            activeProjectId={activeProjectId}
             onSelectProject={handleSelectProject} 
           />
         </div>
@@ -683,7 +683,7 @@ export default function App() {
           />
         </div>
       ) : currentView === 'planner' ? (
-        <div className="flex-1 overflow-hidden h-full">
+        <div className="flex-1 overflow-y-auto h-full">
           <PlannerGrid
             projects={projects}
             users={usersList}
@@ -691,14 +691,14 @@ export default function App() {
           />
         </div>
       ) : currentView === 'gantt' ? (
-        <div className="flex-1 overflow-hidden h-full">
+        <div className="flex-1 overflow-y-auto h-full">
           <GanttView
             projects={projects}
             users={usersList}
           />
         </div>
       ) : currentView === 'clients' && currentUser.role === 'coordinador' ? (
-        <div className="flex-1 overflow-hidden h-full">
+        <div className="flex-1 overflow-y-auto h-full">
           <ClientsManagement
             clients={clients}
             onAddClient={handleAddClient}
@@ -706,31 +706,24 @@ export default function App() {
           />
         </div>
       ) : (
-        <div className="flex-1 grid grid-cols-1 md:grid-cols-[260px_1fr_330px] overflow-hidden h-full" id="workspace-columns">
+        <div className="flex-1 flex overflow-hidden h-full relative" id="workspace-columns">
           
-          {/* COLUMN 1: LEFT SIDEBAR */}
-          <div className="flex flex-col h-full border-r border-slate-200 bg-white shrink-0">
-            <ProjectSelector
-              projects={projects}
-              activeProjectId={activeProjectId}
-              onSelectProject={handleSelectProject}
-              onAddProject={() => setIsNewProjectModalOpen(true)}
-              onDeleteProject={handleDeleteProject}
-              userRole={currentUser.role}
-              overdueProjectIds={deliverableMonitoring.overdueProjectIds}
-              approachingProjectIds={deliverableMonitoring.approachingProjectIds}
-            />
-            <div className="flex-1 overflow-hidden">
-              <Sidebar
-                phases={activeProject.phases}
-                activePhaseId={activeProject.activePhaseId}
-                onSelectPhase={handleSelectPhase}
-              />
-            </div>
-          </div>
+          {/* LEFT SIDEBAR: PROJECTS & SEARCH */}
+          <Sidebar
+            projects={projects}
+            activeProjectId={activeProjectId}
+            onSelectProject={handleSelectProject}
+            onAddProject={() => setIsNewProjectModalOpen(true)}
+            onDeleteProject={handleDeleteProject}
+            userRole={currentUser.role}
+            overdueProjectIds={deliverableMonitoring.overdueProjectIds}
+            approachingProjectIds={deliverableMonitoring.approachingProjectIds}
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          />
 
-          {/* COLUMN 2: CENTER WORKSPACE */}
-          <div className="h-full overflow-hidden flex flex-col">
+          {/* MAIN WORKSPACE */}
+          <div className="flex-1 h-full overflow-hidden flex flex-col min-w-0">
             <PhaseContent
               activePhase={activePhase}
               project={activeProject}
@@ -739,15 +732,6 @@ export default function App() {
               onCompletePhase={handleCompletePhase}
               showSaveToast={showSaveToast}
               userRole={currentUser.role}
-            />
-          </div>
-
-          {/* COLUMN 3: RIGHT PANEL */}
-          <div className="h-full overflow-hidden">
-            <RightPanel
-              project={activeProject}
-              onUpdateProject={handleUpdateProject}
-              activePhase={activePhase}
               currentUser={currentUser}
             />
           </div>

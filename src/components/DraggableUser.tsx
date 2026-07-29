@@ -17,10 +17,10 @@ export const DraggableUser: React.FC<DraggableUserProps> = ({ user, color }) => 
     <div
       draggable
       onDragStart={handleDragStart}
-      className="flex flex-col items-center gap-1 cursor-grab active:cursor-grabbing select-none group shrink-0"
-      title={`${user.username} - ${user.puesto || user.role}`}
+      className="flex flex-col items-center gap-1.5 cursor-grab active:cursor-grabbing select-none group shrink-0 py-1 px-1 transition-all"
+      title={`${user.username} - ${user.puesto || user.role} (Arrastrar a tarea)`}
     >
-      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-black shadow-xs group-hover:scale-105 group-hover:shadow-md transition-all border-2 border-white overflow-hidden ${color}`}>
+      <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white font-black shadow-xs group-hover:scale-120 group-hover:shadow-lg group-hover:z-20 transition-transform duration-200 ease-out border-2 border-white overflow-hidden ${color}`}>
         <img 
           src={getUserAvatarUrl(user.username)} 
           alt={user.username} 
@@ -28,9 +28,10 @@ export const DraggableUser: React.FC<DraggableUserProps> = ({ user, color }) => 
           referrerPolicy="no-referrer"
         />
       </div>
-      <span className="text-[10px] font-bold text-slate-800 bg-slate-100 group-hover:bg-slate-200 group-hover:text-slate-950 px-2 py-0.5 rounded-lg max-w-[76px] truncate text-center transition-colors shadow-xs">
+      <span className="text-[10px] font-extrabold text-slate-700 bg-white group-hover:bg-slate-900 group-hover:text-white px-2 py-0.5 rounded-lg max-w-[80px] truncate text-center transition-all border border-slate-200 shadow-2xs">
         {user.username}
       </span>
     </div>
   );
 };
+

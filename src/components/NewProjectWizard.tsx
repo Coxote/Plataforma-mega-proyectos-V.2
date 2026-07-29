@@ -1,15 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  X, Plus, Trash2, FileText, Users, TrendingUp, ArrowLeft, ArrowRight, 
-  FolderPlus, Tag, Sparkles, FileCode2, CheckCircle2, ShieldAlert, ShieldCheck
+  X, Plus, Trash2, FileText, ArrowLeft, 
+  FileCode2, CheckCircle2, ShieldAlert, GripVertical, 
+  ChevronUp, ChevronDown, Layers
 } from 'lucide-react';
-import { RoleHoursAllocation, ProjectMember, UserSession } from '../types';
-import { PROJECT_TEMPLATES, generatePhasesForTemplate } from '../projectTemplates';
-import { 
-  generateProjectDescriptionWithGemini, 
-  generateRiskMitigationWithGemini, 
-  RiskAnalysisResult 
-} from '../geminiService';
+import { RoleHoursAllocation, UserSession } from '../types';
 
 const PREDEFINED_TAGS = {
   'Entregable': ['#RedesSociales', '#Branding', '#UI/UX', '#VideoMotion', '#PixelArt', '#GameDev', '#DesarrolloWeb'],
@@ -193,21 +188,22 @@ const OrdenesVentaArrayManager: React.FC<{
 
 export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onClose, onCreateProject, users }) => {
   const [step, setStep] = useState<1 | 2>(1);
-  const [activeTab, setActiveTab] = useState<'general' | 'fases' | 'integrantes' | 'rentabilidad'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'fases' | 'integrantes'>('general');
   const [clients, setClients] = useState<any[]>([]);
 
   // Búsqueda de integrantes
   const [rosterSearch, setRosterSearch] = useState('');
 
-  // Drag & drop state
+  // Drag & drop state para Integrantes
   const [draggedMemberId, setDraggedMemberId] = useState<string | null>(null);
 
-  // Estados de generación Asistida por Gemini
-  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
-  const [isGeneratingRisks, setIsGeneratingRisks] = useState(false);
-  const [riskAnalysis, setRiskAnalysis] = useState<RiskAnalysisResult | null>(null);
-  const [riskErrorMessage, setRiskErrorMessage] = useState<string | null>(null);
-  const [descriptionErrorMessage, setDescriptionErrorMessage] = useState<string | null>(null);
+  // Drag & drop state para Fases
+  const [draggedPhaseIndex, setDraggedPhaseIndex] = useState<number | null>(null);
+
+  // Estado para creación manual de Fase
+  const [newPhaseName, setNewPhaseName] = useState('');
+  const [newChecklistText, setNewChecklistText] = useState('');
+  const [newPhaseChecklist, setNewPhaseChecklist] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -222,62 +218,62 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     }
   }, [isOpen]);
 
-// --- ESTADO UNIFICADO DE BORRADOR (DRAFT) DE PROYECTO ---
-interface ProjectDraft {
-  projectName: string;
-  clientName: string;
-  projectMode: 'blank' | 'template';
-  selectedTemplate: string;
-  startDate: string;
-  endDate: string;
-  saleOrderNumber: string;
-  ordenesVenta: ProjectDraftOV[];
-  deliverablesCount: number | '';
-  description: string;
-  riskMitigationText: string;
-  tags: string[];
-  customPhases: any[];
-  members: any[];
-  currency: string;
-  totalIncome: number | '';
-  roleHours: RoleHoursAllocation;
-}
-
-const DEFAULT_DRAFT: ProjectDraft = {
-  projectName: '',
-  clientName: '',
-  projectMode: 'blank',
-  selectedTemplate: 'redes',
-  startDate: new Date().toISOString().split('T')[0],
-  endDate: '',
-  saleOrderNumber: 'OV-001',
-  ordenesVenta: [
-    {
-      id: `ov-draft-1`,
-      numero: 'OV-001',
-      monto: '',
-      moneda: 'USD',
-      horasAsociadas: '',
-      fechaEmision: new Date().toISOString().split('T')[0],
-      descripcion: 'Orden de Venta Inicial',
-      estado: 'activa'
-    }
-  ],
-  deliverablesCount: '',
-  description: '',
-  riskMitigationText: '',
-  tags: [],
-  customPhases: [],
-  members: [],
-  currency: 'USD',
-  totalIncome: '',
-  roleHours: { 
-    coordinador: 0, 
-    sac: 0, 
-    contents: 0, 
-    contentd: 0 
+  // --- ESTADO UNIFICADO DE BORRADOR (DRAFT) DE PROYECTO ---
+  interface ProjectDraft {
+    projectName: string;
+    clientName: string;
+    projectMode: 'blank' | 'template';
+    selectedTemplate: string;
+    startDate: string;
+    endDate: string;
+    saleOrderNumber: string;
+    ordenesVenta: ProjectDraftOV[];
+    deliverablesCount: number | '';
+    description: string;
+    riskMitigationText: string;
+    tags: string[];
+    customPhases: any[];
+    members: any[];
+    currency: string;
+    totalIncome: number | '';
+    roleHours: RoleHoursAllocation;
   }
-};
+
+  const DEFAULT_DRAFT: ProjectDraft = {
+    projectName: '',
+    clientName: '',
+    projectMode: 'blank',
+    selectedTemplate: 'redes',
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: '',
+    saleOrderNumber: 'OV-001',
+    ordenesVenta: [
+      {
+        id: `ov-draft-1`,
+        numero: 'OV-001',
+        monto: '',
+        moneda: 'USD',
+        horasAsociadas: '',
+        fechaEmision: new Date().toISOString().split('T')[0],
+        descripcion: 'Orden de Venta Inicial',
+        estado: 'activa'
+      }
+    ],
+    deliverablesCount: '',
+    description: '',
+    riskMitigationText: '',
+    tags: [],
+    customPhases: [],
+    members: [],
+    currency: 'USD',
+    totalIncome: '',
+    roleHours: { 
+      coordinador: 0, 
+      sac: 0, 
+      contents: 0, 
+      contentd: 0 
+    }
+  };
 
   const [draft, setDraft] = useState<ProjectDraft>(() => {
     try {
@@ -287,44 +283,6 @@ const DEFAULT_DRAFT: ProjectDraft = {
       return DEFAULT_DRAFT;
     }
   });
-
-  // Funciones de Generación con Gemini API
-  const handleGenerateDescription = async () => {
-    setIsGeneratingDescription(true);
-    setDescriptionErrorMessage(null);
-    try {
-      const desc = await generateProjectDescriptionWithGemini(draft);
-      if (desc) {
-        setDraft(prev => ({ ...prev, description: desc }));
-      }
-    } catch (error: any) {
-      console.error('Error generating project description:', error);
-      setDescriptionErrorMessage(error.message || 'Error al conectar con la API de Gemini.');
-    } finally {
-      setIsGeneratingDescription(false);
-    }
-  };
-
-  const handleGenerateRisks = async () => {
-    setIsGeneratingRisks(true);
-    setRiskErrorMessage(null);
-    try {
-      const result = await generateRiskMitigationWithGemini(draft);
-      setRiskAnalysis(result);
-      if (result && result.risks && result.risks.length > 0) {
-        const formattedRiesgos = result.risks.map(r => `• [${r.severity.toUpperCase()} - ${r.category}] ${r.risk}: ${r.mitigation}`).join('\n');
-        setDraft(prev => ({ 
-          ...prev, 
-          riskMitigationText: formattedRiesgos 
-        }));
-      }
-    } catch (error: any) {
-      console.error('Error generating risk mitigation:', error);
-      setRiskErrorMessage(error.message || 'Error al conectar con la API de Gemini.');
-    } finally {
-      setIsGeneratingRisks(false);
-    }
-  };
 
   // Guardar automáticamente el borrador cuando cambia
   useEffect(() => {
@@ -336,10 +294,6 @@ const DEFAULT_DRAFT: ProjectDraft = {
       }
     }
   }, [draft, isOpen]);
-
-  // --- TRANSICIONES Y ESTADOS DE INTERFAZ TRANSITORIOS ---
-  const [isGeneratingPhases, setIsGeneratingPhases] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
 
   if (!isOpen) return null;
 
@@ -397,58 +351,106 @@ const DEFAULT_DRAFT: ProjectDraft = {
     }));
   };
 
-  // Funciones de Fases (IA y Markdown)
-  const handleGeneratePhasesWithAI = () => {
-    if (!aiPrompt.trim()) return;
-    setIsGeneratingPhases(true);
-    
-    setTimeout(() => {
-      let generated: { name: string, tasks: { title: string }[] }[] = [];
-      const promptLower = aiPrompt.toLowerCase();
-      
-      if (promptLower.includes('web') || promptLower.includes('pagina') || promptLower.includes('sitio')) {
-        generated = [
-          { name: 'Wireframing & UX', tasks: [{title: 'Sitemap funcional'}, {title: 'Wireframes de baja fidelidad'}] },
-          { name: 'UI & Diseño Visual', tasks: [{title: 'Figma Design System'}, {title: 'Prototipo interactivo final'}] },
-          { name: 'Desarrollo Front/Back', tasks: [{title: 'Setup entorno Vite'}, {title: 'Maquetado Tailwind CSS'}] }
-        ];
-      } else if (promptLower.includes('juego') || promptLower.includes('pixel') || promptLower.includes('game')) {
-        generated = [
-          { name: 'Game Design Document', tasks: [{title: 'Mecánicas básicas'}, {title: 'Reglas y Balance'}] },
-          { name: 'Sprites & Arte Pixel', tasks: [{title: 'Animaciones personaje'}, {title: 'Tilemap de escenarios'}] },
-          { name: 'Motor & QA', tasks: [{title: 'Programación de colisiones'}, {title: 'Playtesting alfa'}] }
-        ];
-      } else if (promptLower.includes('redes') || promptLower.includes('social') || promptLower.includes('marketing')) {
-        generated = [
-          { name: 'Estrategia de Redes', tasks: [{title: 'Definir Brief'}, {title: 'Benchmarking de competencia'}] },
-          { name: 'Diseño de Copys & Grillas', tasks: [{title: 'Redacción de copys'}, {title: 'Aprobación de Grilla Semanal'}] },
-          { name: 'Diseño de Recursos', tasks: [{title: 'Postales de marca'}, {title: 'Edición de Reels'}] }
-        ];
-      } else {
-        generated = [
-          { name: 'Fase 1: Onboarding & Setup', tasks: [{title: 'Reunión de Kickoff'}, {title: 'Setup accesos y tableros'}] },
-          { name: 'Fase 2: Ejecución', tasks: [{title: 'Desarrollo de entregables'}, {title: 'Iteración según feedback'}] },
-          { name: 'Fase 3: Cierre', tasks: [{title: 'Puesta en marcha'}, {title: 'Cierre de proyecto'}] }
-        ];
-      }
+  // --- EDITOR MANUAL DE FASES & CHECKLIST ---
+  const handleAddChecklistItem = () => {
+    if (!newChecklistText.trim()) return;
+    setNewPhaseChecklist(prev => [...prev, newChecklistText.trim()]);
+    setNewChecklistText('');
+  };
 
-      const formatted = generated.map((ph, idx) => ({
-        id: `ph-${idx + 1}-${Date.now()}`,
-        label: `A${idx + 1}. ${ph.name}`,
-        status: idx === 0 ? ('active' as const) : ('pending' as const),
-        completedAt: null,
-        checklist: ph.tasks.map((task, tidx) => ({
-          id: `t-${idx + 1}-${tidx + 1}-${Date.now()}`,
-          text: task.title,
-          completed: false
-        })),
-        fields: {}
-      }));
+  const handleRemoveChecklistItem = (idx: number) => {
+    setNewPhaseChecklist(prev => prev.filter((_, i) => i !== idx));
+  };
 
-      setDraft(prev => ({ ...prev, customPhases: formatted }));
-      setIsGeneratingPhases(false);
-      setAiPrompt('');
-    }, 2000);
+  const handleAddManualPhase = () => {
+    if (!newPhaseName.trim()) return;
+    const nextIdx = draft.customPhases.length + 1;
+    const newPhaseObj = {
+      id: `custom-ph-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      label: `A${nextIdx}. ${newPhaseName.trim()}`,
+      status: nextIdx === 1 ? ('active' as const) : ('pending' as const),
+      completedAt: null,
+      checklist: newPhaseChecklist.map((task, tidx) => ({
+        id: `task-${Date.now()}-${tidx}`,
+        text: task,
+        completed: false
+      })),
+      fields: {}
+    };
+
+    setDraft(prev => ({
+      ...prev,
+      customPhases: [...prev.customPhases, newPhaseObj]
+    }));
+
+    setNewPhaseName('');
+    setNewChecklistText('');
+    setNewPhaseChecklist([]);
+  };
+
+  const handleRemovePhase = (phaseId: string) => {
+    setDraft(prev => {
+      const updated = prev.customPhases.filter(p => p.id !== phaseId);
+      // Renumerar prefijos A1, A2...
+      const renumbered = updated.map((ph, idx) => {
+        const cleanName = ph.label.replace(/^A\d+\.\s*/, '');
+        return {
+          ...ph,
+          label: `A${idx + 1}. ${cleanName}`
+        };
+      });
+      return { ...prev, customPhases: renumbered };
+    });
+  };
+
+  // --- DRAG AND DROP PARA REORDENAR FASES ---
+  const handlePhaseDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedPhaseIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handlePhaseDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handlePhaseDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedPhaseIndex === null || draggedPhaseIndex === targetIndex) return;
+
+    const updated = [...draft.customPhases];
+    const [draggedPhase] = updated.splice(draggedPhaseIndex, 1);
+    updated.splice(targetIndex, 0, draggedPhase);
+
+    const renumbered = updated.map((ph, idx) => {
+      const cleanName = ph.label.replace(/^A\d+\.\s*/, '');
+      return {
+        ...ph,
+        label: `A${idx + 1}. ${cleanName}`
+      };
+    });
+
+    setDraft(prev => ({ ...prev, customPhases: renumbered }));
+    setDraggedPhaseIndex(null);
+  };
+
+  const handleMovePhase = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= draft.customPhases.length) return;
+
+    const updated = [...draft.customPhases];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+
+    const renumbered = updated.map((ph, idx) => {
+      const cleanName = ph.label.replace(/^A\d+\.\s*/, '');
+      return {
+        ...ph,
+        label: `A${idx + 1}. ${cleanName}`
+      };
+    });
+
+    setDraft(prev => ({ ...prev, customPhases: renumbered }));
   };
 
   const handleFileUploadMD = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -481,23 +483,24 @@ const DEFAULT_DRAFT: ProjectDraft = {
           }
         });
         if (currentPhase) parsedPhases.push(currentPhase);
+        
+        const finalParsed = parsedPhases.length ? parsedPhases : [{ id: '1', label: 'A1. Fase Importada', status: 'active', completedAt: null, checklist: [], fields: {} }];
+        
+        const renumbered = finalParsed.map((ph, idx) => {
+          const cleanName = ph.label.replace(/^A\d+\.\s*/, '');
+          return {
+            ...ph,
+            label: `A${idx + 1}. ${cleanName}`
+          };
+        });
+
         setDraft(prev => ({
           ...prev,
-          customPhases: parsedPhases.length ? parsedPhases : [{ id: '1', label: 'A1. Fase Importada', status: 'active', completedAt: null, checklist: [], fields: {} }]
+          customPhases: renumbered
         }));
       };
       reader.readAsText(file);
     }
-  };
-
-  const handleRoleHourChange = (role: keyof RoleHoursAllocation, val: string) => {
-    setDraft(prev => ({
-      ...prev,
-      roleHours: {
-        ...prev.roleHours,
-        [role]: parseInt(val, 10) || 0
-      }
-    }));
   };
 
   // --- HANDLERS MULTI-OV DRAFT ---
@@ -557,7 +560,6 @@ const DEFAULT_DRAFT: ProjectDraft = {
     setStep(1);
     setActiveTab('general');
     setDraft(DEFAULT_DRAFT);
-    setAiPrompt('');
     try {
       localStorage.removeItem('saas_phase_system_project_draft');
     } catch (err) {
@@ -568,11 +570,34 @@ const DEFAULT_DRAFT: ProjectDraft = {
 
   // Guardar proyecto
   const handleFinish = () => {
-    const finalPhases = draft.projectMode === 'template' 
-      ? generatePhasesForTemplate(draft.selectedTemplate) 
-      : (draft.customPhases.length > 0 ? draft.customPhases : [
-          { id: 'A1', label: 'A1. Fase Inicial', status: 'active', completedAt: null, checklist: [], fields: {} }
-        ]);
+    const defaultInitialPhases = [
+      { 
+        id: 'A1', 
+        label: 'A1. Kickoff & Planificación', 
+        status: 'active', 
+        completedAt: null, 
+        checklist: [{ id: 't-1', text: 'Reunión inicial con cliente', completed: false }], 
+        fields: {} 
+      },
+      { 
+        id: 'A2', 
+        label: 'A2. Ejecución & Desarrollo', 
+        status: 'pending', 
+        completedAt: null, 
+        checklist: [{ id: 't-2', text: 'Desarrollo de entregables principales', completed: false }], 
+        fields: {} 
+      },
+      { 
+        id: 'A3', 
+        label: 'A3. Entrega & Aprobación', 
+        status: 'pending', 
+        completedAt: null, 
+        checklist: [{ id: 't-3', text: 'Aprobación final del cliente', completed: false }], 
+        fields: {} 
+      }
+    ];
+
+    const finalPhases = draft.customPhases.length > 0 ? draft.customPhases : defaultInitialPhases;
 
     const formattedOVs = draft.ordenesVenta.map((ov, idx) => ({
       id: ov.id || `ov-${Date.now()}-${idx + 1}`,
@@ -592,14 +617,14 @@ const DEFAULT_DRAFT: ProjectDraft = {
     onCreateProject({
       name: draft.projectName,
       clientName: draft.clientName,
-      templateType: draft.projectMode === 'template' ? draft.selectedTemplate : 'custom',
+      templateType: 'custom',
       startDate: draft.startDate, 
-      endDate: draft.endDate, 
+      endDate: draft.endDate || new Date().toISOString().split('T')[0], 
       saleOrderNumber: combinedOVNumbers, 
       ovNumber: combinedOVNumbers,
       ordenesVenta: formattedOVs,
       deliverablesCount: Number(draft.deliverablesCount) || 0, 
-      description: draft.description, 
+      description: draft.description || '', 
       riesgos: draft.riskMitigationText || '',
       tags: draft.tags, 
       members: draft.members.map(m => ({ id: m.id, name: m.name, role: m.role, participationRole: m.participationRole })), 
@@ -633,95 +658,62 @@ const DEFAULT_DRAFT: ProjectDraft = {
         
         {/* ======================= PASO 1 ======================= */}
         {step === 1 && (
-          <div className="p-8 space-y-8 overflow-y-auto">
+          <div className="p-8 space-y-6 overflow-y-auto">
             <div className="flex justify-between items-center border-b border-slate-100 pb-4">
-              <h2 className="text-xl font-black text-slate-900">Configuración Inicial del Proyecto</h2>
-              <button onClick={handleResetAndClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer"><X className="w-5 h-5" /></button>
+              <div>
+                <h2 className="text-xl font-black text-slate-900">Configuración Inicial del Proyecto</h2>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Introduce el nombre y cliente para comenzar.</p>
+              </div>
+              <button onClick={handleResetAndClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Nombre del proyecto *</label>
-                  <input 
-                    type="text" 
-                    placeholder="Ej: Rediseño Portal Clientes"
-                    value={draft.projectName} 
-                    onChange={(e) => setDraft(prev => ({ ...prev, projectName: e.target.value }))} 
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-cyan-500 bg-slate-50" 
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Cliente *</label>
-                  <input
-                    type="text"
-                    list="clients-list-suggestions"
-                    placeholder="Introduce o selecciona cliente *"
-                    value={draft.clientName}
-                    onChange={(e) => setDraft(prev => ({ ...prev, clientName: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-cyan-500 bg-slate-50"
-                  />
-                  <datalist id="clients-list-suggestions">
-                    {clients.map((c: any) => (
-                      <option key={c.id} value={c.nombreComercial}>
-                        {c.nombreComercial} {c.estado && c.estado !== 'activo' ? `(${c.estado.toUpperCase()})` : ''}
-                      </option>
-                    ))}
-                  </datalist>
-
-                  {/* Warning banner if selected client is inactive or paused */}
-                  {(() => {
-                    const matched = clients.find((c: any) => c.nombreComercial?.toLowerCase() === draft.clientName?.trim().toLowerCase());
-                    if (matched && (matched.estado === 'inactivo' || matched.estado === 'pausado')) {
-                      return (
-                        <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center gap-2 animate-in fade-in">
-                          <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
-                          <span>
-                            El cliente <strong>{matched.nombreComercial}</strong> se encuentra como <strong>{matched.estado}</strong>. Se reactivará automáticamente a estar <strong>Activo</strong> al guardar.
-                          </span>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Nombre del proyecto *</label>
+                <input 
+                  type="text" 
+                  placeholder="Ej: Rediseño Portal Clientes"
+                  value={draft.projectName} 
+                  onChange={(e) => setDraft(prev => ({ ...prev, projectName: e.target.value }))} 
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-cyan-500 bg-slate-50" 
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Tipo de proyecto *</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <div 
-                    onClick={() => setDraft(prev => ({ ...prev, projectMode: 'blank' }))} 
-                    className={`cursor-pointer p-4 rounded-2xl border-2 flex flex-col items-center justify-center text-center h-32 transition-all ${
-                      draft.projectMode === 'blank' 
-                        ? 'border-cyan-500 bg-cyan-50/30 text-cyan-700' 
-                        : 'border-slate-200 hover:border-slate-300 text-slate-500'
-                    }`}
-                  >
-                    <FolderPlus className="w-8 h-8 mb-2" />
-                    <span className="text-xs font-bold">En blanco / Builder</span>
-                  </div>
-                  <div 
-                    onClick={() => setDraft(prev => ({ ...prev, projectMode: 'template' }))} 
-                    className={`cursor-pointer p-4 rounded-2xl border-2 flex flex-col items-center justify-center text-center h-32 transition-all ${
-                      draft.projectMode === 'template' 
-                        ? 'border-cyan-500 bg-cyan-50/30 text-cyan-700' 
-                        : 'border-slate-200 hover:border-slate-300 text-slate-500'
-                    }`}
-                  >
-                    <FileText className="w-8 h-8 mb-2" />
-                    <span className="text-xs font-bold">Plantilla</span>
-                  </div>
-                </div>
-                {draft.projectMode === 'template' && (
-                  <select 
-                    value={draft.selectedTemplate} 
-                    onChange={(e) => setDraft(prev => ({ ...prev, selectedTemplate: e.target.value }))} 
-                    className="mt-4 w-full px-4 py-2.5 rounded-xl border border-cyan-200 text-xs font-bold bg-cyan-50 text-cyan-900 focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
-                  >
-                    {PROJECT_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                  </select>
-                )}
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Cliente *</label>
+                <input
+                  type="text"
+                  list="clients-list-suggestions"
+                  placeholder="Introduce o selecciona cliente *"
+                  value={draft.clientName}
+                  onChange={(e) => setDraft(prev => ({ ...prev, clientName: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-cyan-500 bg-slate-50"
+                />
+                <datalist id="clients-list-suggestions">
+                  {clients.map((c: any) => (
+                    <option key={c.id} value={c.nombreComercial}>
+                      {c.nombreComercial} {c.estado && c.estado !== 'activo' ? `(${c.estado.toUpperCase()})` : ''}
+                    </option>
+                  ))}
+                </datalist>
+
+                {/* Warning banner if selected client is inactive or paused */}
+                {(() => {
+                  const matched = clients.find((c: any) => c.nombreComercial?.toLowerCase() === draft.clientName?.trim().toLowerCase());
+                  if (matched && (matched.estado === 'inactivo' || matched.estado === 'pausado')) {
+                    return (
+                      <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center gap-2 animate-in fade-in">
+                        <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>
+                          El cliente <strong>{matched.nombreComercial}</strong> se encuentra como <strong>{matched.estado}</strong>. Se reactivará automáticamente a estar <strong>Activo</strong> al guardar.
+                        </span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
               </div>
             </div>
 
@@ -750,16 +742,14 @@ const DEFAULT_DRAFT: ProjectDraft = {
                 ⚙️ General
               </button>
               
-              {draft.projectMode === 'blank' && (
-                <button 
-                  onClick={() => setActiveTab('fases')} 
-                  className={`flex-1 py-4 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 cursor-pointer transition-all ${
-                    activeTab === 'fases' ? 'border-cyan-500 text-cyan-600 bg-white' : 'border-transparent text-slate-400 hover:text-slate-600'
-                  }`}
-                >
-                  🏗️ Fases (Builder)
-                </button>
-              )}
+              <button 
+                onClick={() => setActiveTab('fases')} 
+                className={`flex-1 py-4 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 cursor-pointer transition-all ${
+                  activeTab === 'fases' ? 'border-cyan-500 text-cyan-600 bg-white' : 'border-transparent text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                🏗️ Fases del Proyecto
+              </button>
               
               <button 
                 onClick={() => setActiveTab('integrantes')} 
@@ -768,14 +758,6 @@ const DEFAULT_DRAFT: ProjectDraft = {
                 }`}
               >
                 👥 Integrantes
-              </button>
-              <button 
-                onClick={() => setActiveTab('rentabilidad')} 
-                className={`flex-1 py-4 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 cursor-pointer transition-all ${
-                  activeTab === 'rentabilidad' ? 'border-cyan-500 text-cyan-600 bg-white' : 'border-transparent text-slate-400 hover:text-slate-600'
-                }`}
-              >
-                📊 Rentabilidad
               </button>
             </div>
 
@@ -805,7 +787,7 @@ const DEFAULT_DRAFT: ProjectDraft = {
                     </div>
                   </div>
 
-                  {/* GESTOR MULTI-OV (REEMPLAZO DEL CAMPO UNICO SALEORDERNUMBER) */}
+                  {/* GESTOR MULTI-OV */}
                   <OrdenesVentaArrayManager
                     draft={draft}
                     onAddOV={handleAddDraftOV}
@@ -813,42 +795,15 @@ const DEFAULT_DRAFT: ProjectDraft = {
                     onUpdateOV={handleUpdateDraftOV}
                   />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-[11px] font-bold text-slate-500 mb-1">Cantidad de entregables esperados</label>
-                      <input 
-                        type="number" 
-                        placeholder="Ej: 5" 
-                        value={draft.deliverablesCount} 
-                        onChange={(e) => setDraft(prev => ({ ...prev, deliverablesCount: e.target.value ? Number(e.target.value) : '' }))} 
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none" 
-                      />
-                    </div>
-                    <div>
-                      <div className="flex justify-between items-center mb-1">
-                        <label className="block text-[11px] font-bold text-slate-500">Descripción / Brief</label>
-                        <button
-                          type="button"
-                          onClick={handleGenerateDescription}
-                          disabled={isGeneratingDescription}
-                          className="inline-flex items-center gap-1.5 text-[11px] font-bold text-cyan-600 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 px-2.5 py-0.5 rounded-full transition-all cursor-pointer disabled:opacity-50"
-                          title="Generar borrador de la descripción con Gemini API"
-                        >
-                          <Sparkles className={`w-3.5 h-3.5 text-cyan-500 ${isGeneratingDescription ? 'animate-spin' : ''}`} />
-                          {isGeneratingDescription ? 'Redactando...' : '✨ Borrador con Gemini'}
-                        </button>
-                      </div>
-                      <textarea 
-                        rows={3} 
-                        value={draft.description} 
-                        onChange={(e) => setDraft(prev => ({ ...prev, description: e.target.value }))} 
-                        placeholder="Breve explicación de las metas acordadas... Presiona '✨ Borrador con Gemini' para redactarlo automáticamente."
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs resize-none font-medium focus:outline-none focus:border-cyan-500" 
-                      />
-                      {descriptionErrorMessage && (
-                        <p className="text-[10px] text-rose-500 font-semibold mt-1">{descriptionErrorMessage}</p>
-                      )}
-                    </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 mb-1">Cantidad de entregables esperados</label>
+                    <input 
+                      type="number" 
+                      placeholder="Ej: 5" 
+                      value={draft.deliverablesCount} 
+                      onChange={(e) => setDraft(prev => ({ ...prev, deliverablesCount: e.target.value ? Number(e.target.value) : '' }))} 
+                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none" 
+                    />
                   </div>
 
                   {/* Etiquetas Predefinidas */}
@@ -876,162 +831,190 @@ const DEFAULT_DRAFT: ProjectDraft = {
                       ))}
                     </div>
                   </div>
-
-                  {/* MÓDULO DE MITIGACIÓN DE RIESGOS CON GEMINI */}
-                  <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 space-y-4 shadow-sm">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="p-2 bg-amber-500/10 rounded-xl border border-amber-500/20 text-amber-400">
-                          <ShieldAlert className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-100">Mitigación de Riesgos Asistida por Gemini</h4>
-                          <p className="text-[10px] text-slate-400 font-medium">Analiza alcance, entregables, plazos y carga de trabajo para prevenir cuellos de botella.</p>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleGenerateRisks}
-                        disabled={isGeneratingRisks}
-                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-black text-xs rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50 shrink-0"
-                      >
-                        <Sparkles className={`w-3.5 h-3.5 ${isGeneratingRisks ? 'animate-spin' : ''}`} />
-                        {isGeneratingRisks ? 'Analizando Riesgos...' : '✨ Analizar Riesgos con IA'}
-                      </button>
-                    </div>
-
-                    {riskErrorMessage && (
-                      <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs font-semibold">
-                        {riskErrorMessage}
-                      </div>
-                    )}
-
-                    {riskAnalysis ? (
-                      <div className="space-y-3 animate-in fade-in duration-300">
-                        <div className="p-3 bg-slate-800/80 rounded-xl border border-slate-700 text-xs text-slate-300 leading-relaxed">
-                          <span className="font-bold text-amber-400 block mb-0.5">Diagnóstico Operativo de Gemini:</span>
-                          {riskAnalysis.summary}
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          {riskAnalysis.risks.map((item, idx) => {
-                            const isHigh = item.severity.toLowerCase().includes('alta');
-                            const isMed = item.severity.toLowerCase().includes('media');
-                            return (
-                              <div key={idx} className="bg-slate-800/90 border border-slate-700/80 p-3.5 rounded-xl space-y-2 flex flex-col justify-between">
-                                <div>
-                                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
-                                      isHigh ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' :
-                                      isMed ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
-                                      'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                                    }`}>
-                                      Riesgo {item.severity}
-                                    </span>
-                                    <span className="text-[10px] text-slate-400 font-bold bg-slate-900/60 px-2 py-0.5 rounded-md border border-slate-700">
-                                      {item.category}
-                                    </span>
-                                  </div>
-                                  <h5 className="text-xs font-bold text-slate-100 leading-snug">{item.risk}</h5>
-                                </div>
-
-                                <div className="pt-2 border-t border-slate-700/60 mt-1">
-                                  <p className="text-[11px] text-slate-300 font-medium leading-relaxed">
-                                    <strong className="text-emerald-400 font-bold">Mitigación: </strong>
-                                    {item.mitigation}
-                                  </p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="p-4 bg-slate-800/40 rounded-xl border border-slate-800 border-dashed text-center">
-                        <p className="text-xs text-slate-400 font-medium">
-                          Haz clic en <strong className="text-amber-400 font-bold">✨ Analizar Riesgos con IA</strong> para obtener la evaluación inteligente de cuellos de botella y las recomendaciones preventivas de Gemini basadas en los parámetros del Wizard.
-                        </p>
-                      </div>
-                    )}
-
-                    {draft.riskMitigationText && (
-                      <div className="p-3 bg-slate-800/60 rounded-xl border border-amber-500/30 text-xs space-y-1">
-                        <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block flex items-center gap-1">
-                          <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-                          Plan de Mitigación que se guardará en la ficha del Proyecto:
-                        </span>
-                        <p className="text-slate-300 whitespace-pre-line text-[11px] font-medium leading-relaxed">{draft.riskMitigationText}</p>
-                      </div>
-                    )}
-                  </div>
                 </div>
               )}
 
-              {/* TAB FASES (CUSTOM BUILDER) */}
-              {activeTab === 'fases' && draft.projectMode === 'blank' && (
+              {/* TAB FASES (CREADOR MANUAL DE FASES + IMPORTADOR MARKDOWN + DRAG AND DROP) */}
+              {activeTab === 'fases' && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Generador IA */}
-                    <div className="bg-slate-900 p-5 rounded-2xl text-white space-y-3">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse" />
-                        <h4 className="text-sm font-bold">Generador IA de Fases y Tareas</h4>
+                  
+                  {/* IMPORTADOR MARKDOWN & CREADOR MANUAL EN 2 COLUMNAS */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    
+                    {/* CREADOR MANUAL DE FASES CON CHECKLIST */}
+                    <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-3">
+                      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+                        <Layers className="w-4 h-4 text-cyan-600" />
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Crear Fase Manualmente</h4>
                       </div>
-                      <textarea 
-                        placeholder="Ej: Es un minijuego de futbol pixel art para web..." 
-                        value={aiPrompt} 
-                        onChange={(e) => setAiPrompt(e.target.value)} 
-                        className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs text-white resize-none outline-none focus:border-cyan-500 placeholder:text-slate-500" 
-                        rows={3}
-                      />
-                      <button 
-                        onClick={handleGeneratePhasesWithAI} 
-                        disabled={isGeneratingPhases} 
-                        className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nombre de la Fase *</label>
+                        <input
+                          type="text"
+                          placeholder="Ej: Kickoff & Levantamiento"
+                          value={newPhaseName}
+                          onChange={(e) => setNewPhaseName(e.target.value)}
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-cyan-500"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase">Checklist / Tareas de la Fase</label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Ej: Aprobar brief de requerimientos"
+                            value={newChecklistText}
+                            onChange={(e) => setNewChecklistText(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddChecklistItem())}
+                            className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:border-cyan-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddChecklistItem}
+                            className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer shrink-0"
+                          >
+                            + Tarea
+                          </button>
+                        </div>
+
+                        {newPhaseChecklist.length > 0 && (
+                          <div className="space-y-1 pt-1">
+                            {newPhaseChecklist.map((task, idx) => (
+                              <div key={idx} className="flex items-center justify-between bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-xs">
+                                <span className="text-slate-700 font-medium">✓ {task}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveChecklistItem(idx)}
+                                  className="text-slate-400 hover:text-rose-500 p-0.5 cursor-pointer"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAddManualPhase}
+                        disabled={!newPhaseName.trim()}
+                        className="w-full py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs disabled:opacity-40 flex items-center justify-center gap-1.5 mt-2"
                       >
-                        {isGeneratingPhases ? 'IA Generando Estructura Inteligente...' : '✨ Autogenerar con IA'}
+                        <Plus className="w-4 h-4" />
+                        Agregar Fase a la Lista
                       </button>
                     </div>
 
-                    {/* Importador Markdown */}
+                    {/* IMPORTADOR MARKDOWN */}
                     <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-3 flex flex-col justify-center items-center text-center">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FileCode2 className="w-5 h-5 text-slate-600" />
-                        <h4 className="text-sm font-bold text-slate-800">Importar Markdown (.md)</h4>
+                      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 w-full justify-center">
+                        <FileCode2 className="w-4 h-4 text-slate-600" />
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Importar desde Markdown (.md)</h4>
                       </div>
                       <p className="text-[11px] text-slate-500 leading-normal max-w-xs">
-                        Carga tu brief. Las líneas con H1 (#) se cargan como Fases y los checklist (- [ ]) como tareas internas de la fase.
+                        Carga tu brief estructurado. Las líneas `#` se leen como Fases y `- [ ]` como tareas del checklist.
                       </p>
-                      <label className="cursor-pointer bg-white border border-slate-300 px-4 py-2 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors">
+                      <label className="cursor-pointer bg-white border border-slate-300 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors shadow-xs">
                         Subir archivo .md
                         <input type="file" accept=".md" className="hidden" onChange={handleFileUploadMD} />
                       </label>
                     </div>
+
                   </div>
 
-                  {/* Lista de Fases Generadas */}
-                  {draft.customPhases.length > 0 && (
-                    <div className="mt-4">
-                      <h4 className="text-xs font-bold uppercase text-slate-500 mb-3 flex items-center gap-1.5">
+                  {/* LISTA DE FASES APILADAS (CON DRAG & DROP Y BOTONES DE REORDENADO) */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-xs font-bold uppercase text-slate-500 flex items-center gap-1.5">
                         <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                        Fases Estructuradas en el Builder ({draft.customPhases.length}):
+                        Fases del Proyecto ({draft.customPhases.length})
                       </h4>
-                      <div className="space-y-2 max-h-[220px] overflow-y-auto">
-                        {draft.customPhases.map(ph => (
-                          <div key={ph.id} className="bg-slate-50 border border-slate-200 p-3 rounded-xl text-xs font-bold flex justify-between items-center shadow-xs">
-                            <span className="text-slate-800">{ph.label}</span>
-                            <span className="text-[10px] bg-slate-200 text-slate-600 px-2.5 py-0.5 rounded-full font-semibold">
-                              {ph.checklist?.length || 0} tareas identificadas
-                            </span>
+                      <span className="text-[10px] text-slate-400 font-semibold">
+                        Arrastra con el ícono ⠿ o usa las flechas para reordenar las fases.
+                      </span>
+                    </div>
+
+                    {draft.customPhases.length === 0 ? (
+                      <div className="p-8 border-2 border-dashed border-slate-200 rounded-2xl text-center text-xs text-slate-400 font-medium">
+                        Aún no has agregado fases. Crea una manualmente arriba o sube un archivo Markdown.
+                      </div>
+                    ) : (
+                      <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
+                        {draft.customPhases.map((ph, index) => (
+                          <div
+                            key={ph.id}
+                            draggable
+                            onDragStart={(e) => handlePhaseDragStart(e, index)}
+                            onDragOver={handlePhaseDragOver}
+                            onDrop={(e) => handlePhaseDrop(e, index)}
+                            className="bg-white border border-slate-200 rounded-2xl p-3.5 shadow-xs flex items-center justify-between gap-3 hover:border-slate-300 transition-all group"
+                          >
+                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                              {/* Drag handle icon */}
+                              <div className="cursor-grab active:cursor-grabbing p-1 text-slate-300 hover:text-slate-600 transition-colors shrink-0" title="Arrastrar para reordenar">
+                                <GripVertical className="w-4 h-4" />
+                              </div>
+
+                              <div className="w-6 h-6 rounded-lg bg-cyan-50 text-cyan-800 text-xs font-extrabold flex items-center justify-center shrink-0 border border-cyan-100">
+                                {index + 1}
+                              </div>
+
+                              <div className="min-w-0 flex-1">
+                                <h5 className="text-xs font-bold text-slate-800 truncate">{ph.label}</h5>
+                                {ph.checklist && ph.checklist.length > 0 ? (
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">
+                                      {ph.checklist.length} tareas en checklist
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-[10px] text-slate-400 font-medium">Sin tareas en checklist</span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Acciones de Reordenado y Eliminación */}
+                            <div className="flex items-center gap-1 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() => handleMovePhase(index, 'up')}
+                                disabled={index === 0}
+                                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
+                                title="Mover arriba"
+                              >
+                                <ChevronUp className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleMovePhase(index, 'down')}
+                                disabled={index === draft.customPhases.length - 1}
+                                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30 cursor-pointer"
+                                title="Mover abajo"
+                              >
+                                <ChevronDown className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemovePhase(ph.id)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer ml-1 transition-colors"
+                                title="Eliminar esta fase"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+
                 </div>
               )}
 
-              {/* TAB INTEGRANTES: FIGMA/TRELLO INTERACTIVE DRAG AND DROP */}
+              {/* TAB INTEGRANTES: DRAG AND DROP */}
               {activeTab === 'integrantes' && (
                 <div className="space-y-6 h-full flex flex-col">
                   <div className="flex flex-col lg:flex-row gap-6 items-stretch h-full min-h-[350px]">
@@ -1200,96 +1183,6 @@ const DEFAULT_DRAFT: ProjectDraft = {
                 </div>
               )}
 
-              {/* TAB RENTABILIDAD CON SOPORTE MULTI-OV (FASE A) */}
-              {activeTab === 'rentabilidad' && (
-                <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-                    <div>
-                      <h3 className="text-base font-black text-slate-900">Configuración Financiera y Múltiples OVs (Fase A)</h3>
-                      <p className="text-xs text-slate-500 font-medium">Asocia una o más Órdenes de Venta (OV) al crear el proyecto.</p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase">Moneda Base:</label>
-                      <select
-                        value={draft.currency}
-                        onChange={(e) => setDraft(prev => ({ ...prev, currency: e.target.value }))}
-                        className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none"
-                      >
-                        <option value="USD">USD ($)</option>
-                        <option value="GTQ">GTQ (Q)</option>
-                        <option value="EUR">EUR (€)</option>
-                        <option value="CLP">CLP ($)</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* GESTOR MULTI-OV DE RENTABILIDAD */}
-                  <OrdenesVentaArrayManager
-                    draft={draft}
-                    onAddOV={handleAddDraftOV}
-                    onRemoveOV={handleRemoveDraftOV}
-                    onUpdateOV={handleUpdateDraftOV}
-                  />
-
-                  {/* Desglose de Horas Vendidas por Rol */}
-                  <div className="p-5 bg-slate-900 text-white rounded-2xl space-y-4">
-                    <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-300">Estimación de Horas Vendidas por Rol</span>
-                      <span className="text-xs bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-black px-3 py-1 rounded-full">
-                        Total: {totalHoursCalculated} hrs
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Coordinador</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={draft.roleHours.coordinador}
-                          onChange={(e) => handleRoleHourChange('coordinador', e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-bold text-center"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">SAC</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={draft.roleHours.sac}
-                          onChange={(e) => handleRoleHourChange('sac', e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-bold text-center"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">ContentS</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={draft.roleHours.contents}
-                          onChange={(e) => handleRoleHourChange('contents', e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-bold text-center"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">ContentD</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={draft.roleHours.contentd}
-                          onChange={(e) => handleRoleHourChange('contentd', e.target.value)}
-                          className="w-full px-3 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white text-xs font-bold text-center"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
             </div>
 
             {/* Navegación Footer */}
@@ -1297,14 +1190,8 @@ const DEFAULT_DRAFT: ProjectDraft = {
               <button 
                 type="button"
                 onClick={() => {
-                  if (activeTab === 'rentabilidad') {
-                    setActiveTab('integrantes');
-                  } else if (activeTab === 'integrantes') {
-                    if (draft.projectMode === 'blank') {
-                      setActiveTab('fases');
-                    } else {
-                      setActiveTab('general');
-                    }
+                  if (activeTab === 'integrantes') {
+                    setActiveTab('fases');
                   } else if (activeTab === 'fases') {
                     setActiveTab('general');
                   } else {
@@ -1316,20 +1203,14 @@ const DEFAULT_DRAFT: ProjectDraft = {
                 <ArrowLeft className="w-4 h-4" /> Volver
               </button>
 
-              {activeTab !== 'rentabilidad' ? (
+              {activeTab !== 'integrantes' ? (
                 <button
                   type="button"
                   onClick={() => {
                     if (activeTab === 'general') {
-                      if (draft.projectMode === 'blank') {
-                        setActiveTab('fases');
-                      } else {
-                        setActiveTab('integrantes');
-                      }
+                      setActiveTab('fases');
                     } else if (activeTab === 'fases') {
                       setActiveTab('integrantes');
-                    } else if (activeTab === 'integrantes') {
-                      setActiveTab('rentabilidad');
                     }
                   }}
                   className="px-6 py-2.5 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
@@ -1340,7 +1221,7 @@ const DEFAULT_DRAFT: ProjectDraft = {
                 <button 
                   type="button"
                   onClick={handleFinish} 
-                  disabled={!draft.endDate || (draft.totalIncome === '' && !draft.ordenesVenta.some(o => typeof o.monto === 'number' && o.monto > 0))}
+                  disabled={!draft.projectName.trim() || !draft.clientName.trim()}
                   className="px-8 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer disabled:opacity-40"
                 >
                   Crear Proyecto

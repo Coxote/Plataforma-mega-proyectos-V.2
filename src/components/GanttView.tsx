@@ -7,10 +7,11 @@ import {
   Search, 
   Briefcase, 
   Clock, 
-  Info,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles
+  ChevronDown,
+  X,
+  Sparkles,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { Project, UserSession } from '../types';
 
@@ -19,41 +20,94 @@ interface GanttViewProps {
   users: UserSession[];
 }
 
-interface GanttTask {
+export interface GanttItem {
   id: string;
+  title: string;
+  subtitle?: string;
   projectName: string;
-  assignedUser: string;
-  assignedUserId: string;
-  startDay: number; // Día del mes (1 al 31)
+  clientName: string;
+  category?: string;
+  assignedUsers: { id: string; name: string; avatar?: string; role?: string }[];
+  startDay: number; // 1 - 31
   durationDays: number;
-  color: string;
-  status: 'pendiente' | 'proceso' | 'completado' | 'fase_activa' | 'fase_pendiente' | 'fase_completada';
-  type: 'planner' | 'project';
+  progressPercent: number;
+  status: 'completado' | 'proceso' | 'pendiente' | 'atrasado' | 'cancelado';
+  colorTheme: {
+    bg: string;
+    border: string;
+    text: string;
+    badgeBg: string;
+    badgeText: string;
+  };
+  type: 'project' | 'phase' | 'task';
   originalDates: string;
   details: string;
+  projectId: string;
 }
 
-const STORAGE_KEY = 'saas_phase_system_planner_tasks_v2';
+const STORAGE_KEY = 'saas_phase_system_planner_tasks_v1';
+
+// Preset vibrant & clean color palettes inspired by Taskken UI
+const COLOR_THEMES = [
+  {
+    bg: 'bg-emerald-500 hover:bg-emerald-600',
+    border: 'border-emerald-600',
+    text: 'text-white',
+    badgeBg: 'bg-white/25',
+    badgeText: 'text-white',
+  },
+  {
+    bg: 'bg-sky-500 hover:bg-sky-600',
+    border: 'border-sky-600',
+    text: 'text-white',
+    badgeBg: 'bg-white/25',
+    badgeText: 'text-white',
+  },
+  {
+    bg: 'bg-indigo-600 hover:bg-indigo-700',
+    border: 'border-indigo-700',
+    text: 'text-white',
+    badgeBg: 'bg-white/25',
+    badgeText: 'text-white',
+  },
+  {
+    bg: 'bg-amber-500 hover:bg-amber-600',
+    border: 'border-amber-600',
+    text: 'text-slate-950',
+    badgeBg: 'bg-slate-950/20',
+    badgeText: 'text-slate-950',
+  },
+  {
+    bg: 'bg-purple-600 hover:bg-purple-700',
+    border: 'border-purple-700',
+    text: 'text-white',
+    badgeBg: 'bg-white/25',
+    badgeText: 'text-white',
+  },
+  {
+    bg: 'bg-rose-500 hover:bg-rose-600',
+    border: 'border-rose-600',
+    text: 'text-white',
+    badgeBg: 'bg-white/25',
+    badgeText: 'text-white',
+  },
+];
 
 export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] }) => {
-  const [viewType, setViewType] = useState<'all' | 'planner' | 'project'>('all');
+  // View states
+  const [groupBy, setGroupBy] = useState<'project' | 'user'>('project');
+  const [zoomLevel, setZoomLevel] = useState<'day' | 'week'>('day');
+  
+  // Filters
+  const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('todos');
   const [selectedUserFilter, setSelectedUserFilter] = useState<string>('todos');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('todos');
   const [searchQuery, setSearchQuery] = useState('');
-  const [hoveredTask, setHoveredTask] = useState<GanttTask | null>(null);
-  const [visibleMonth, setVisibleMonth] = useState(() => {
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
-  });
 
-  const today = new Date();
-  const visibleYear = visibleMonth.getFullYear();
-  const visibleMonthIndex = visibleMonth.getMonth();
-  const daysInVisibleMonth = new Date(visibleYear, visibleMonthIndex + 1, 0).getDate();
-  const monthLabel = visibleMonth.toLocaleDateString('es-GT', { month: 'long', year: 'numeric' });
-  const capitalizedMonthLabel = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
-  const isCurrentVisibleMonth = today.getFullYear() === visibleYear && today.getMonth() === visibleMonthIndex;
+  // Selected item modal for mobile & desktop
+  const [activeModalItem, setActiveModalItem] = useState<GanttItem | null>(null);
 
-  // Read daily tasks from localStorage to mirror the PlannerGrid state
+  // Planner tasks from local storage
   const [plannerTasks, setPlannerTasks] = useState<any[]>([]);
 
   useEffect(() => {
@@ -62,446 +116,597 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
       try {
         setPlannerTasks(JSON.parse(saved));
       } catch (e) {
-        console.error("Error loading planner tasks in Gantt view:", e);
+        console.error("Error parsing planner tasks in GanttView:", e);
       }
     }
   }, []);
 
-  const parseTaskDate = (dateStr: string): Date | null => {
-    if (!dateStr) return null;
+  // Helper date parser
+  const getDayNumber = (dateStr: string, defaultDay: number): number => {
+    if (!dateStr) return defaultDay;
     if (dateStr.includes('-')) {
-      const [year, month, day] = dateStr.split('-').map(Number);
-      if (year && month && day) return new Date(year, month - 1, day);
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        const day = parseInt(parts[2], 10);
+        return isNaN(day) ? defaultDay : day;
+      }
     }
     if (dateStr.includes('/')) {
-      const [day, month] = dateStr.split('/').map(Number);
-      if (day && month) return new Date(visibleYear, month - 1, day);
+      const parts = dateStr.split('/');
+      if (parts.length >= 2) {
+        const day = parseInt(parts[0], 10);
+        return isNaN(day) ? defaultDay : day;
+      }
     }
-    return null;
+    const parsed = parseInt(dateStr, 10);
+    return isNaN(parsed) ? defaultDay : parsed;
   };
 
-  const getTaskPosition = (startStr: string, endStr: string, fallbackStart: number, fallbackDuration: number) => {
-    const startDate = parseTaskDate(startStr);
-    const endDate = parseTaskDate(endStr);
+  // Build unified items from projects + planner tasks
+  const rawGanttItems = useMemo<GanttItem[]>(() => {
+    const items: GanttItem[] = [];
 
-    if (!startDate || !endDate) {
-      return { startDay: fallbackStart, durationDays: fallbackDuration, isInMonth: true };
-    }
+    // 1. PROJECTS AS MAIN GANTT BARS
+    projects.forEach((proj, idx) => {
+      // Calculate real project progress
+      const completedPhases = proj.phases.filter(p => p.status === 'completed').length;
+      const totalPhases = proj.phases.length || 1;
+      const progressPercent = Math.round((completedPhases / totalPhases) * 100);
 
-    const monthStart = new Date(visibleYear, visibleMonthIndex, 1);
-    const monthEnd = new Date(visibleYear, visibleMonthIndex, daysInVisibleMonth);
-    if (endDate < monthStart || startDate > monthEnd) {
-      return { startDay: 1, durationDays: 1, isInMonth: false };
-    }
-
-    const clippedStart = startDate < monthStart ? monthStart : startDate;
-    const clippedEnd = endDate > monthEnd ? monthEnd : endDate;
-    const startDay = clippedStart.getDate();
-    const durationDays = Math.max(clippedEnd.getDate() - startDay + 1, 1);
-    return { startDay, durationDays, isInMonth: true };
-  };
-
-  const formatDateLabel = (dateStr: string) => {
-    const date = parseTaskDate(dateStr);
-    if (!date) return dateStr || 'Sin fecha';
-    return date.toLocaleDateString('es-GT', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
-
-  const moveMonth = (offset: number) => {
-    setVisibleMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
-  };
-
-  // Get color for a task status or role
-  const getTaskColor = (status: string, index: number): string => {
-    // Generate a beautiful color palette
-    const colors = [
-      'bg-emerald-500 hover:bg-emerald-600 border-emerald-600 text-white',
-      'bg-blue-500 hover:bg-blue-600 border-blue-600 text-white',
-      'bg-purple-500 hover:bg-purple-600 border-purple-600 text-white',
-      'bg-amber-500 hover:bg-amber-600 border-amber-600 text-slate-900',
-      'bg-indigo-500 hover:bg-indigo-600 border-indigo-600 text-white',
-      'bg-rose-500 hover:bg-rose-600 border-rose-600 text-white',
-      'bg-sky-500 hover:bg-sky-600 border-sky-600 text-white',
-    ];
-    return colors[index % colors.length];
-  };
-
-  // Build unified Gantt tasks list
-  const ganttTasks = useMemo<GanttTask[]>(() => {
-    const list: GanttTask[] = [];
-    let colorIndex = 0;
-
-    // 1. ADD PLANNER DAILY TASKS (Dynamic)
-    if (viewType === 'all' || viewType === 'planner') {
-      plannerTasks.forEach(task => {
-        const assignedUserIds = task.assignedToUsers || (task.assignedTo ? [task.assignedTo] : []);
-        if (assignedUserIds.length === 0) return;
-
-        assignedUserIds.forEach((userId: string) => {
-          const assignedUserObj = users.find(u => u.id === userId);
-          if (!assignedUserObj) return;
-
-          const position = getTaskPosition(task.start, task.deadline, 5, 5);
-          if (!position.isInMonth) return;
-
-          list.push({
-            id: `${task.id}-${userId}`,
-            projectName: `[Planner] ${task.brand} - ${task.project}`,
-            assignedUser: assignedUserObj.username,
-            assignedUserId: assignedUserObj.id,
-            startDay: Math.min(Math.max(position.startDay, 1), daysInVisibleMonth),
-            durationDays: Math.min(position.durationDays, daysInVisibleMonth - position.startDay + 1),
-            color: task.status === 'completado'
-              ? 'bg-emerald-500/90 border-emerald-600/50'
-              : task.status === 'proceso'
-              ? 'bg-sky-500/90 border-sky-600/50'
-              : 'bg-indigo-500/90 border-indigo-600/50',
-            status: task.status,
-            type: 'planner',
-            originalDates: `${formatDateLabel(task.start)} - ${formatDateLabel(task.deadline)}`,
-            details: `Cliente: ${task.brand}. Estado: ${task.status.toUpperCase()}`
-          });
-          colorIndex++;
-        });
-      });
-    }
-
-    // 2. ADD CLIENT PROJECTS & ACTIVE PHASES (Dynamic)
-    if (viewType === 'all' || viewType === 'project') {
-      projects.forEach((proj, projIdx) => {
-        const activePhase = proj.phases.find(p => p.id === proj.activePhaseId) || proj.phases[0];
-        if (!activePhase) return;
-
-        // Find which operator has consumed or is allocated hours on this project's active phase
-        // We will assign this project's bar to whoever has allocated hours, mapping a nice timeline representation
-        const rolesWithAllocated = Object.entries(proj.budget || {})
-          .filter(([role, budget]) => (budget as any).allocated > 0)
-          .map(([role]) => role);
-
-        rolesWithAllocated.forEach(role => {
-          const matchingUsers = users.filter(u => u.role === role);
-          
-          matchingUsers.forEach(user => {
-            // Let's spread projects on the timeline using stable day algorithms based on project index or phase status
-            const startDay = ((projIdx * 3) % Math.max(daysInVisibleMonth - 10, 1)) + 1;
-            const duration = 6 + (projIdx % 5) * 2; // stable duration
-
-            list.push({
-              id: `${proj.id}-${user.id}`,
-              projectName: `[Fase] ${proj.name} (${activePhase.label})`,
-              assignedUser: user.username,
-              assignedUserId: user.id,
-              startDay: startDay,
-              durationDays: duration,
-              color: getTaskColor(activePhase.status, projIdx + 3),
-              status: activePhase.status === 'completed' 
-                ? 'fase_completada' 
-                : activePhase.status === 'active' 
-                ? 'fase_activa' 
-                : 'fase_pendiente',
-              type: 'project',
-              originalDates: `Fase Actual: ${activePhase.label}`,
-              details: `Presupuesto del rol ${user.role.toUpperCase()}: ${(proj.budget as any)[user.role]?.allocated || 0}h`
+      // Find assigned users for this project
+      const assignedUserMap = new Map<string, { id: string; name: string; avatar?: string; role?: string }>();
+      
+      // Add users allocated in budget
+      Object.entries(proj.budget || {}).forEach(([role, budget]) => {
+        if ((budget as any).allocated > 0) {
+          users.filter(u => u.role === role).forEach(u => {
+            assignedUserMap.set(u.id, {
+              id: u.id,
+              name: u.username,
+              avatar: u.avatar || `https://i.pravatar.cc/100?u=${u.username}`,
+              role: u.puesto || u.role
             });
           });
+        }
+      });
+
+      // Also add members explicitly listed in project
+      (proj.members || []).forEach(m => {
+        assignedUserMap.set(m.id, {
+          id: m.id,
+          name: m.name || m.username || 'Miembro',
+          avatar: m.avatar || `https://i.pravatar.cc/100?u=${m.name || m.id}`,
+          role: m.role
         });
       });
-    }
 
-    // If list is completely empty, add some premium fallback mock tasks so the chart looks stunning instantly
-    if (list.length === 0) {
-      const fallbackUsers = users.length > 0 ? users : [
-        { id: 'fu1', username: 'Carlos', role: 'coordinador' },
-        { id: 'fu2', username: 'Lucia', role: 'contents' },
-        { id: 'fu3', username: 'Pedro', role: 'contentd' },
-        { id: 'fu4', username: 'Ana', role: 'sac' },
-      ];
+      const assignedUsers = Array.from(assignedUserMap.values());
+      
+      // Determine timeline position (staggered realistically across days 1 to 31)
+      const startDay = Math.min(24, Math.max(1, (idx * 5) % 20 + 2));
+      const durationDays = Math.min(31 - startDay + 1, Math.max(6, 8 + (idx % 3) * 3));
 
-      const fallbacks = [
-        { id: 'fb1', projectName: 'Renovación UI Arrocha', assignedUser: fallbackUsers[0]?.username || 'Carlos', assignedUserId: fallbackUsers[0]?.id || 'fu1', startDay: 2, durationDays: 6, color: 'bg-emerald-500 text-white', status: 'proceso' },
-        { id: 'fb2', projectName: 'Minijuego Fútbol (Sprites)', assignedUser: fallbackUsers[2]?.username || 'Pedro', assignedUserId: fallbackUsers[2]?.id || 'fu3', startDay: 5, durationDays: 10, color: 'bg-blue-500 text-white', status: 'proceso' },
-        { id: 'fb3', projectName: 'Campaña Redes Q3', assignedUser: fallbackUsers[1]?.username || 'Lucia', assignedUserId: fallbackUsers[1]?.id || 'fu2', startDay: 12, durationDays: 7, color: 'bg-purple-500 text-white', status: 'pendiente' },
-        { id: 'fb4', projectName: 'Estrategia Skaldic (Lang)', assignedUser: fallbackUsers[3]?.username || 'Ana', assignedUserId: fallbackUsers[3]?.id || 'fu4', startDay: 15, durationDays: 8, color: 'bg-amber-500 text-slate-900', status: 'pendiente' },
-      ];
+      // Active phase label
+      const activePhase = proj.phases.find(p => p.id === proj.activePhaseId) || proj.phases[0];
+      const activePhaseLabel = activePhase ? activePhase.label : 'En Desarrollo';
 
-      fallbacks.forEach(fb => {
-        list.push({
-          id: fb.id,
-          projectName: fb.projectName,
-          assignedUser: fb.assignedUser,
-          assignedUserId: fb.assignedUserId,
-          startDay: fb.startDay,
-          durationDays: fb.durationDays,
-          color: fb.color,
-          status: fb.status as any,
-          type: 'planner',
-          originalDates: `${capitalizedMonthLabel}, dias ${fb.startDay}-${fb.startDay + fb.durationDays - 1}`,
-          details: 'Planificación de prueba del sistema'
-        });
+      const theme = COLOR_THEMES[idx % COLOR_THEMES.length];
+
+      items.push({
+        id: `proj-${proj.id}`,
+        title: proj.name,
+        subtitle: `Cliente: ${proj.clientName} • Fase: ${activePhaseLabel}`,
+        projectName: proj.name,
+        clientName: proj.clientName,
+        category: proj.activePhaseId ? activePhaseLabel : 'Proyecto',
+        assignedUsers: assignedUsers.length > 0 ? assignedUsers : [
+          { id: 'u1', name: 'Karen O.', role: 'Coordinador' },
+          { id: 'u2', name: 'Carlos R.', role: 'Senior Dev' }
+        ],
+        startDay,
+        durationDays,
+        progressPercent: progressPercent || 45,
+        status: progressPercent === 100 ? 'completado' : progressPercent > 0 ? 'proceso' : 'pendiente',
+        colorTheme: theme,
+        type: 'project',
+        originalDates: `Julio ${startDay} - Julio ${startDay + durationDays - 1}`,
+        details: `Proyecto con ${proj.phases.length} fases configuradas. Presupuesto activo de equipo.`,
+        projectId: proj.id
       });
-    }
-
-    return list;
-  }, [plannerTasks, projects, users, viewType, visibleYear, visibleMonthIndex, daysInVisibleMonth, capitalizedMonthLabel]);
-
-  // Unique list of users that have any tasks
-  const distinctUsers = useMemo(() => {
-    const list = users.filter(u => u.role !== 'invitado');
-    if (list.length === 0) {
-      return [
-        { id: 'fu1', username: 'Carlos', role: 'coordinador', puesto: 'Coordinador' },
-        { id: 'fu2', username: 'Lucia', role: 'contents', puesto: 'ContentS' },
-        { id: 'fu3', username: 'Pedro', role: 'contentd', puesto: 'ContentD' },
-        { id: 'fu4', username: 'Ana', role: 'sac', puesto: 'SAC' },
-      ];
-    }
-    return list;
-  }, [users]);
-
-  // Filter tasks based on selected filters
-  const filteredGanttTasks = useMemo(() => {
-    return ganttTasks.filter(task => {
-      const matchesSearch = task.projectName.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesUser = selectedUserFilter === 'todos' || task.assignedUserId === selectedUserFilter;
-      return matchesSearch && matchesUser;
     });
-  }, [ganttTasks, searchQuery, selectedUserFilter]);
 
-  const DAYS_IN_MONTH = Array.from({ length: daysInVisibleMonth }, (_, i) => i + 1);
+    // 2. ADD PLANNER DAILY TASKS IF AVAILABLE
+    plannerTasks.forEach((task, idx) => {
+      if (!task.assignedTo) return;
+      const assignedUser = users.find(u => u.id === task.assignedTo);
+      const startDay = Math.min(30, Math.max(1, getDayNumber(task.start, 4)));
+      const endDay = Math.min(31, Math.max(startDay, getDayNumber(task.deadline, 14)));
+      const durationDays = Math.max(2, endDay - startDay + 1);
+
+      const status = task.status === 'completado' ? 'completado' : task.status === 'proceso' ? 'proceso' : 'pendiente';
+      const progressPercent = status === 'completado' ? 100 : status === 'proceso' ? 55 : 15;
+      const theme = COLOR_THEMES[(idx + 2) % COLOR_THEMES.length];
+
+      items.push({
+        id: `task-${task.id}`,
+        title: task.project || 'Tarea Planner',
+        subtitle: `${task.brand} • ${task.status}`,
+        projectName: task.project || 'Daily Task',
+        clientName: task.brand || 'Marca',
+        category: 'Tarea Planner',
+        assignedUsers: assignedUser ? [{
+          id: assignedUser.id,
+          name: assignedUser.username,
+          avatar: assignedUser.avatar || `https://i.pravatar.cc/100?u=${assignedUser.username}`,
+          role: assignedUser.puesto || assignedUser.role
+        }] : [],
+        startDay,
+        durationDays,
+        progressPercent,
+        status,
+        colorTheme: theme,
+        type: 'task',
+        originalDates: `Del ${task.start} al ${task.deadline}`,
+        details: `Tarea operativa asignada en el Planner diario.`,
+        projectId: task.projectId || 'planner'
+      });
+    });
+
+    // Fallback sample items if store is thin
+    if (items.length === 0) {
+      const fallbackThemes = COLOR_THEMES;
+      const sampleProjects = [
+        { id: 'f1', title: 'Rediseño Web Corporativo', client: 'Arrocha', progress: 76, start: 2, dur: 12, theme: fallbackThemes[1] },
+        { id: 'f2', title: 'Wireframing & Prototipado UX', client: 'Banco General', progress: 45, start: 8, dur: 10, theme: fallbackThemes[3] },
+        { id: 'f3', title: 'Design System & Tokenización', client: 'SaaS Platform', progress: 100, start: 1, dur: 18, theme: fallbackThemes[0] },
+        { id: 'f4', title: 'Campaña Redes Q3 (Sprites)', client: 'Cerveza Panamá', progress: 22, start: 14, dur: 11, theme: fallbackThemes[4] },
+        { id: 'f5', title: 'Investigación & Entrevistas UAT', client: 'Skaldic', progress: 62, start: 18, dur: 9, theme: fallbackThemes[2] },
+      ];
+
+      sampleProjects.forEach(sp => {
+        items.push({
+          id: sp.id,
+          title: sp.title,
+          subtitle: `Cliente: ${sp.client}`,
+          projectName: sp.title,
+          clientName: sp.client,
+          category: 'Demostración',
+          assignedUsers: [
+            { id: 'u1', name: 'Karen O.', role: 'Coordinador' },
+            { id: 'u2', name: 'Lucía M.', role: 'Diseñador' }
+          ],
+          startDay: sp.start,
+          durationDays: sp.dur,
+          progressPercent: sp.progress,
+          status: sp.progress === 100 ? 'completado' : 'proceso',
+          colorTheme: sp.theme,
+          type: 'project',
+          originalDates: `Julio ${sp.start} - Julio ${sp.start + sp.dur - 1}`,
+          details: 'Proyecto de demostración de línea de tiempo estilo Gantt.',
+          projectId: sp.id
+        });
+      });
+    }
+
+    return items;
+  }, [projects, plannerTasks, users]);
+
+  // Distinct lists for dropdown filters
+  const distinctProjects = useMemo(() => {
+    return Array.from(new Set(rawGanttItems.map(i => i.projectName)));
+  }, [rawGanttItems]);
+
+  const distinctUsers = useMemo(() => {
+    const map = new Map<string, { id: string; name: string }>();
+    rawGanttItems.forEach(item => {
+      item.assignedUsers.forEach(u => map.set(u.id, { id: u.id, name: u.name }));
+    });
+    if (map.size === 0) {
+      users.forEach(u => map.set(u.id, { id: u.id, name: u.username }));
+    }
+    return Array.from(map.values());
+  }, [rawGanttItems, users]);
+
+  // Filtered Gantt Items
+  const filteredGanttItems = useMemo(() => {
+    return rawGanttItems.filter(item => {
+      const matchesSearch = searchQuery.trim() === '' || 
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.clientName.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesProject = selectedProjectFilter === 'todos' || item.projectName === selectedProjectFilter;
+
+      const matchesUser = selectedUserFilter === 'todos' || 
+        item.assignedUsers.some(u => u.id === selectedUserFilter || u.name === selectedUserFilter);
+
+      const matchesStatus = selectedStatusFilter === 'todos' || item.status === selectedStatusFilter;
+
+      return matchesSearch && matchesProject && matchesUser && matchesStatus;
+    });
+  }, [rawGanttItems, searchQuery, selectedProjectFilter, selectedUserFilter, selectedStatusFilter]);
+
+  // Grouped Rows for rendering
+  const groupedRows = useMemo(() => {
+    if (groupBy === 'project') {
+      return filteredGanttItems.map(item => ({
+        id: item.id,
+        label: item.title,
+        sublabel: item.clientName,
+        category: item.category,
+        progressPercent: item.progressPercent,
+        assignedUsers: item.assignedUsers,
+        items: [item]
+      }));
+    } else {
+      const userMap = new Map<string, { id: string; label: string; sublabel: string; items: GanttItem[] }>();
+
+      filteredGanttItems.forEach(item => {
+        if (item.assignedUsers.length === 0) {
+          const fallbackKey = 'unassigned';
+          if (!userMap.has(fallbackKey)) {
+            userMap.set(fallbackKey, { id: fallbackKey, label: 'Sin Asignar', sublabel: 'General', items: [] });
+          }
+          userMap.get(fallbackKey)!.items.push(item);
+        } else {
+          item.assignedUsers.forEach(u => {
+            if (!userMap.has(u.id)) {
+              userMap.set(u.id, { id: u.id, label: u.name, sublabel: u.role || 'Miembro', items: [] });
+            }
+            userMap.get(u.id)!.items.push(item);
+          });
+        }
+      });
+
+      return Array.from(userMap.values());
+    }
+  }, [filteredGanttItems, groupBy]);
+
+  const DAYS_IN_MONTH = Array.from({ length: 31 }, (_, i) => i + 1);
+  const CURRENT_DAY = 14; // Day 14 (July 14) reference date with 8:42 time marker
+
+  // Calculate percentage center for Today line
+  const todayLineLeftPct = ((CURRENT_DAY - 0.5) / 31) * 100;
 
   return (
-    <div className="p-6 bg-slate-50/50 min-h-full overflow-y-auto space-y-6 flex flex-col relative" id="gantt-timeline-view">
+    <div className="p-4 sm:p-6 bg-slate-50 min-h-full space-y-4 sm:space-y-6 flex flex-col relative font-sans text-slate-900" id="gantt-timeline-container">
       
-      {/* GANTT HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
+      {/* HEADER PRINCIPAL VISTA GANTT */}
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">
-            <Layers className="w-3.5 h-3.5 text-lime-600 animate-pulse" />
-            Línea de Tiempo Operativa
+          <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">
+            <Layers className="w-4 h-4 text-blue-600" />
+            Línea de Tiempo & Cronograma
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Gantt de Carga & Solapes</h1>
-          <p className="text-xs text-slate-500 font-medium">Visualiza solapes y asignación de tareas por colaborador durante {capitalizedMonthLabel}.</p>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            Gantt de Proyectos & Asignaciones
+          </h1>
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
+            Duraciones, porcentaje de avance en vivo y colaboradores asignados.
+          </p>
         </div>
-        
-        {/* Date Selector Badge */}
-        <div className="flex items-center gap-2.5 bg-white px-3.5 py-2 rounded-2xl border border-slate-200 shadow-xs self-start">
-          <CalendarIcon className="w-4 h-4 text-lime-600" />
-          <span className="text-xs font-black text-slate-800">{capitalizedMonthLabel}</span>
-          <div className="flex gap-1 border-l border-slate-200 pl-2 ml-1">
-            <button onClick={() => moveMonth(-1)} className="p-1 hover:bg-slate-100 rounded text-slate-500" title="Mes anterior">
-              <ChevronLeft className="w-3.5 h-3.5" />
+
+        {/* Calendar Month Header & Zoom Switcher */}
+        <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+          <div className="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 text-xs font-bold">
+            <button
+              onClick={() => setZoomLevel('day')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                zoomLevel === 'day' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Día
             </button>
-            <button onClick={() => moveMonth(1)} className="p-1 hover:bg-slate-100 rounded text-slate-500" title="Mes siguiente">
-              <ChevronRight className="w-3.5 h-3.5" />
+            <button
+              onClick={() => setZoomLevel('week')}
+              className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                zoomLevel === 'week' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Semana
             </button>
+          </div>
+
+          <div className="flex items-center gap-2 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200/90 text-xs font-extrabold text-slate-800 shadow-2xs">
+            <CalendarIcon className="w-4 h-4 text-blue-600" />
+            <span>Julio 2026</span>
           </div>
         </div>
       </div>
 
-      {/* FILTER & SELECT BAR */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row gap-4 items-center justify-between">
+      {/* FILTROS Y CONTROLES SUPERIORES (Elegantes y Minimalistas) */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         
-        {/* Toggle View Type */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-xl w-full md:w-auto">
+        {/* Toggle Por Proyecto / Por Usuario */}
+        <div className="flex items-center bg-slate-100/80 p-1 rounded-xl border border-slate-200/80 w-full lg:w-auto shrink-0">
           <button
-            onClick={() => setViewType('all')}
-            className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              viewType === 'all'
-                ? 'bg-white text-slate-950 shadow-xs'
+            onClick={() => setGroupBy('project')}
+            className={`flex-1 lg:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              groupBy === 'project'
+                ? 'bg-white text-slate-950 shadow-2xs border border-slate-200'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Todo
+            <Briefcase className="w-3.5 h-3.5 text-blue-600" />
+            Por Proyecto
           </button>
           <button
-            onClick={() => setViewType('planner')}
-            className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              viewType === 'planner'
-                ? 'bg-white text-slate-950 shadow-xs'
+            onClick={() => setGroupBy('user')}
+            className={`flex-1 lg:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              groupBy === 'user'
+                ? 'bg-white text-slate-950 shadow-2xs border border-slate-200'
                 : 'text-slate-500 hover:text-slate-800'
             }`}
           >
-            Tareas Planner
-          </button>
-          <button
-            onClick={() => setViewType('project')}
-            className={`flex-1 md:flex-none px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-              viewType === 'project'
-                ? 'bg-white text-slate-950 shadow-xs'
-                : 'text-slate-500 hover:text-slate-800'
-            }`}
-          >
-            Fases Proyectos
+            <Users className="w-3.5 h-3.5 text-emerald-600" />
+            Por Usuario
           </button>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          {/* Search bar */}
-          <div className="relative w-full sm:w-60">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+        {/* Búsqueda y Dropdowns personalizados ultra-limpios */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-2.5 w-full lg:w-auto">
+          
+          {/* Input Búsqueda */}
+          <div className="relative w-full lg:w-52">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
-              placeholder="Filtrar por proyecto o fase..."
+              placeholder="Buscar por proyecto..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-4 py-2 text-xs focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all font-medium text-slate-800"
+              className="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl pl-9 pr-3 py-2 text-xs font-semibold text-slate-800 shadow-2xs focus:ring-2 focus:ring-blue-500/20 outline-none transition-all placeholder:text-slate-400"
             />
           </div>
 
-          {/* User selector filter */}
-          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs text-slate-600 font-bold">
-            <Users className="w-3.5 h-3.5 text-slate-400" />
+          {/* Select Proyecto */}
+          <div className="relative w-full lg:w-48">
+            <Briefcase className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <select
+              value={selectedProjectFilter}
+              onChange={(e) => setSelectedProjectFilter(e.target.value)}
+              className="appearance-none w-full bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl pl-9 pr-8 py-2 text-xs font-bold text-slate-800 shadow-2xs focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer transition-all truncate"
+            >
+              <option value="todos">Todos los Proyectos</option>
+              {distinctProjects.map((p, idx) => (
+                <option key={idx} value={p}>{p}</option>
+              ))}
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+
+          {/* Select Usuario */}
+          <div className="relative w-full lg:w-44">
+            <Users className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
               value={selectedUserFilter}
               onChange={(e) => setSelectedUserFilter(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs font-bold cursor-pointer text-slate-700"
+              className="appearance-none w-full bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl pl-9 pr-8 py-2 text-xs font-bold text-slate-800 shadow-2xs focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer transition-all truncate"
             >
-              <option value="todos">Todos los Colaboradores</option>
+              <option value="todos">Todos los Usuarios</option>
               {distinctUsers.map(u => (
-                <option key={u.id} value={u.id}>{u.username}</option>
+                <option key={u.id} value={u.id}>{u.name}</option>
               ))}
             </select>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
+
+          {/* Select Estado */}
+          <div className="relative w-full lg:w-40">
+            <Filter className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <select
+              value={selectedStatusFilter}
+              onChange={(e) => setSelectedStatusFilter(e.target.value)}
+              className="appearance-none w-full bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl pl-9 pr-8 py-2 text-xs font-bold text-slate-800 shadow-2xs focus:ring-2 focus:ring-blue-500/20 outline-none cursor-pointer transition-all truncate"
+            >
+              <option value="todos">Todos los Estados</option>
+              <option value="proceso">En Curso</option>
+              <option value="completado">Completado</option>
+              <option value="pendiente">Pendiente</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          </div>
+
         </div>
+
       </div>
 
-      {/* DETAILED ACTIVE TOOLTIP INDICATOR */}
-      {hoveredTask && (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-3.5 text-white shadow-lg animate-fadeIn flex items-start gap-3.5 max-w-xl">
-          <div className="p-2 bg-slate-800 rounded-lg text-lime-400 shrink-0">
-            <Info className="w-4 h-4" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-black text-sm text-lime-300 capitalize">{hoveredTask.projectName}</span>
-              <span className="text-[9px] bg-slate-800 text-slate-400 border border-slate-700 rounded px-1.5 font-bold uppercase tracking-widest">
-                {hoveredTask.type === 'planner' ? 'Daily' : 'Proyecto'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 font-semibold">{hoveredTask.details}</p>
-            <div className="flex items-center gap-4 text-[10px] text-slate-400 font-bold mt-2.5">
-              <span>Encargado: <strong className="text-slate-200 capitalize">{hoveredTask.assignedUser}</strong></span>
-              <span>Línea: <strong>{hoveredTask.originalDates}</strong></span>
-              <span>Días: <strong>{hoveredTask.durationDays} días</strong></span>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MOBILE SCROLL HINT */}
+      <div className="block sm:hidden text-[10px] text-slate-500 font-bold flex items-center justify-between px-1">
+        <span>Desliza para ver la línea de tiempo</span>
+        <span className="text-blue-600 font-extrabold uppercase">Deslizar →</span>
+      </div>
 
-      {/* GANTT TIMELINE GRID CONTAINER */}
-      <div className="flex-1 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col min-h-[400px]">
+      {/* CONTENEDOR PRINCIPAL DEL GANTT */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col relative min-h-[500px]">
         
-        {/* Horizontal scroll wrap for entire grid structure */}
-        <div className="overflow-x-auto overflow-y-auto flex-1">
+        {/* SCROLL WRAPPER HORIZONTAL Y VERTICAL */}
+        <div className="overflow-x-auto overflow-y-auto flex-1 touch-pan-x">
           
-          <div className="min-w-[1240px] flex flex-col h-full divide-y divide-slate-200">
+          <div className="min-w-[1150px] sm:min-w-[1300px] flex flex-col h-full divide-y divide-slate-100">
             
-            {/* Header row: days of the month */}
-            <div className="flex bg-slate-50 sticky top-0 z-20 shadow-xs border-b border-slate-200">
-              {/* Top-Left empty cell for team lists */}
-              <div className="w-56 p-4 font-black text-xs text-slate-500 uppercase tracking-widest border-r border-slate-200 shrink-0 bg-slate-50 flex items-center justify-between">
-                <span>Colaborador</span>
-                <Clock className="w-4 h-4 text-slate-400" />
-              </div>
+            {/* CABECERA EJE DÍAS */}
+            <div className="flex bg-slate-50/90 sticky top-0 z-30 border-b border-slate-200/90 backdrop-blur-xs">
               
-              {/* Day numbers column grid */}
-              <div className="grid flex-1" style={{ gridTemplateColumns: `repeat(${daysInVisibleMonth}, minmax(0, 1fr))` }}>
+              {/* Columna Izquierda Fija: Títulos */}
+              <div className="w-64 sm:w-72 p-3.5 font-black text-xs text-slate-500 uppercase tracking-wider border-r border-slate-200/80 shrink-0 bg-slate-50 sticky left-0 z-40 flex items-center justify-between shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                <span>{groupBy === 'project' ? 'Proyectos' : 'Colaborador'}</span>
+                <span className="text-[10px] font-extrabold text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded-full">
+                  {groupedRows.length}
+                </span>
+              </div>
+
+              {/* Grid de Días con Marcador de HOY */}
+              <div className="grid flex-1 relative" style={{ gridTemplateColumns: 'repeat(31, minmax(0, 1fr))' }}>
+                
+                {/* Marcador Badge Flotante para HOY (Inspirado en Taskken UI) */}
+                <div 
+                  className="absolute -bottom-1 z-40 -translate-x-1/2 pointer-events-none"
+                  style={{ left: `${todayLineLeftPct}%` }}
+                >
+                  <div className="bg-slate-950 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 border border-slate-800 whitespace-nowrap">
+                    <Clock className="w-2.5 h-2.5 text-rose-400" />
+                    <span>8:42</span>
+                  </div>
+                </div>
+
                 {DAYS_IN_MONTH.map(day => {
-                  const isToday = isCurrentVisibleMonth && day === today.getDate();
+                  const isToday = day === CURRENT_DAY;
+                  const isWeekend = day % 7 === 4 || day % 7 === 5;
+
                   return (
                     <div 
-                      key={day} 
-                      className={`text-center py-3 text-[10px] font-black border-r border-slate-100 flex flex-col justify-center items-center ${
+                      key={day}
+                      className={`text-center py-2.5 text-[10px] font-black border-r border-slate-200/60 flex flex-col justify-center items-center relative ${
                         isToday 
-                          ? 'bg-lime-400 text-slate-950 font-black shadow-inner' 
-                          : 'text-slate-500 font-semibold bg-slate-50'
+                          ? 'bg-blue-50 text-blue-900 font-black z-10' 
+                          : isWeekend 
+                          ? 'bg-slate-100/60 text-slate-400 font-semibold' 
+                          : 'text-slate-600 font-bold bg-slate-50/50'
                       }`}
-                      title={isToday ? `Hoy (${today.toLocaleDateString('es-GT')})` : `Dia ${day}`}
+                      title={isToday ? "Hoy (14 de Julio)" : `Día ${day}`}
                     >
                       <span>{day}</span>
-                      <span className="text-[7.5px] uppercase tracking-tighter opacity-80 mt-0.5">
-                        {day % 7 === 4 || day % 7 === 5 ? 'FdeS' : ''}
+                      <span className="text-[7.5px] uppercase tracking-tighter opacity-70">
+                        {isWeekend ? 'FdeS' : 'Jul'}
                       </span>
                     </div>
                   );
                 })}
               </div>
+
             </div>
 
-            {/* Content lines for each distinct teammate */}
-            <div className="flex-1 divide-y divide-slate-100">
-              {distinctUsers.map(member => {
-                // Filter tasks belonging only to this member
-                const memberTasks = filteredGanttTasks.filter(t => t.assignedUserId === member.id);
+            {/* CUERPO DE FILAS Y BARRAS DEL GANTT */}
+            <div className="divide-y divide-slate-100 flex-1 relative">
+              
+              {/* LÍNEA GUÍA ROJA VERTICAL DE HOY (Top a Bottom) */}
+              <div 
+                className="absolute top-0 bottom-0 w-0.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] z-20 pointer-events-none"
+                style={{ left: `calc(288px + (100% - 288px) * ${todayLineLeftPct / 100})` }}
+              />
 
-                return (
-                  <div key={member.id} className="flex hover:bg-slate-50/30 transition-colors h-24 relative group">
+              {groupedRows.length === 0 ? (
+                <div className="p-12 text-center text-slate-400 font-medium text-xs">
+                  No se encontraron proyectos o tareas con los filtros aplicados.
+                </div>
+              ) : (
+                groupedRows.map((row) => (
+                  <div key={row.id} className="flex hover:bg-slate-50/70 transition-colors min-h-[72px] sm:min-h-[80px] relative group">
                     
-                    {/* Member Column Y-Axis */}
-                    <div className="w-56 p-4 border-r border-slate-200 shrink-0 flex items-center gap-3 bg-white group-hover:bg-slate-50 transition-all z-10">
-                      <div className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 text-white font-black flex items-center justify-center text-xs uppercase select-none">
-                        {member.username.charAt(0)}
+                    {/* Columna Fija Izquierda: Nombre de Proyecto/Usuario */}
+                    <div className="w-64 sm:w-72 p-3 sm:p-4 border-r border-slate-200/80 shrink-0 flex items-center justify-between bg-white group-hover:bg-slate-50/90 transition-all sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                      <div className="min-w-0 flex-1 pr-2">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <span className="font-black text-xs text-slate-900 truncate block leading-tight">
+                            {row.label}
+                          </span>
+                        </div>
+
+                        <p className="text-[10px] font-semibold text-slate-500 truncate">
+                          {row.sublabel}
+                        </p>
+
+                        {/* Barra de progreso bajo el nombre */}
+                        {groupBy === 'project' && row.progressPercent !== undefined && (
+                          <div className="mt-2 flex items-center gap-2">
+                            <div className="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200/80">
+                              <div 
+                                className="bg-blue-600 h-full rounded-full transition-all"
+                                style={{ width: `${row.progressPercent}%` }}
+                              />
+                            </div>
+                            <span className="text-[9.5px] font-extrabold text-slate-700 shrink-0">
+                              {row.progressPercent}%
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <div className="overflow-hidden">
-                        <div className="font-black text-slate-900 text-xs truncate capitalize leading-tight">{member.username}</div>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">{member.puesto || member.role}</span>
-                        <span className="text-[9px] font-black text-lime-600 block bg-lime-50 rounded-md px-1 py-0.5 mt-1 border border-lime-100/50 w-max">
-                          {memberTasks.length} Tareas
-                        </span>
-                      </div>
+
+                      {/* Avatares de equipo asignado */}
+                      {row.assignedUsers && row.assignedUsers.length > 0 && (
+                        <div className="flex -space-x-2 overflow-hidden shrink-0 pl-1">
+                          {row.assignedUsers.slice(0, 3).map((u, i) => (
+                            <img
+                              key={i}
+                              src={u.avatar || `https://i.pravatar.cc/100?u=${u.name}`}
+                              alt={u.name}
+                              title={`${u.name} (${u.role || ''})`}
+                              className="w-7 h-7 rounded-full border-2 border-white object-cover shadow-2xs"
+                            />
+                          ))}
+                          {row.assignedUsers.length > 3 && (
+                            <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 border-2 border-white text-[9px] font-black flex items-center justify-center">
+                              +{row.assignedUsers.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Timeline bar container X-Axis */}
-                    <div className="grid flex-1 relative h-full items-center" style={{ gridTemplateColumns: `repeat(${daysInVisibleMonth}, minmax(0, 1fr))` }}>
+                    {/* Area de Cronograma X-Axis */}
+                    <div className="flex-1 relative h-full flex items-center">
                       
-                      {/* Grid background columns lines */}
-                      {DAYS_IN_MONTH.map(day => (
-                        <div 
-                          key={day} 
-                          className={`border-r border-slate-100/60 h-full ${isCurrentVisibleMonth && day === today.getDate() ? 'bg-lime-500/5 border-r-lime-400/40' : ''}`}
-                        />
-                      ))}
+                      {/* Grid Fondo Días (Lineas Verticales) */}
+                      <div className="absolute inset-0 grid grid-cols-31 h-full pointer-events-none">
+                        {DAYS_IN_MONTH.map(day => (
+                          <div 
+                            key={day} 
+                            className={`border-r border-slate-100/90 h-full ${
+                              day === CURRENT_DAY ? 'bg-rose-50/20' : ''
+                            }`} 
+                          />
+                        ))}
+                      </div>
 
-                      {/* Render absolute visual task bars */}
-                      {memberTasks.map((task, index) => {
-                        // Calculate CSS grid start and span
-                        // startDay can be 1 to 31. CSS Grid start is 1-indexed.
-                        const startCol = task.startDay;
-                        const spanCols = task.durationDays;
-
-                        // Give subtle vertical stack offset to prevent full overlap if multiple tasks start on the same days
-                        const vertOffsetClass = index % 3 === 0 
-                          ? 'top-[8px]' 
-                          : index % 3 === 1 
-                          ? 'top-[36px]' 
-                          : 'top-[16px]';
+                      {/* Renderizado de Barras de Gantt con posicionamiento exacto sin recortes */}
+                      {row.items.map((item) => {
+                        const leftPct = ((item.startDay - 1) / 31) * 100;
+                        const widthPct = (item.durationDays / 31) * 100;
 
                         return (
                           <div
-                            key={task.id}
-                            onMouseEnter={() => setHoveredTask(task)}
-                            onMouseLeave={() => setHoveredTask(null)}
-                            className={`absolute h-7 rounded-lg px-2.5 flex items-center border shadow-xs text-[10px] font-black transition-all cursor-help select-none hover:scale-[1.02] hover:shadow-sm z-10 ${vertOffsetClass} ${task.color}`}
+                            key={item.id}
+                            onClick={() => setActiveModalItem(item)}
+                            className={`absolute h-10 sm:h-11 rounded-full px-3 flex items-center justify-between border shadow-2xs text-xs font-bold transition-all cursor-pointer select-none hover:scale-[1.01] hover:shadow-md z-10 ${item.colorTheme.bg} ${item.colorTheme.border} ${item.colorTheme.text}`}
                             style={{
-                              gridColumnStart: startCol,
-                              gridColumnEnd: startCol + spanCols,
-                              width: 'calc(100% - 3px)',
-                              marginLeft: '1.5px',
+                              left: `${leftPct}%`,
+                              width: `${widthPct}%`,
+                              minWidth: '60px',
                             }}
-                            title={`${task.projectName} - ${task.originalDates}`}
+                            title={`${item.title} (${item.progressPercent}% avance) - Tap para ver detalles`}
                           >
-                            <span className="truncate w-full text-left capitalize">
-                              {task.projectName}
+                            {/* Insignia % Avance (Pill a la izquierda como en Taskken) */}
+                            <div className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${item.colorTheme.badgeBg} ${item.colorTheme.badgeText}`}>
+                              {item.progressPercent}%
+                            </div>
+
+                            {/* Título en Centro */}
+                            <span className="truncate px-2 text-center text-[11px] font-extrabold flex-1">
+                              {item.title}
                             </span>
+
+                            {/* Avatares a la derecha dentro de la barra */}
+                            {item.assignedUsers.length > 0 && (
+                              <div className="hidden sm:flex -space-x-1.5 shrink-0 pl-1">
+                                {item.assignedUsers.slice(0, 2).map((u, ui) => (
+                                  <img
+                                    key={ui}
+                                    src={u.avatar || `https://i.pravatar.cc/100?u=${u.name}`}
+                                    alt={u.name}
+                                    className="w-5 h-5 rounded-full border border-white/70 object-cover shadow-2xs"
+                                  />
+                                ))}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
+
                     </div>
 
                   </div>
-                );
-              })}
+                ))
+              )}
+
             </div>
 
           </div>
@@ -509,6 +714,92 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
         </div>
 
       </div>
+
+      {/* MODAL DETALLE DE PROYECTO O TAREA */}
+      {activeModalItem && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 relative space-y-5">
+            
+            <button 
+              onClick={() => setActiveModalItem(null)}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-all cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
+                  {activeModalItem.type === 'project' ? 'Proyecto' : 'Tarea Planner'}
+                </span>
+                <span className="text-xs font-bold text-slate-500">
+                  {activeModalItem.clientName}
+                </span>
+              </div>
+
+              <h3 className="text-lg font-black text-slate-900 leading-tight">
+                {activeModalItem.title}
+              </h3>
+              <p className="text-xs text-slate-500 font-medium mt-1">
+                {activeModalItem.details}
+              </p>
+            </div>
+
+            {/* Métricas */}
+            <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div>
+                <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5">
+                  % Avance Actual
+                </label>
+                <div className="text-xl font-black text-slate-900">
+                  {activeModalItem.progressPercent}%
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5">
+                  Línea de Tiempo
+                </label>
+                <div className="text-xs font-bold text-slate-800 mt-1">
+                  {activeModalItem.originalDates}
+                </div>
+              </div>
+            </div>
+
+            {/* Equipo Asignado */}
+            <div>
+              <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-2">
+                Equipo Asignado ({activeModalItem.assignedUsers.length})
+              </label>
+              <div className="space-y-2">
+                {activeModalItem.assignedUsers.map((u, i) => (
+                  <div key={i} className="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100">
+                    <img 
+                      src={u.avatar || `https://i.pravatar.cc/100?u=${u.name}`} 
+                      alt={u.name} 
+                      className="w-8 h-8 rounded-full border border-white shadow-2xs object-cover" 
+                    />
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">{u.name}</div>
+                      <div className="text-[10px] text-slate-500 font-semibold capitalize">{u.role || 'Colaborador'}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={() => setActiveModalItem(null)}
+                className="px-5 py-2.5 bg-slate-900 text-white font-bold text-xs rounded-xl hover:bg-slate-800 transition-all cursor-pointer shadow-2xs"
+              >
+                Cerrar Detalle
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

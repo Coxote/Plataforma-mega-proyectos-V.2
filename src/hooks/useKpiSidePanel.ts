@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-export type KpiType = 'active_projects' | 'agency_utilization' | 'pending_approvals' | null;
+export type KpiType = 'active_projects' | 'agency_utilization' | 'pending_approvals' | 'time_entry_log' | null;
 
 export interface UseKpiSidePanelReturn {
   activeKpi: KpiType;

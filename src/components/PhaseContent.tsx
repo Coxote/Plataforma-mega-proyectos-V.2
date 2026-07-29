@@ -1,4 +1,4 @@
-import { Phase, Project, DeliverableItem, Role, ClientAnnotation, DecisionLogEntry } from '../types';
+import { Phase, Project, DeliverableItem, Role, ClientAnnotation, DecisionLogEntry, UserSession } from '../types';
 import { 
   CheckSquare, 
   Square, 
@@ -20,13 +20,19 @@ import {
   FileText,
   AlertCircle,
   Users,
-  TrendingUp
+  TrendingUp,
+  RotateCcw,
+  DollarSign,
+  Calendar,
+  Clock
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { analyzeBriefWithGemini } from '../geminiService';
 import { RaciMatrix } from './RaciMatrix';
 import { PerfilGeneral } from './PerfilGeneral';
 import { ProjectFinancialOverview } from './ProjectFinancialOverview';
+import { StackedHoursBar } from './StackedHoursBar';
+import { getRetrabajoStats } from '../dashboardUtils';
 
 interface PhaseContentProps {
   activePhase: Phase;
@@ -36,6 +42,7 @@ interface PhaseContentProps {
   onCompletePhase: () => void;
   showSaveToast: boolean;
   userRole: Role;
+  currentUser?: UserSession;
 }
 
 export default function PhaseContent({
@@ -46,8 +53,11 @@ export default function PhaseContent({
   onCompletePhase,
   showSaveToast,
   userRole,
+  currentUser,
 }: PhaseContentProps) {
-  const [activeTab, setActiveTab] = useState<'phase' | 'project' | 'brandbible' | 'deliverables' | 'raci' | 'financials' | 'bitacora'>('phase');
+  const [activeTab, setActiveTab] = useState<'phase' | 'brandbible' | 'deliverables'>('phase');
+  const [brandSubTab, setBrandSubTab] = useState<'brandbible' | 'project'>('brandbible');
+  const [govSubTab, setGovSubTab] = useState<'bitacora' | 'raci'>('bitacora');
 
   // AI Brief Form States
   const [briefInput, setBriefInput] = useState('');
@@ -403,44 +413,100 @@ export default function PhaseContent({
   // Safe reference to Brand Bible
   const bb = project.brandBible || {};
 
+  const timeEntries = project.timeEntries || [];
+  const totalConsumedHours = timeEntries.reduce((sum, e) => sum + (e.hours || 0), 0);
+  const totalHours = project.hoursTotal || 40;
+  const retrabajoStats = getRetrabajoStats(project);
+
+  const activePhaseIndex = project.phases.findIndex((p) => p.id === activePhase.id);
+  const activeIndex = activePhaseIndex >= 0 ? activePhaseIndex : 0;
+  const expectedMaxPercent = Math.round(((activeIndex + 1) / project.phases.length) * 100);
+  const hoursPercent = totalHours > 0 ? Math.round((totalConsumedHours / totalHours) * 100) : 0;
+  
+  let calculatedHealth = 100;
+  if (hoursPercent > expectedMaxPercent + 10) {
+    calculatedHealth -= Math.round((hoursPercent - (expectedMaxPercent + 10)) * 1.5);
+  }
+  const finalHealth = Math.min(100, Math.max(15, calculatedHealth));
+
   return (
     <main className="flex flex-col h-full overflow-hidden bg-white" id="phase-content-wrapper">
-      {/* PHASE HEADER */}
-      <header className="px-8 py-5 border-b border-slate-200 flex flex-wrap items-center justify-between bg-white shrink-0 gap-4" id="phase-header">
-        <div className="min-w-0">
-          <div className="flex items-center gap-3">
-            <h2 className="text-base font-bold text-slate-900 tracking-tight">
-              Fase {activePhase.id} — {activePhase.label}
-            </h2>
-            <span
-              className={`px-2.5 py-0.5 text-[10px] rounded-full font-bold border ${
-                activePhase.status === 'completed'
-                  ? 'bg-slate-50 border-slate-200 text-slate-400'
-                  : 'bg-lime-50 border-lime-200 text-lime-700 animate-pulse'
+      
+      {/* 1. TOP SUB-NAV PHASE PILLS BAR */}
+      <div className="bg-slate-100/90 border-b border-slate-200/80 px-6 py-2 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0" id="phase-pills-bar">
+        {project.phases.map((p) => {
+          const isActive = p.id === activePhase.id;
+          return (
+            <button
+              key={p.id}
+              onClick={() => {
+                onUpdateProject({
+                  ...project,
+                  activePhaseId: p.id,
+                });
+              }}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                isActive
+                  ? 'bg-slate-900 text-white shadow-xs font-extrabold border border-slate-800'
+                  : 'bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/80'
               }`}
             >
-              {activePhase.status === 'completed' ? 'Completada' : 'En Progreso'}
-            </span>
+              <span>{p.id} {p.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 2. MAIN PHASE HEADER */}
+      <header className="px-6 py-3.5 border-b border-slate-200 bg-white shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4" id="phase-header">
+        <div className="flex items-center gap-3.5 min-w-0">
+          <div className="w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs border border-slate-700/50">
+            {project.clientName ? project.clientName.substring(0, 2).toUpperCase() : 'GL'}
           </div>
-          <p className="text-xs text-slate-400 mt-1 font-medium">
-            Administra requerimientos específicos, configura entregables del cliente e impulsa el proyecto con IA.
-          </p>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-900 bg-amber-100/80 px-2.5 py-0.5 rounded-md border border-amber-200/80">
+                {project.clientName || 'GLOBEX S.A.'}
+              </span>
+              <h2 className="text-base font-black text-slate-900 tracking-tight truncate">
+                {project.name}
+              </h2>
+              <span className="px-2.5 py-0.5 text-[10px] rounded-full font-bold border bg-blue-50 border-blue-200 text-blue-700">
+                • En Progreso ({activePhase.id})
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* ACTIONS */}
-        <div className="flex items-center gap-3">
+        {/* User Info Avatar + Actions */}
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-1.5">
+            <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-600 overflow-hidden flex items-center justify-center text-white text-[10px] font-bold">
+              {currentUser?.username ? currentUser.username.substring(0, 2).toUpperCase() : 'CV'}
+            </div>
+            <div className="text-left">
+              <div className="text-xs font-bold text-slate-900 leading-tight">
+                {currentUser?.username || 'Carlos Vega'}
+              </div>
+              <div className="text-[10px] text-slate-500 font-medium capitalize">
+                {currentUser?.puesto || currentUser?.role || 'Senior PM'}
+              </div>
+            </div>
+          </div>
+
           <span
             className={`text-xs text-lime-600 font-bold transition-all duration-300 flex items-center gap-1 ${
               showSaveToast ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
             }`}
           >
-            <CheckCircle2 className="w-3.5 h-3.5 animate-bounce" /> ✔ Cambios Guardados
+            <CheckCircle2 className="w-3.5 h-3.5 animate-bounce" /> Cambios Guardados
           </span>
+
           {userRole !== 'invitado' && (
             <>
               <button
                 onClick={onSave}
-                className="border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-bold rounded-lg px-4 py-2 text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                className="border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-bold rounded-xl px-3.5 py-2 text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                 id="btn-save-progress"
               >
                 <Save className="w-3.5 h-3.5" />
@@ -448,10 +514,10 @@ export default function PhaseContent({
               </button>
               <button
                 onClick={onCompletePhase}
-                className="bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-lg px-4 py-2 text-xs transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
+                className="bg-pink-700 hover:bg-pink-800 text-white font-bold rounded-xl px-4 py-2 text-xs transition-all flex items-center gap-1.5 shadow-md cursor-pointer"
                 id="btn-complete-phase"
               >
-                <CheckCircle2 className="w-3.5 h-3.5 text-lime-400" />
+                <Plus className="w-3.5 h-3.5" />
                 Completar Fase
               </button>
             </>
@@ -459,71 +525,42 @@ export default function PhaseContent({
         </div>
       </header>
 
-      {/* NAVIGATION TABS */}
-      <div className="px-8 border-b border-slate-200 flex gap-6 shrink-0 bg-white" id="form-tabs">
+      {/* 3. NAVIGATION TABS (3 Core Hubs) */}
+      <div className="px-6 border-b border-slate-200 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0 bg-white" id="form-tabs">
         <button
           onClick={() => setActiveTab('phase')}
-          className={`py-3 text-xs font-bold border-b-2 transition-all cursor-pointer ${
+          className={`py-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'phase'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-400 hover:text-slate-600'
+              ? 'border-slate-900 text-slate-900 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
-          Checklist y Campos ({activePhase.id})
+          <FileCode className="w-3.5 h-3.5 text-slate-600" />
+          <span>Fase {activePhase.id} & Checklist</span>
         </button>
-        <button
-          onClick={() => setActiveTab('project')}
-          className={`py-3 text-xs font-bold border-b-2 transition-all cursor-pointer ${
-            activeTab === 'project'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          Perfil General
-        </button>
+
         <button
           onClick={() => setActiveTab('brandbible')}
-          className={`py-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`py-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'brandbible'
               ? 'border-purple-600 text-purple-700 font-extrabold'
-              : 'border-transparent text-slate-400 hover:text-slate-600'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <Sparkles className="w-3.5 h-3.5 text-purple-500" />
-          Brand Bible (Gemini IA)
+          <span>Ficha & Marca (IA)</span>
         </button>
+
         <button
           onClick={() => setActiveTab('deliverables')}
-          className={`py-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+          className={`py-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'deliverables'
               ? 'border-indigo-600 text-indigo-700 font-extrabold'
-              : 'border-transparent text-slate-400 hover:text-slate-600'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
           <MessageSquare className="w-3.5 h-3.5 text-indigo-500" />
-          Entregables & Feedback
-        </button>
-        <button
-          onClick={() => setActiveTab('raci')}
-          className={`py-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeTab === 'raci'
-              ? 'border-lime-600 text-lime-700 font-extrabold'
-              : 'border-transparent text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <Users className="w-3.5 h-3.5 text-lime-500" />
-          Matriz RACI
-        </button>
-        <button
-          onClick={() => setActiveTab('bitacora')}
-          className={`py-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
-            activeTab === 'bitacora'
-              ? 'border-orange-600 text-orange-700 font-extrabold'
-              : 'border-transparent text-slate-400 hover:text-slate-600'
-          }`}
-        >
-          <ClipboardList className="w-3.5 h-3.5 text-orange-500" />
-          Bitácora & Decisiones
+          <span>Entregables & Feedback</span>
         </button>
       </div>
 
@@ -533,9 +570,134 @@ export default function PhaseContent({
           
           {/* TAB 1: PHASE REQUIREMENTS & CHECKLIST */}
           {activeTab === 'phase' && (
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6" id="phase-tab-content">
-              {/* Left Form: Phase Specific Fields */}
-              <div className="md:col-span-3 space-y-6">
+            <div className="space-y-6" id="phase-tab-content">
+              
+              {/* 4 KPI CARDS ROW */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-cards-grid">
+                {/* Card 1: SALUD DEL PROYECTO */}
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+                        <TrendingUp className="w-4 h-4" />
+                      </div>
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        SALUD DEL PROYECTO
+                      </span>
+                    </div>
+                    <span className={`text-xs font-black px-2 py-0.5 rounded-full border ${
+                      finalHealth < 50 
+                        ? 'bg-rose-50 text-rose-700 border-rose-200' 
+                        : finalHealth < 80 
+                        ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    }`}>
+                      {finalHealth}%
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="text-xl font-black text-slate-900 tracking-tight">
+                      {finalHealth < 50 ? 'Crítico' : finalHealth < 80 ? 'En riesgo' : 'Óptimo'}
+                    </div>
+                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full transition-all ${
+                          finalHealth < 50 ? 'bg-rose-500' : finalHealth < 80 ? 'bg-amber-500' : 'bg-emerald-500'
+                        }`} 
+                        style={{ width: `${finalHealth}%` }} 
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-medium leading-tight">
+                      {finalHealth < 50 
+                        ? '⚠️ Requiere atención inmediata. Se sugieren reuniones de contención.'
+                        : finalHealth < 80
+                        ? '⚡ Desviaciones menores detectadas en los plazos.'
+                        : '✅ Proyecto ejecutándose de acuerdo a lo planificado.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Card 2: CONSUMO DE HORAS PROYECTO */}
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      CONSUMO DE HORAS
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-xl font-black text-slate-900 tracking-tight">
+                      {totalConsumedHours}h <span className="text-xs text-slate-400 font-bold">/ {totalHours}h</span>
+                    </div>
+                    <StackedHoursBar timeEntries={timeEntries} hoursTotal={totalHours} showTitle={false} />
+                  </div>
+                </div>
+
+                {/* Card 3: RETRABAJO DEL PROYECTO */}
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
+                      <RotateCcw className="w-4 h-4" />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      RETRABAJO
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-xl font-black text-slate-900 tracking-tight">
+                      {retrabajoStats.porcentajeRetrabajo.toFixed(1)}%
+                    </div>
+                    <div className="grid grid-cols-3 gap-1 text-[10px] text-center font-medium">
+                      <div className="bg-amber-50/80 border border-amber-100/80 p-1.5 rounded-xl">
+                        <span className="text-slate-500 block text-[9px] font-semibold">Cliente</span>
+                        <strong className="text-amber-900 font-bold">{retrabajoStats.porOrigen.cliente}h</strong>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-200/80 p-1.5 rounded-xl">
+                        <span className="text-slate-500 block text-[9px] font-semibold">Interno</span>
+                        <strong className="text-slate-800 font-bold">{retrabajoStats.porOrigen.interno}h</strong>
+                      </div>
+                      <div className="bg-slate-50 border border-slate-200/80 p-1.5 rounded-xl">
+                        <span className="text-slate-500 block text-[9px] font-semibold">Proveedor</span>
+                        <strong className="text-slate-800 font-bold">{retrabajoStats.porOrigen.proveedor}h</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 4: COSTO ESTIMADO */}
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                      <DollarSign className="w-4 h-4" />
+                    </div>
+                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      COSTO ESTIMADO
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="text-xl font-black text-slate-900 tracking-tight">
+                      ${(project.totalIncome || 16991).toLocaleString('es-CL')}{' '}
+                      <span className="text-xs text-slate-400 font-bold">USD</span>
+                    </div>
+                    <div className="text-[10px] text-slate-500 font-semibold bg-slate-50 p-2 rounded-xl border border-slate-100 flex items-center justify-between">
+                      <span className="text-slate-400">Presupuesto Base</span>
+                      <strong className="text-slate-700 font-bold">$3.627,20 USD</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION HEADER */}
+              <h3 className="text-base font-black text-slate-900 tracking-tight pt-2">
+                Fase {activePhase.id}: Campos y Hitos
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                {/* Left Form: Phase Specific Fields */}
+                <div className="md:col-span-3 space-y-6">
                 <fieldset disabled={isPhaseDisabled} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-5 disabled:opacity-85">
                   <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                     <FileCode className="w-4 h-4 text-lime-600" />
@@ -1052,23 +1214,53 @@ export default function PhaseContent({
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* TAB 2: GENERAL PROJECT PROFILE */}
-          {activeTab === 'project' && (
-            <PerfilGeneral
-              project={project}
-              onUpdateProject={onUpdateProject}
-              userRole={userRole}
-            />
-          )}
-
-          {/* TAB 3: BRAND BIBLE GENERATED WITH GEMINI IA */}
+          {/* TAB 2: FICHA & MARCA (IA) */}
           {activeTab === 'brandbible' && (
             <div className="space-y-6" id="brand-bible-tab-content">
-              
-              {/* Gemini Brief Parser Card */}
-              <div className="bg-gradient-to-br from-purple-900 to-indigo-950 text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
+              {/* Sub-tab pills selector */}
+              <div className="flex items-center justify-between bg-white p-2 rounded-2xl border border-slate-200 shadow-xs">
+                <div className="flex items-center gap-1.5 bg-slate-100/80 p-1 rounded-xl">
+                  <button
+                    onClick={() => setBrandSubTab('brandbible')}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      brandSubTab === 'brandbible'
+                        ? 'bg-purple-600 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Brand Bible (Gemini IA)
+                  </button>
+                  <button
+                    onClick={() => setBrandSubTab('project')}
+                    className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      brandSubTab === 'project'
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Briefcase className="w-3.5 h-3.5" />
+                    Perfil General del Proyecto
+                  </button>
+                </div>
+                <span className="text-[11px] text-slate-400 font-medium px-3 hidden md:inline">
+                  {brandSubTab === 'brandbible' ? 'Guía de Identidad Inteligente' : 'Información técnica y comercial'}
+                </span>
+              </div>
+
+              {brandSubTab === 'project' ? (
+                <PerfilGeneral
+                  project={project}
+                  onUpdateProject={onUpdateProject}
+                  userRole={userRole}
+                />
+              ) : (
+                <>
+                  {/* Gemini Brief Parser Card */}
+                  <div className="bg-gradient-to-br from-purple-900 to-indigo-950 text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-44 h-44 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
                 
                 <div className="max-w-2xl space-y-4">
@@ -1331,6 +1523,8 @@ export default function PhaseContent({
 
                 </div>
               </div>
+              </>
+              )}
             </div>
           )}
 
@@ -1681,177 +1875,6 @@ export default function PhaseContent({
                 })()}
               </div>
 
-            </div>
-          )}
-
-          {/* TAB 5: MATRIZ RACI */}
-          {activeTab === 'raci' && (
-            <div className="space-y-6" id="raci-tab-content">
-              <RaciMatrix
-                project={project}
-                currentUser={{ id: 'current', username: 'Usuario', role: userRole, puesto: '' }}
-                onUpdateRaci={(newMatrix) => {
-                  onUpdateProject({
-                    ...project,
-                    raciMatrix: newMatrix,
-                  });
-                }}
-              />
-            </div>
-          )}
-
-          {/* TAB 6: BITÁCORA Y DECISIONES */}
-          {activeTab === 'bitacora' && (
-            <div className="space-y-6" id="bitacora-tab-content">
-              {/* Form to log new decision */}
-              {userRole !== 'invitado' && (
-                <form onSubmit={handleAddDecision} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                  <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                    <ClipboardList className="w-4 h-4 text-orange-600" />
-                    <h3 className="font-bold text-xs uppercase tracking-widest text-slate-800">
-                      Registrar Nueva Decisión o Acuerdo de Proyecto
-                    </h3>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="md:col-span-2 space-y-1">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Título de la Decisión / Acuerdo</label>
-                      <input
-                        type="text"
-                        required
-                        value={decTitle}
-                        onChange={(e) => setDecTitle(e.target.value)}
-                        placeholder="Ej: Cambio de paleta de colores para dashboard o Aprobación de entregable A3"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-orange-400/50 outline-none transition-all"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Categoría</label>
-                      <select
-                        value={decCategory}
-                        onChange={(e) => setDecCategory(e.target.value as any)}
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-orange-400/50 outline-none transition-all"
-                      >
-                        <option value="Alcance">Cambio de Alcance</option>
-                        <option value="Diseño">Aprobación de Diseño</option>
-                        <option value="Técnico">Decisión Técnica</option>
-                        <option value="Presupuesto">Ajuste de Presupuesto</option>
-                        <option value="Aprobación">Aprobación Formal</option>
-                        <option value="Otro">Otro Acuerdo</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="md:col-span-2 space-y-1">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Justificación / Motivo del Acuerdo</label>
-                      <input
-                        type="text"
-                        value={decRationale}
-                        onChange={(e) => setDecRationale(e.target.value)}
-                        placeholder="Explicación concisa del porqué se tomó la decisión..."
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-orange-400/50 outline-none transition-all"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Aprobado / Autorizado por</label>
-                      <input
-                        type="text"
-                        value={decApprovedBy}
-                        onChange={(e) => setDecApprovedBy(e.target.value)}
-                        placeholder="Ej: Cliente (Product Owner)"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-orange-400/50 outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-2">
-                    <button
-                      type="submit"
-                      className="bg-orange-600 hover:bg-orange-700 text-white font-bold px-5 py-2 rounded-xl text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Guardar Decisión en Bitácora</span>
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Decision Log Timeline */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-2">
-                    <ClipboardList className="w-4 h-4 text-orange-600" />
-                    <h3 className="font-bold text-xs uppercase tracking-widest text-slate-800">
-                      Histórico de Decisiones del Proyecto ({project.decisionLog?.length || 0})
-                    </h3>
-                  </div>
-                </div>
-
-                {(!project.decisionLog || project.decisionLog.length === 0) ? (
-                  <p className="text-xs text-slate-400 italic py-4 text-center">No hay decisiones registradas aún en el proyecto.</p>
-                ) : (
-                  <div className="space-y-3 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-200 pl-8">
-                    {project.decisionLog.map((dec) => (
-                      <div key={dec.id} className="relative bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-1.5 shadow-2xs">
-                        <span className="absolute -left-8 top-4 w-3 h-3 rounded-full bg-orange-500 border-2 border-white ring-2 ring-orange-100" />
-                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-xs text-slate-900">{dec.title}</h4>
-                            <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-200">
-                              {dec.category}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-mono font-bold">Fase {dec.phaseId}</span>
-                          </div>
-                          <span className="text-[10px] text-slate-400 font-medium">{dec.date}</span>
-                        </div>
-                        {dec.rationale && (
-                          <p className="text-xs text-slate-600 leading-relaxed font-medium">{dec.rationale}</p>
-                        )}
-                        <div className="text-[10px] text-slate-400 pt-1 font-semibold">
-                          Autorizado por: <span className="text-slate-700 font-bold">{dec.approvedBy}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* System Audit Stream */}
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-slate-600" />
-                    <h3 className="font-bold text-xs uppercase tracking-widest text-slate-800">
-                      Trazabilidad y Log de Auditoría del Sistema ({project.auditLog?.length || 0})
-                    </h3>
-                  </div>
-                </div>
-
-                {(!project.auditLog || project.auditLog.length === 0) ? (
-                  <p className="text-xs text-slate-400 italic py-2">Sin eventos de auditoría registrados.</p>
-                ) : (
-                  <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
-                    {project.auditLog.map((log) => (
-                      <div key={log.id} className="bg-slate-50 border border-slate-100 p-3 rounded-xl flex items-start justify-between gap-3 text-xs">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-bold text-slate-800">{log.username}</span>
-                            <span className="text-[9px] font-bold uppercase px-1.5 py-0.2 rounded bg-slate-200 text-slate-600">{log.action}</span>
-                            <span className="text-[10px] text-slate-400 font-mono">{log.entityType}</span>
-                          </div>
-                          <p className="text-slate-600 text-[11px] leading-snug">{log.details}</p>
-                        </div>
-                        <span className="text-[9.5px] text-slate-400 shrink-0 font-mono">
-                          {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           )}
 

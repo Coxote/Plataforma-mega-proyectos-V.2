@@ -4,9 +4,14 @@ import { TimeEntry } from '../types';
 interface StackedHoursBarProps {
   timeEntries: TimeEntry[];
   hoursTotal: number;
+  showTitle?: boolean;
 }
 
-export const StackedHoursBar: React.FC<StackedHoursBarProps> = ({ timeEntries = [], hoursTotal }) => {
+export const StackedHoursBar: React.FC<StackedHoursBarProps> = ({ 
+  timeEntries = [], 
+  hoursTotal,
+  showTitle = false
+}) => {
   const totalUsed = timeEntries.reduce((acc, curr) => acc + curr.hours, 0);
 
   // Agrupar horas por rol
@@ -21,16 +26,18 @@ export const StackedHoursBar: React.FC<StackedHoursBarProps> = ({ timeEntries = 
   };
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
-      <div className="flex items-center justify-between text-xs">
-        <span className="font-semibold text-slate-700">⏱ Consumo de horas proyecto</span>
-        <span className="font-bold text-slate-900">
-          {totalUsed}h <span className="text-slate-400 font-normal">/ {hoursTotal}h</span>
-        </span>
-      </div>
+    <div className="space-y-2.5">
+      {showTitle && (
+        <div className="flex items-center justify-between text-xs">
+          <span className="font-semibold text-slate-700">⏱ Consumo de horas proyecto</span>
+          <span className="font-bold text-slate-900">
+            {totalUsed}h <span className="text-slate-400 font-normal">/ {hoursTotal}h</span>
+          </span>
+        </div>
+      )}
 
       {/* Barra Apilada */}
-      <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
+      <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden flex">
         {hoursByRole['sac'] && hoursByRole['sac'] > 0 ? (
           <div
             style={{ width: `${getPercent(hoursByRole['sac'])}%` }}
@@ -62,22 +69,22 @@ export const StackedHoursBar: React.FC<StackedHoursBarProps> = ({ timeEntries = 
       </div>
 
       {/* Leyenda */}
-      <div className="grid grid-cols-2 gap-y-1.5 text-[10px] text-slate-500 pt-1">
-        <div className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-sky-400 inline-block" />
-          <span>SAC ({hoursByRole['sac'] || 0}h)</span>
+      <div className="grid grid-cols-2 gap-y-1 gap-x-2 text-[10px] text-slate-500 pt-0.5">
+        <div className="flex items-center gap-1.5 min-w-0 truncate">
+          <span className="w-2 h-2 rounded-full bg-sky-400 shrink-0" />
+          <span className="truncate">SAC ({hoursByRole['sac'] || 0}h)</span>
         </div>
-        <div className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-amber-400 inline-block" />
-          <span>ContentS ({hoursByRole['contents'] || 0}h)</span>
+        <div className="flex items-center gap-1.5 min-w-0 truncate">
+          <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+          <span className="truncate">ContentS ({hoursByRole['contents'] || 0}h)</span>
         </div>
-        <div className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-indigo-400 inline-block" />
-          <span>ContentD ({hoursByRole['contentd'] || 0}h)</span>
+        <div className="flex items-center gap-1.5 min-w-0 truncate">
+          <span className="w-2 h-2 rounded-full bg-indigo-400 shrink-0" />
+          <span className="truncate">ContentD ({hoursByRole['contentd'] || 0}h)</span>
         </div>
-        <div className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-lime-400 inline-block" />
-          <span>Coord. ({hoursByRole['coordinador'] || 0}h)</span>
+        <div className="flex items-center gap-1.5 min-w-0 truncate">
+          <span className="w-2 h-2 rounded-full bg-lime-400 shrink-0" />
+          <span className="truncate">Coord. ({hoursByRole['coordinador'] || 0}h)</span>
         </div>
       </div>
     </div>

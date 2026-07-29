@@ -13,7 +13,11 @@ import {
   User,
   Plus,
   Menu,
-  X
+  X,
+  ChevronLeft,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import { Project, UserSession, TimeEntryType, getUserAvatarUrl } from '../types';
 import { AIAssistantModal } from './AIAssistantModal';
@@ -53,26 +57,40 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [isGlobalLogTimeOpen, setIsGlobalLogTimeOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const handleNavClick = (view: ViewState) => {
     onNavigate(view);
     setIsMobileMenuOpen(false);
   };
 
-  const renderSidebarContent = () => (
-    <div className="flex flex-col h-full justify-between">
-      <div className="overflow-y-auto flex-1">
+  const renderSidebarContent = (isCollapsed: boolean) => (
+    <div className="flex flex-col h-full justify-between select-none">
+      <div className="overflow-y-auto flex-1 scrollbar-none">
         {/* Logo / Branding */}
-        <div className="p-4 sm:p-5 border-b border-slate-800/80 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center shadow-md shadow-orange-950/20">
+        <div className={`p-4 border-b border-slate-800/80 flex items-center ${isCollapsed ? 'justify-center flex-col gap-2' : 'justify-between'}`}>
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-8 h-8 bg-orange-600 rounded-xl flex items-center justify-center shadow-md shadow-orange-950/20 shrink-0">
               <Shield className="w-4 h-4 text-white font-black" />
             </div>
-            <div>
-              <span className="text-white font-black text-xs tracking-tight block uppercase">Operations Atelier</span>
-              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Herramienta Interna</span>
-            </div>
+            {!isCollapsed && (
+              <div className="overflow-hidden">
+                <span className="text-white font-black text-xs tracking-tight block uppercase truncate">Operations Atelier</span>
+                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block truncate">Herramienta Interna</span>
+              </div>
+            )}
           </div>
+          
+          {/* Collapse/Expand Toggle Button on Desktop */}
+          <button 
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="hidden md:flex p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+            title={isCollapsed ? "Expandir barra lateral" : "Minimizar barra lateral"}
+            aria-label={isCollapsed ? "Expandir barra lateral" : "Minimizar barra lateral"}
+          >
+            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+
           {isMobileMenuOpen && (
             <button 
               onClick={() => setIsMobileMenuOpen(false)}
@@ -84,132 +102,149 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         </div>
 
         {/* BOTÓN DE CARGA RÁPIDA DE HORAS GLOBAL */}
-        <div className="p-3 pb-1">
+        <div className={`p-3 pb-1 ${isCollapsed ? 'flex justify-center' : ''}`}>
           <button
             onClick={() => {
               setIsGlobalLogTimeOpen(true);
               setIsMobileMenuOpen(false);
             }}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-2xl transition-all cursor-pointer text-xs font-black shadow-md shadow-orange-950/30 min-h-[40px]"
+            title="Registrar Horas"
+            className={`flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-500 text-white rounded-2xl transition-all cursor-pointer text-xs font-black shadow-md shadow-orange-950/30 ${
+              isCollapsed ? 'w-10 h-10 p-0' : 'w-full px-3 py-2.5 min-h-[40px]'
+            }`}
           >
-            <Plus className="w-4 h-4" />
-            Registrar Horas
+            <Plus className="w-4 h-4 shrink-0" />
+            {!isCollapsed && <span>Registrar Horas</span>}
           </button>
         </div>
 
         {/* Navegación Principal Agrupada */}
-        <nav className="p-3 sm:p-4 space-y-4" id="sidebar-nav">
+        <nav className={`p-3 space-y-4 ${isCollapsed ? 'px-2' : 'sm:p-4'}`} id="sidebar-nav">
           
           {/* GRUPO: OPERACIÓN */}
           <div className="space-y-1">
-            <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-              Operación
-            </div>
+            {!isCollapsed ? (
+              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+                Operación
+              </div>
+            ) : (
+              <div className="w-8 h-px bg-slate-800 my-2 mx-auto" />
+            )}
+
             {currentUser.role === 'coordinador' && (
               <button 
                 onClick={() => handleNavClick('dashboard')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                title="Torre de Control"
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'dashboard' 
                     ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
                 }`}
               >
                 <LayoutDashboard className="w-4 h-4 shrink-0" />
-                Torre de Control
+                {!isCollapsed && <span>Torre de Control</span>}
               </button>
             )}
             
             <button 
               onClick={() => handleNavClick('planner')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+              title="Planner Diario"
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'planner' 
                   ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
               }`}
             >
               <CalendarDays className="w-4 h-4 shrink-0" />
-              Planner Diario
+              {!isCollapsed && <span>Planner Diario</span>}
             </button>
 
             <button 
               onClick={() => handleNavClick('gantt')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+              title="Línea de Tiempo"
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'gantt' 
                   ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
               }`}
             >
               <Layers className="w-4 h-4 shrink-0" />
-              Línea de Tiempo
+              {!isCollapsed && <span>Línea de Tiempo</span>}
             </button>
           </div>
 
           {/* GRUPO: PROYECTO */}
           <div className="space-y-1">
-            <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-              Proyecto
-            </div>
+            {!isCollapsed ? (
+              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+                Proyecto
+              </div>
+            ) : (
+              <div className="w-8 h-px bg-slate-800 my-2 mx-auto" />
+            )}
             <button 
               onClick={() => handleNavClick('project')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+              title="Expediente del Proyecto"
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'project' 
                   ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
               }`}
             >
               <Activity className="w-4 h-4 shrink-0" />
-              Expediente del Proyecto
+              {!isCollapsed && <span>Expediente del Proyecto</span>}
             </button>
           </div>
 
           {/* GRUPO: ADMINISTRACIÓN & PERFIL */}
           <div className="space-y-1">
-            <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-              Personal
-            </div>
+            {!isCollapsed ? (
+              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+                Mi Espacio
+              </div>
+            ) : (
+              <div className="w-8 h-px bg-slate-800 my-2 mx-auto" />
+            )}
             <button 
               onClick={() => handleNavClick('profile')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+              title="Mi Perfil y Horas"
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'profile' 
                   ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
                   : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
               }`}
             >
               <User className="w-4 h-4 shrink-0" />
-              Mi Perfil y Horas
+              {!isCollapsed && <span>Mi Perfil y Horas</span>}
             </button>
-
-            {currentUser.role === 'coordinador' && (
-              <div className="px-3 pt-3 pb-1 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
-                Administración
-              </div>
-            )}
 
             {currentUser.role === 'coordinador' && (
               <button 
                 onClick={() => handleNavClick('team')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                title="Equipo"
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'team' 
                     ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
                 }`}
               >
                 <Users className="w-4 h-4 shrink-0" />
-                Equipo
+                {!isCollapsed && <span>Equipo</span>}
               </button>
             )}
 
             {currentUser.role === 'coordinador' && (
               <button 
                 onClick={() => handleNavClick('clients')}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                title="Clientes y Marca IA"
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'clients' 
                     ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
                 }`}
               >
                 <Building2 className="w-4 h-4 shrink-0" />
-                Clientes y Marca IA
+                {!isCollapsed && <span>Clientes y Marca IA</span>}
               </button>
             )}
           </div>
@@ -218,7 +253,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       </div>
 
       {/* Módulo Inferior: Usuario, Asistente y Salida */}
-      <div className="p-3 sm:p-4 border-t border-slate-800/80 space-y-3 bg-slate-950/20 shrink-0">
+      <div className={`p-3 border-t border-slate-800/80 space-y-3 bg-slate-950/20 shrink-0 ${isCollapsed ? 'px-2' : 'sm:p-4'}`}>
         
         {/* Botón flotante preparado para el Asistente IA (Dictar Avance) */}
         <button 
@@ -226,17 +261,22 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             setIsAIAssistantOpen(true);
             setIsMobileMenuOpen(false);
           }}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-slate-800 hover:bg-slate-750 text-lime-400 rounded-full transition-colors border border-slate-700/60 border-dashed text-[10px] font-bold uppercase tracking-wider cursor-pointer min-h-[38px]"
+          title="Dictar Avance con IA"
+          className={`flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-750 text-lime-400 rounded-full transition-colors border border-slate-700/60 border-dashed text-[10px] font-bold uppercase tracking-wider cursor-pointer ${
+            isCollapsed ? 'w-10 h-10 p-0 mx-auto' : 'w-full px-3 py-2.5 min-h-[38px]'
+          }`}
         >
-          <Mic className="w-3.5 h-3.5" />
-          Dictar Avance
+          <Mic className="w-3.5 h-3.5 shrink-0" />
+          {!isCollapsed && <span>Dictar Avance</span>}
         </button>
 
         {/* Perfil de Usuario */}
         <div 
           onClick={() => handleNavClick('profile')}
-          className="flex items-center gap-3 px-1 py-1 border-t border-slate-800/40 pt-2.5 cursor-pointer hover:opacity-90 transition-opacity"
-          title="Ver Mi Perfil"
+          className={`flex items-center gap-3 border-t border-slate-800/40 pt-2.5 cursor-pointer hover:opacity-90 transition-opacity ${
+            isCollapsed ? 'justify-center px-0' : 'px-1 py-1'
+          }`}
+          title={`Ver Mi Perfil (${currentUser.username})`}
         >
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-700 shadow-xs overflow-hidden shrink-0 bg-slate-800 flex items-center justify-center">
             <img 
@@ -246,12 +286,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               referrerPolicy="no-referrer"
             />
           </div>
-          <div className="flex-1 overflow-hidden">
-            <div className="text-white font-bold text-xs truncate capitalize leading-tight">{currentUser.username}</div>
-            <div className="text-[10px] text-slate-500 font-medium truncate uppercase tracking-wider mt-0.5">
-              {currentUser.puesto || currentUser.role}
+          {!isCollapsed && (
+            <div className="flex-1 overflow-hidden">
+              <div className="text-white font-bold text-xs truncate capitalize leading-tight">{currentUser.username}</div>
+              <div className="text-[10px] text-slate-500 font-medium truncate uppercase tracking-wider mt-0.5">
+                {currentUser.puesto || currentUser.role}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <button 
@@ -259,10 +301,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             onLogout();
             setIsMobileMenuOpen(false);
           }}
-          className="w-full flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-colors cursor-pointer text-xs font-semibold min-h-[38px]"
+          title="Salir del Sistema"
+          className={`flex items-center text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-colors cursor-pointer text-xs font-semibold ${
+            isCollapsed ? 'w-10 h-10 justify-center mx-auto p-0' : 'w-full px-3 py-2 gap-3 min-h-[38px]'
+          }`}
         >
           <LogOut className="w-4 h-4 shrink-0" />
-          Salir del Sistema
+          {!isCollapsed && <span>Salir del Sistema</span>}
         </button>
       </div>
     </div>
@@ -321,14 +366,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             onClick={() => setIsMobileMenuOpen(false)}
           />
           <aside className="relative w-[280px] max-w-[85vw] bg-slate-900 text-slate-300 h-full shadow-2xl z-10 flex flex-col animate-slideRight">
-            {renderSidebarContent()}
+            {renderSidebarContent(false)}
           </aside>
         </div>
       )}
 
-      {/* ⬛ ZONA 1: SIDEBAR OSCURO DESKTOP (El Ancla) */}
-      <aside className="hidden md:flex w-[240px] bg-slate-900 text-slate-300 flex-col justify-between shrink-0 border-r border-slate-800" id="dark-sidebar">
-        {renderSidebarContent()}
+      {/* ⬛ ZONA 1: SIDEBAR OSCURO DESKTOP (El Ancla - Collapsible) */}
+      <aside 
+        className={`hidden md:flex bg-slate-900 text-slate-300 flex-col justify-between shrink-0 border-r border-slate-800 transition-all duration-300 ${
+          isSidebarCollapsed ? 'w-[68px]' : 'w-[240px]'
+        }`} 
+        id="dark-sidebar"
+      >
+        {renderSidebarContent(isSidebarCollapsed)}
       </aside>
 
       {/* ⬜ ZONA 2: CONTENEDOR PRINCIPAL DINÁMICO */}

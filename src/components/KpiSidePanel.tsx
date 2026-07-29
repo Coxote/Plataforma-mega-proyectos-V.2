@@ -89,6 +89,18 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
             { id: 'pendiente', label: 'Pendiente Cliente' },
           ]
         };
+      case 'time_entry_log':
+      default:
+        return {
+          title: 'Registro de Consumo de Horas',
+          subtitle: 'Desglose de horas presupuestadas vs horas invertidas y re-trabajo',
+          icon: <Clock className="w-5 h-5 text-blue-600" />,
+          badgeBg: 'bg-blue-50 border-blue-200 text-blue-700',
+          filters: [
+            { id: 'todos', label: 'Todos los Proyectos' },
+            { id: 'retrabajo', label: 'Con Retrabajo' },
+          ]
+        };
     }
   };
 
@@ -398,6 +410,51 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
                       </p>
                     </div>
                   ))
+                )}
+              </>
+            )}
+
+            {/* TIME ENTRY LOG LIST */}
+            {activeKpi === 'time_entry_log' && (
+              <>
+                {projects.length === 0 ? (
+                  <div className="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                    <Clock className="w-8 h-8 text-slate-300 mx-auto" />
+                    <p className="text-xs text-slate-500 font-medium">No hay registros de horas en los proyectos.</p>
+                  </div>
+                ) : (
+                  projects
+                    .filter(p => {
+                      const matchesSearch = searchQuery.trim() === '' ||
+                        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        (p.clientName || '').toLowerCase().includes(searchQuery.toLowerCase());
+                      if (!matchesSearch) return false;
+                      if (statusFilter === 'retrabajo') return (p.totalReworkHours || 0) > 0;
+                      return true;
+                    })
+                    .map(p => (
+                      <div key={p.id} className="p-4 rounded-2xl border border-blue-200/90 bg-blue-50/30 hover:bg-white hover:border-blue-300 transition-all space-y-2.5 shadow-2xs">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-black uppercase text-slate-400">{p.clientName || 'Cliente'}</span>
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full border ${
+                            (p.totalReworkHours || 0) > 0 ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                          }`}>
+                            {(p.totalReworkHours || 0)}h Retrabajo
+                          </span>
+                        </div>
+                        <h4 className="text-sm font-black text-slate-900">{p.name}</h4>
+                        <div className="grid grid-cols-2 gap-2 text-xs bg-white p-2 rounded-xl border border-slate-200/60">
+                          <div>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase block">Horas Consumidas</span>
+                            <span className="text-xs font-black text-blue-700">{p.totalConsumedHours || 0}h / {p.totalBudgetHours || 0}h</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] font-bold text-slate-400 uppercase block">Eficiencia</span>
+                            <span className="text-xs font-black text-emerald-700">{p.efficiencyScore || 100}%</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
                 )}
               </>
             )}

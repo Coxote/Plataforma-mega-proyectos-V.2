@@ -43,14 +43,17 @@ import {
 } from 'lucide-react';
 import { TeamCard, VitaminizedMember } from './TeamCard';
 import { UserInspectorPanel } from './UserInspectorPanel';
+import { ExecutiveDashboard } from './ExecutiveDashboard';
 
 interface Props {
   projects: Project[];
   users: UserSession[];
+  activeProjectId?: string;
   onSelectProject: (projectId: string) => void;
 }
 
-export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, onSelectProject }) => {
+export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeProjectId, onSelectProject }) => {
+  const [subView, setSubView] = useState<'executive' | 'operations'>('executive');
   const [selectedMember, setSelectedMember] = useState<VitaminizedMember | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'saturation' | 'name'>('saturation');
@@ -140,10 +143,10 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, onSelec
         monthlyCapacity: load.grossCapacity || GROSS_MONTHLY_CAPACITY,
         effectiveCapacity: load.effectiveCapacity || EFFECTIVE_MONTHLY_CAPACITY,
         idleBuffer: load.idleBuffer || IDLE_TIME_HOURS,
-        loadedHours: Number((load.consumedHours || 0).toFixed(1)),
-        assignedHours: Number((load.assignedHours || 0).toFixed(1)),
-        saturation: load.assignedHours > 0 ? Number(((load.consumedHours / load.assignedHours) * 100).toFixed(1)) : 0,
-        effectiveSaturation: Number((load.effectiveSaturation || 0).toFixed(1)),
+        loadedHours: load.consumedHours,
+        assignedHours: load.assignedHours,
+        saturation: load.assignedHours > 0 ? (load.consumedHours / load.assignedHours) * 100 : 0,
+        effectiveSaturation: load.effectiveSaturation || 0,
         skills: uniqueSkills,
         activeProjectsCount: load.activeProjectsCount
       };
@@ -198,26 +201,56 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, onSelec
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50/50 overflow-hidden relative" id="coordinator-control-tower">
       
-      {/* Header Superior Interno */}
-      <div className="px-8 py-6 bg-white border-b border-slate-200 flex justify-between items-center shrink-0">
+      {/* Header Superior Interno con Conmutador de Vistas */}
+      <div className="px-6 py-4 bg-white border-b border-slate-200 flex flex-wrap justify-between items-center gap-4 shrink-0">
         <div>
-          <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">
+          <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">
             <Shield className="w-3.5 h-3.5 text-emerald-600" />
-            Herramienta del Administrador
+            {subView === 'executive' ? 'Dirección C-Level' : 'Herramienta de Control Interno'}
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Torre de Control de Operaciones</h1>
-          <p className="text-xs text-slate-500 font-medium">Radiografía instantánea del equipo, finanzas y mitigación de desviaciones.</p>
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">
+            {subView === 'executive' ? 'Dashboard Ejecutivo del Proyecto' : 'Torre de Control de Operaciones'}
+          </h1>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600">
-            <Filter className="w-3.5 h-3.5 text-slate-400" />
-            <span>Últimos 30 días</span>
-          </div>
+        {/* Tab Switcher */}
+        <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
+          <button
+            onClick={() => setSubView('executive')}
+            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+              subView === 'executive' 
+                ? 'bg-slate-900 text-white shadow-xs' 
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <BarChart3 className="w-3.5 h-3.5" />
+            Dashboard Ejecutivo
+          </button>
+          <button
+            onClick={() => setSubView('operations')}
+            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+              subView === 'operations' 
+                ? 'bg-slate-900 text-white shadow-xs' 
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Activity className="w-3.5 h-3.5" />
+            Torre de Control & SLA
+          </button>
         </div>
       </div>
 
-      {/* Contenido scrolleable del Dashboard */}
+      {subView === 'executive' ? (
+        <div className="flex-1 overflow-y-auto">
+          <ExecutiveDashboard 
+            projects={projects}
+            activeProjectId={activeProjectId}
+            onSelectProject={onSelectProject}
+            users={users}
+          />
+        </div>
+      ) : (
+      /* Contenido scrolleable del Dashboard Operativo */
       <div className="flex-1 p-8 overflow-y-auto space-y-8">
         
         {/* ZONA DE KPIS FINANCIEROS Y OPERATIVOS (Banda Ejecutiva Compacta) */}
@@ -1048,6 +1081,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, onSelec
         </div>
 
       </div>
+      )}
 
       {/* INSPECTOR LATERAL (Se despliega al hacer clic en un usuario) */}
       {selectedMember && (
