@@ -235,21 +235,21 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
       
       {/* Container */}
       <div 
-        className="bg-white w-full max-w-2xl h-[600px] rounded-2xl border border-slate-200/80 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200"
+        className="bg-white/95 backdrop-blur-2xl w-full max-w-2xl h-[600px] rounded-3xl border border-white/80 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200"
         id="ai-assistant-modal-panel"
       >
         
         {/* Header */}
         <div className="bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-800 relative overflow-hidden shrink-0">
-          <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-lime-500/10 to-transparent pointer-events-none" />
+          <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-orange-500/20 to-transparent pointer-events-none" />
           
           <div className="flex items-center gap-3 z-10">
-            <div className="w-9 h-9 bg-lime-400 rounded-xl flex items-center justify-center shadow-md shadow-lime-900/20">
-              <Sparkles className="w-5 h-5 text-slate-950 font-black animate-pulse" />
+            <div className="w-9 h-9 bg-gradient-to-br from-[#FF5500] to-[#E04B00] rounded-xl flex items-center justify-center shadow-md shadow-orange-500/20">
+              <Sparkles className="w-5 h-5 text-white font-black animate-pulse" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-lime-400 animate-ping" />
+                <span className="w-2 h-2 rounded-full bg-[#84CC16] animate-ping" />
                 <h3 className="font-black text-sm text-white uppercase tracking-wider">Copiloto Operativo IA</h3>
               </div>
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Modelo: Gemini 3.6-Flash</p>
@@ -389,7 +389,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                 <button
                   type="submit"
                   disabled={!inputText.trim() && !isRecording}
-                  className="p-3.5 bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-40 rounded-xl transition-all flex items-center justify-center shrink-0 cursor-pointer shadow-xs"
+                  className="p-3.5 bg-[#FF5500] text-white hover:bg-[#E04B00] disabled:opacity-40 rounded-xl transition-all flex items-center justify-center shrink-0 cursor-pointer shadow-md shadow-orange-500/20 hover:scale-105 active:scale-95"
                 >
                   <Send className="w-4 h-4" />
                 </button>

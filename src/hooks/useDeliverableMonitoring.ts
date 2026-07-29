@@ -34,13 +34,17 @@ export function useDeliverableMonitoring(projects: Project[]): DeliverableMonito
 
   const overdueProjectIds = useMemo(() => {
     const ids = new Set<string>();
-    criticalAlerts.forEach(a => ids.add(a.projectId));
+    criticalAlerts
+      .filter(a => a.type === 'phase_overdue' || a.type === 'deliverable_overdue')
+      .forEach(a => ids.add(a.projectId));
     return ids;
   }, [criticalAlerts]);
 
   const approachingProjectIds = useMemo(() => {
     const ids = new Set<string>();
-    warningAlerts.forEach(a => ids.add(a.projectId));
+    warningAlerts
+      .filter(a => a.type === 'phase_approaching' || a.type === 'deliverable_approaching')
+      .forEach(a => ids.add(a.projectId));
     return ids;
   }, [warningAlerts]);
 

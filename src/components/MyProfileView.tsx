@@ -1,7 +1,22 @@
 import React, { useState } from 'react';
 import { Project, UserSession, getUserAvatarUrl } from '../types';
-import { User, Clock, AlertTriangle, CheckCircle2, Briefcase, CalendarDays, Shield, Layers, TrendingUp, Filter } from 'lucide-react';
-import { GROSS_MONTHLY_CAPACITY, IDLE_TIME_HOURS, EFFECTIVE_MONTHLY_CAPACITY } from '../dashboardUtils';
+import { 
+  User, 
+  Clock, 
+  CheckCircle2, 
+  Briefcase, 
+  RotateCcw, 
+  FolderKanban, 
+  Sparkles, 
+  Camera, 
+  Image as ImageIcon, 
+  Check, 
+  X, 
+  Wrench,
+  Zap,
+  BarChart3
+} from 'lucide-react';
+import { EFFECTIVE_MONTHLY_CAPACITY } from '../dashboardUtils';
 
 interface MyProfileViewProps {
   currentUser: UserSession;
@@ -11,6 +26,15 @@ interface MyProfileViewProps {
 export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, projects }) => {
   const [filterProject, setFilterProject] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
+
+  // Custom Avatar State with LocalStorage persistence
+  const [customAvatar, setCustomAvatar] = useState<string>(() => {
+    return localStorage.getItem(`user_avatar_${currentUser.id}`) || '';
+  });
+  const [isChangingPhoto, setIsChangingPhoto] = useState(false);
+  const [tempPhotoUrl, setTempPhotoUrl] = useState('');
+
+  const displayAvatar = customAvatar || getUserAvatarUrl(currentUser.username);
 
   // Collect all time entries logged by currentUser across all projects
   const userEntries: Array<{
@@ -60,6 +84,63 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
   const targetCapacity = currentUser.capacidadMensualHoras || EFFECTIVE_MONTHLY_CAPACITY;
   const loadPercentage = Math.min(100, Math.round((totalLoggedHours / targetCapacity) * 100));
 
+  // Automatically derive Skills / Habilidades based on worked projects and phases
+  const derivedSkills: string[] = React.useMemo(() => {
+    const skillsSet = new Set<string>();
+
+    if (assignedProjects.length > 0) {
+      assignedProjects.forEach(p => {
+        p.phases.forEach(ph => {
+          if (ph.status === 'completed' || ph.status === 'in_progress') {
+            const cleanLabel = ph.label.replace(/^Fase\s+\d+:\s*/i, '').trim();
+            if (cleanLabel) skillsSet.add(cleanLabel);
+          }
+        });
+      });
+    }
+
+    // Default fallbacks based on role if project phases are few
+    if (skillsSet.size < 3) {
+      if (currentUser.role === 'coordinador' || currentUser.puesto?.toLowerCase().includes('coordin')) {
+        skillsSet.add('Gestión de Proyectos');
+        skillsSet.add('Control de Fases');
+        skillsSet.add('QA & Entregables');
+        skillsSet.add('Estimación de Horas');
+      } else {
+        skillsSet.add('Diseño UI/UX');
+        skillsSet.add('Desarrollo Web');
+        skillsSet.add('Control de Entregables');
+        skillsSet.add('Optimización de Tiempos');
+      }
+    }
+
+    return Array.from(skillsSet);
+  }, [assignedProjects, currentUser]);
+
+  // Save Avatar Handler
+  const handleSaveAvatar = () => {
+    if (tempPhotoUrl.trim()) {
+      setCustomAvatar(tempPhotoUrl.trim());
+      localStorage.setItem(`user_avatar_${currentUser.id}`, tempPhotoUrl.trim());
+    }
+    setIsChangingPhoto(false);
+    setTempPhotoUrl('');
+  };
+
+  const handleResetAvatar = () => {
+    setCustomAvatar('');
+    localStorage.removeItem(`user_avatar_${currentUser.id}`);
+    setIsChangingPhoto(false);
+  };
+
+  // Preset Avatar options
+  const presetAvatars = [
+    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=800',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=800',
+    'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=800',
+    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=800',
+  ];
+
   // Filter userEntries for history table
   const filteredEntries = userEntries.filter(e => {
     if (filterProject !== 'all' && e.projectId !== filterProject) return false;
@@ -68,136 +149,316 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
   });
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 bg-slate-50" id="my-profile-view">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-8 bg-slate-50/80" id="my-profile-view">
       
-      {/* HEADER DE IDENTIDAD */}
-      <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden space-y-6">
-        <div className="absolute -right-16 -top-16 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl border-2 border-orange-500 shadow-xl overflow-hidden shrink-0 bg-slate-800 flex items-center justify-center">
-              <img
-                src={getUserAvatarUrl(currentUser.username)}
-                alt={currentUser.username}
-                className="w-full h-full object-cover"
-                referrerPolicy="no-referrer"
-              />
+      {/* SECTION 1: ASYMMETRIC USER PROFILE HERO (CLEAN PHOTO CARD LEFT + SUMMARY & PROJECTS RIGHT) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        
+        {/* LEFT COLUMN: CLEAN PHOTO CARD WITH NO OVERLAY COVERING FACE (4 cols on lg) */}
+        <div className="lg:col-span-5 relative rounded-[32px] overflow-hidden shadow-lg border border-slate-200/90 bg-teal-50/20 min-h-[520px] flex flex-col justify-between group">
+          
+          {/* Top Floating Actions: Change Photo Trigger & Active Badge */}
+          <div className="relative z-20 p-5 flex items-center justify-between">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200/80 text-slate-800 text-xs font-black uppercase tracking-wider shadow-xs">
+              <User className="w-3.5 h-3.5 text-indigo-600" />
+              <span>{currentUser.puesto || currentUser.role}</span>
             </div>
 
-            <div className="space-y-1">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/20 border border-orange-400/30 text-orange-300 text-xs font-bold capitalize">
-                <User className="w-3.5 h-3.5" />
-                {currentUser.puesto || currentUser.role}
+            <button
+              onClick={() => setIsChangingPhoto(!isChangingPhoto)}
+              className="px-3 py-1.5 rounded-full bg-slate-900/90 hover:bg-slate-900 text-white font-extrabold text-[11px] backdrop-blur-md shadow-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105"
+              title="Cambiar foto de perfil"
+            >
+              <Camera className="w-3.5 h-3.5 text-lime-400" />
+              <span>{isChangingPhoto ? 'Cerrar' : 'Cambiar Foto'}</span>
+            </button>
+          </div>
+
+          {/* Change Photo Modal / Form Drawer */}
+          {isChangingPhoto && (
+            <div className="absolute inset-x-4 top-16 z-30 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-xl space-y-3 animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                  Cambiar Foto de Perfil
+                </span>
+                <button
+                  onClick={() => setIsChangingPhoto(false)}
+                  className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight capitalize">
-                {currentUser.username}
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-300 font-medium">
-                Panel Personal de Carga de Horas, Capacidad Mensual y Seguimiento de Retrabajo
-              </p>
+
+              <div className="space-y-2">
+                <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  URL de Imagen Personalizada
+                </label>
+                <input
+                  type="url"
+                  value={tempPhotoUrl}
+                  onChange={(e) => setTempPhotoUrl(e.target.value)}
+                  placeholder="https://ejemplo.com/mi-foto.jpg"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-indigo-400"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <span className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  O Selecciona una Foto Preestablecida
+                </span>
+                <div className="flex items-center gap-2 pt-1">
+                  {presetAvatars.map((url, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setTempPhotoUrl(url)}
+                      className="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-200 hover:border-indigo-500 transition-all shrink-0 cursor-pointer"
+                    >
+                      <img src={url} alt={`Preset ${i}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                <button
+                  onClick={handleResetAvatar}
+                  className="text-[10px] font-bold text-rose-600 hover:underline cursor-pointer"
+                >
+                  Restaurar Original
+                </button>
+                <button
+                  onClick={handleSaveAvatar}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-all"
+                >
+                  <Check className="w-3.5 h-3.5" /> Guardar Foto
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="bg-slate-800/90 px-4 py-2.5 rounded-2xl border border-slate-700 text-right">
-              <span className="text-[10px] text-slate-400 uppercase font-bold block">Capacidad Mensual (Meta)</span>
-              <span className="text-lg font-black text-white">{targetCapacity}h / mes</span>
-            </div>
-          </div>
-        </div>
-
-        {/* METRICAS DE CAPACIDAD Y OCIO (192h - 20% OCIO) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-800 relative z-10">
-          <div className="p-4 bg-slate-800/80 rounded-2xl border border-slate-700/80 space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase block">Horas Registradas</span>
-            <span className="text-2xl font-black text-white">{totalLoggedHours}h</span>
-            <span className="text-[10px] text-slate-400 block">{loadPercentage}% de capacidad consumida</span>
-          </div>
-
-          <div className="p-4 bg-slate-800/80 rounded-2xl border border-slate-700/80 space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase block">Margen de Ocio (20%)</span>
-            <span className="text-2xl font-black text-cyan-400">{IDLE_TIME_HOURS}h</span>
-            <span className="text-[10px] text-slate-400 block">Formación & gestión administrativa</span>
-          </div>
-
-          <div className="p-4 bg-slate-800/80 rounded-2xl border border-slate-700/80 space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase block">Horas de Retrabajo</span>
-            <span className="text-2xl font-black text-amber-400">{totalRetrabajoHours}h</span>
-            <span className="text-[10px] text-slate-400 block">{retrabajoPercentage.toFixed(1)}% de tus horas</span>
-          </div>
-
-          <div className="p-4 bg-slate-800/80 rounded-2xl border border-slate-700/80 space-y-1">
-            <span className="text-[10px] font-bold text-slate-400 uppercase block">Proyectos Activos</span>
-            <span className="text-2xl font-black text-emerald-400">{assignedProjects.length}</span>
-            <span className="text-[10px] text-slate-400 block">En los que participas</span>
-          </div>
-        </div>
-
-        {/* BARRA DE CAPACIDAD INDIVIDUAL */}
-        <div className="space-y-1.5 pt-2 relative z-10">
-          <div className="flex justify-between items-center text-xs font-bold">
-            <span className="text-slate-400 uppercase tracking-wider text-[10px]">Ocupación Mensual Relativa</span>
-            <span className="text-orange-400 font-mono">{totalLoggedHours} / {targetCapacity} hrs</span>
-          </div>
-          <div className="h-3 w-full bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-700">
-            <div
-              className={`h-full transition-all duration-500 rounded-full ${
-                loadPercentage > 100 ? 'bg-rose-500' : loadPercentage > 85 ? 'bg-amber-400' : 'bg-emerald-400'
-              }`}
-              style={{ width: `${Math.min(100, loadPercentage)}%` }}
+          {/* Clean Portrait Image - Exactly like Reference Photo (100% visible, no color tint) */}
+          <div className="absolute inset-0 z-0">
+            <img
+              src={displayAvatar}
+              alt={currentUser.username}
+              className="w-full h-full object-cover object-center group-hover:scale-102 transition-transform duration-500"
+              referrerPolicy="no-referrer"
             />
           </div>
-        </div>
-      </div>
 
-      {/* SECCIÓN 1: PROYECTOS ASIGNADOS */}
-      <div className="space-y-4">
-        <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-          <Briefcase className="w-4 h-4 text-orange-600" />
-          Proyectos Asignados y Consumo Individual
-        </h2>
+          {/* Floating Glassmorphic Summary Card at the Bottom (Minimalist: Horas del Mes & Habilidades en una sola línea) */}
+          <div className="relative z-10 m-4 p-4 rounded-2xl bg-white/90 backdrop-blur-md border border-white/80 shadow-xl space-y-3 text-slate-800">
+            
+            {/* User Name */}
+            <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+              <div>
+                <h2 className="text-lg font-black text-slate-900 tracking-tight capitalize leading-tight">
+                  {currentUser.username}
+                </h2>
+                <p className="text-[11px] text-slate-500 font-semibold capitalize">
+                  {currentUser.puesto || currentUser.role}
+                </p>
+              </div>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full border border-emerald-200">
+                • Activo
+              </span>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {assignedProjects.map(p => {
-            const myProjEntries = userEntries.filter(e => e.projectId === p.id);
-            const myProjHours = myProjEntries.reduce((s, e) => s + e.hours, 0);
-            const myRetrabajoProjHours = myProjEntries.filter(e => e.type === 'retrabajo').reduce((s, e) => s + e.hours, 0);
+            {/* MINIMALIST METRIC 1: HORAS DEL MES */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                <span className="flex items-center gap-1 text-[11px] uppercase tracking-wider text-slate-600">
+                  <Clock className="w-3.5 h-3.5 text-indigo-600" /> Horas del Mes
+                </span>
+                <span className="font-mono text-slate-900 font-extrabold text-xs">
+                  {totalLoggedHours}h / {targetCapacity}h ({loadPercentage}%)
+                </span>
+              </div>
+              <div className="h-2 w-full bg-slate-200/80 rounded-full overflow-hidden p-0.5 border border-slate-300/60">
+                <div
+                  className={`h-full transition-all duration-500 rounded-full ${
+                    loadPercentage > 100 ? 'bg-rose-500' : loadPercentage > 85 ? 'bg-amber-500' : 'bg-lime-500'
+                  }`}
+                  style={{ width: `${Math.min(100, loadPercentage)}%` }}
+                />
+              </div>
+            </div>
 
-            return (
-              <div key={p.id} className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <span className="text-xs font-black text-slate-900 truncate max-w-[180px]">{p.name}</span>
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 bg-slate-100 text-slate-700 rounded-full">
-                    {p.clientName}
+            {/* MINIMALIST METRIC 2: HABILIDADES (EN UNA SOLA LÍNEA, DETERMINADAS POR PROYECTOS) */}
+            <div className="space-y-1 pt-1">
+              <span className="flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <Wrench className="w-3 h-3 text-amber-500" /> Habilidades por Proyectos
+              </span>
+
+              {/* Single Line Scrollable Chips Container */}
+              <div className="flex items-center gap-1.5 whitespace-nowrap overflow-x-auto scrollbar-none py-1">
+                {derivedSkills.map((skill, idx) => (
+                  <span
+                    key={idx}
+                    className="inline-block px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-bold text-slate-700 shrink-0"
+                  >
+                    {skill}
                   </span>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* RIGHT COLUMN: MAIN KPI CARDS & PROYECTOS ASIGNADOS (7 cols on lg) */}
+        <div className="lg:col-span-7 space-y-6 flex flex-col justify-between">
+          
+          {/* TOP 3 HIGHLIGHT METRICS */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                  Métricas Clave de Desempeño
+                </h3>
+                <p className="text-base font-black text-slate-900 tracking-tight">
+                  Resumen Mensual de Mi Trabajo
+                </p>
+              </div>
+              <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-bold">
+                {currentUser.username}
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Metric 1: Horas Registradas */}
+              <div className="bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 space-y-1.5 shadow-xs">
+                <div className="flex items-center justify-between text-slate-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Horas Registradas</span>
+                  <Clock className="w-4 h-4 text-lime-400" />
                 </div>
-
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase block">Horas Cargadas</span>
-                    <span className="text-base font-black text-slate-800">{myProjHours}h</span>
-                  </div>
-
-                  <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase block">Retrabajo</span>
-                    <span className="text-base font-black text-amber-600">{myRetrabajoProjHours}h</span>
-                  </div>
+                <div className="text-2xl font-black text-white">{totalLoggedHours}h</div>
+                <div className="text-[10px] text-slate-400 font-medium">
+                  {loadPercentage}% de la meta ({targetCapacity}h)
                 </div>
               </div>
-            );
-          })}
+
+              {/* Metric 2: Retrabajo Personal */}
+              <div className={`p-4 rounded-2xl border space-y-1.5 shadow-xs ${
+                retrabajoPercentage > 15
+                  ? 'bg-rose-50 border-rose-200 text-rose-900'
+                  : retrabajoPercentage > 5
+                  ? 'bg-amber-50 border-amber-200 text-amber-900'
+                  : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+              }`}>
+                <div className="flex items-center justify-between opacity-80">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Retrabajo Imputado</span>
+                  <RotateCcw className="w-4 h-4" />
+                </div>
+                <div className="text-2xl font-black">{totalRetrabajoHours}h</div>
+                <div className="text-[10px] font-extrabold">
+                  {retrabajoPercentage.toFixed(1)}% de tus horas registradas
+                </div>
+              </div>
+
+              {/* Metric 3: Proyectos Activos */}
+              <div className="bg-indigo-50 border border-indigo-200/80 p-4 rounded-2xl text-indigo-950 space-y-1.5 shadow-xs">
+                <div className="flex items-center justify-between text-indigo-600">
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Proyectos Activos</span>
+                  <Briefcase className="w-4 h-4 text-indigo-600" />
+                </div>
+                <div className="text-2xl font-black text-indigo-900">{assignedProjects.length}</div>
+                <div className="text-[10px] text-indigo-700 font-medium">
+                  Asignaciones activas
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* MAIN SECTION: PROYECTOS ASIGNADOS DETALLADOS */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4 flex-1">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <FolderKanban className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                  Proyectos Asignados ({assignedProjects.length})
+                </h3>
+              </div>
+              <span className="text-xs text-slate-500 font-bold">
+                Carga de horas por proyecto
+              </span>
+            </div>
+
+            {assignedProjects.length === 0 ? (
+              <div className="p-8 text-center text-xs text-slate-400 italic bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                No tienes proyectos asignados actualmente en tu perfil.
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-[360px] overflow-y-auto pr-1 scrollbar-thin">
+                {assignedProjects.map(p => {
+                  const myProjEntries = userEntries.filter(e => e.projectId === p.id);
+                  const myProjHours = myProjEntries.reduce((s, e) => s + e.hours, 0);
+                  const myRetrabajoHours = myProjEntries.filter(e => e.type === 'retrabajo').reduce((s, e) => s + e.hours, 0);
+                  const currentPhase = p.phases.find(ph => ph.status === 'in_progress') || p.phases[0];
+                  
+                  const completedPhases = p.phases.filter(ph => ph.status === 'completed').length;
+                  const phaseProgress = Math.round((completedPhases / (p.phases.length || 1)) * 100);
+
+                  return (
+                    <div
+                      key={p.id}
+                      className="p-4 rounded-2xl border border-slate-200/90 bg-slate-50/50 hover:bg-white hover:border-indigo-300 transition-all space-y-3 shadow-2xs group"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5">
+                        <div className="space-y-0.5">
+                          <h4 className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                            {p.name}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 font-medium">
+                            Cliente: <strong className="text-slate-700">{p.clientName}</strong>
+                          </p>
+                        </div>
+
+                        {currentPhase && (
+                          <span className="px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-[10px] font-extrabold self-start sm:self-auto">
+                            • Fase: {currentPhase.label}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Project Metrics Grid */}
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 text-center">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase block">Mis Horas</span>
+                          <span className="text-sm font-black text-slate-900">{myProjHours}h</span>
+                        </div>
+
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 text-center">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase block">Mi Retrabajo</span>
+                          <span className={`text-sm font-black ${myRetrabajoHours > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                            {myRetrabajoHours}h
+                          </span>
+                        </div>
+
+                        <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 text-center">
+                          <span className="text-[9px] font-bold text-slate-400 uppercase block">Avance Fases</span>
+                          <span className="text-sm font-black text-indigo-700">{phaseProgress}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
         </div>
       </div>
 
-      {/* SECCIÓN 2: HISTORIAL DETALLADO DE REGISTROS */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+      {/* SECTION 2: HISTORIAL DETALLADO DE REGISTROS DE HORAS IMPUTADAS */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
             <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-              <Clock className="w-4 h-4 text-orange-600" /> Historial de Horas Registradas ({filteredEntries.length})
+              <Clock className="w-4 h-4 text-lime-600" /> Historial de Horas Imputadas ({filteredEntries.length})
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">Listado cronológico de horas imputadas en tus proyectos</p>
+            <p className="text-xs text-slate-500 mt-0.5">Listado cronológico de tus registros de tiempo en todos tus proyectos</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">

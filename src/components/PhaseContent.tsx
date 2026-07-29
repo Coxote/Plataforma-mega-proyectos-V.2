@@ -1,4 +1,4 @@
-import { Phase, Project, DeliverableItem, Role, ClientAnnotation, DecisionLogEntry, UserSession } from '../types';
+import { Phase, Project, DeliverableItem, Role, ClientAnnotation, DecisionLogEntry, UserSession, AuditLogEntry, ChecklistItem } from '../types';
 import { 
   CheckSquare, 
   Square, 
@@ -24,7 +24,11 @@ import {
   RotateCcw,
   DollarSign,
   Calendar,
-  Clock
+  Clock,
+  Download,
+  History,
+  BookOpen,
+  Check
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { analyzeBriefWithGemini } from '../geminiService';
@@ -44,6 +48,15 @@ interface PhaseContentProps {
   userRole: Role;
   currentUser?: UserSession;
 }
+
+export const getCleanPhaseTitle = (label: string, id: string, index?: number) => {
+  if (!label) return `Fase ${index !== undefined ? index + 1 : ''}`.trim();
+  let clean = label.replace(/^custom-ph-[^\s]+\s*/i, '').trim();
+  if (!clean || clean.startsWith('custom-ph-')) {
+    clean = `Fase ${index !== undefined ? index + 1 : ''}`.trim();
+  }
+  return clean;
+};
 
 export default function PhaseContent({
   activePhase,
@@ -75,6 +88,236 @@ export default function PhaseContent({
   const [decCategory, setDecCategory] = useState<'Alcance' | 'Diseño' | 'Técnico' | 'Presupuesto' | 'Aprobación' | 'Otro'>('Alcance');
   const [decRationale, setDecRationale] = useState('');
   const [decApprovedBy, setDecApprovedBy] = useState('');
+
+  // Phase & Checklist States & Calculations
+  const activePhaseIndex = project.phases.findIndex((p) => p.id === activePhase.id);
+  const isLastPhase = activePhaseIndex >= 0 && activePhaseIndex === project.phases.length - 1;
+
+  // Calculate total hours logged for active phase
+  const phaseTimeEntries = (project.timeEntries || []).filter(
+    (entry) => 
+      entry.phaseId === activePhase.id || 
+      entry.phaseId === activePhase.label ||
+      (activePhase.label && entry.phaseId && activePhase.label.toLowerCase().includes(entry.phaseId.toLowerCase()))
+  );
+  const totalPhaseHoursLogged = phaseTimeEntries.reduce((sum, entry) => sum + (Number(entry.hours) || 0), 0);
+
+  // New task input state for checklist
+  const [newPhaseTaskText, setNewPhaseTaskText] = useState('');
+
+  // Handle updating individual checklist item fields (milestones, dates, learnings)
+  const handleUpdateChecklistItemField = (
+    itemId: string,
+    field: keyof ChecklistItem,
+    value: string
+  ) => {
+    if (userRole === 'invitado') return;
+    const updatedPhases = project.phases.map((p) => {
+      if (p.id === activePhase.id) {
+        const updatedChecklist = (p.checklist || []).map((item) => {
+          if (item.id === itemId) {
+            return { ...item, [field]: value };
+          }
+          return item;
+        });
+        return { ...p, checklist: updatedChecklist };
+      }
+      return p;
+    });
+
+    onUpdateProject({
+      ...project,
+      phases: updatedPhases,
+    });
+  };
+
+  // Add a new checklist step to current phase
+  const handleAddChecklistTask = () => {
+    if (!newPhaseTaskText.trim() || userRole === 'invitado') return;
+    const newItem: ChecklistItem = {
+      id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      text: newPhaseTaskText.trim(),
+      completed: false,
+      startDate: activePhase.startDate || new Date().toISOString().split('T')[0],
+      endDate: activePhase.endDate || '',
+      milestones: '',
+      learnings: ''
+    };
+
+    const updatedPhases = project.phases.map((p) => {
+      if (p.id === activePhase.id) {
+        return { ...p, checklist: [...(p.checklist || []), newItem] };
+      }
+      return p;
+    });
+
+    onUpdateProject({
+      ...project,
+      phases: updatedPhases,
+    });
+    setNewPhaseTaskText('');
+  };
+
+  // Mark phase as completed
+  const handleMarkPhaseCompleted = () => {
+    if (userRole === 'invitado') return;
+    const cleanTitle = getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex);
+    const updatedPhases = project.phases.map((p) => {
+      if (p.id === activePhase.id) {
+        return {
+          ...p,
+          status: 'completed' as const,
+          completedAt: new Date().toISOString()
+        };
+      }
+      return p;
+    });
+
+    const newAuditEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      userId: currentUser?.id || 'sys',
+      username: currentUser?.username || 'Usuario',
+      userRole: userRole || 'coordinador',
+      action: 'COMPLETAR_FASE',
+      entityType: 'Fase',
+      details: `Fase "${cleanTitle}" marcada como finalizada.`,
+      phaseId: activePhase.id
+    };
+
+    onUpdateProject({
+      ...project,
+      phases: updatedPhases,
+      auditLog: [newAuditEntry, ...(project.auditLog || [])]
+    });
+  };
+
+  // Download single phase report (.md document)
+  const handleDownloadPhase = (phase: Phase) => {
+    const cleanTitle = getCleanPhaseTitle(phase.label, phase.id, project.phases.findIndex(p => p.id === phase.id));
+    const phaseEntries = (project.timeEntries || []).filter(t => t.phaseId === phase.id || t.phaseId === phase.label);
+    const phaseHours = phaseEntries.reduce((s, t) => s + (Number(t.hours) || 0), 0);
+
+    let md = `# Expediente de Fase: ${cleanTitle}\n`;
+    md += `**Proyecto:** ${project.name}\n`;
+    md += `**Cliente:** ${project.clientName}\n`;
+    md += `**Estado de la Fase:** ${phase.status === 'completed' ? 'Completada' : 'En Progreso'}\n`;
+    md += `**Fecha de Finalización:** ${phase.completedAt ? new Date(phase.completedAt).toLocaleDateString('es-CL') : 'En curso'}\n`;
+    md += `**Tiempo Total Consumido:** ${phaseHours} horas\n\n`;
+
+    md += `## Checklist, Hitos, Avances y Aprendizajes\n\n`;
+    if (phase.checklist && phase.checklist.length > 0) {
+      phase.checklist.forEach((item, idx) => {
+        md += `### ${idx + 1}. [${item.completed ? 'X' : ' '}] ${item.text}\n`;
+        if (item.startDate) md += `- **Fecha Inicio:** ${item.startDate}\n`;
+        if (item.endDate) md += `- **Fecha Finalización:** ${item.endDate}\n`;
+        if (item.milestones) md += `- **Hitos y Avances:** ${item.milestones}\n`;
+        if (item.learnings) md += `- **Aprendizaje / Lecciones:** ${item.learnings}\n`;
+        md += `\n`;
+      });
+    } else {
+      md += `*Sin tareas en el checklist.*\n\n`;
+    }
+
+    if (phase.fields && Object.keys(phase.fields).length > 0) {
+      md += `## Campos Específicos de la Fase\n\n`;
+      Object.entries(phase.fields).forEach(([key, val]) => {
+        if (val) {
+          md += `- **${key.toUpperCase()}:** ${val}\n`;
+        }
+      });
+      md += `\n`;
+    }
+
+    md += `---\n*Documentación de Fase descargada el ${new Date().toLocaleDateString('es-CL')}*\n`;
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Expediente_Fase_${cleanTitle.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Download complete project document with all phases & movement history
+  const handleDownloadFullProject = () => {
+    let md = `# Expediente Completo del Proyecto: ${project.name}\n`;
+    md += `**Cliente:** ${project.clientName}\n`;
+    md += `**Fecha de Inicio:** ${project.startDate || 'N/A'}\n`;
+    md += `**Fecha de Término:** ${project.endDate || 'N/A'}\n`;
+    md += `**Horas Presupuestadas:** ${project.hoursTotal || 0} hrs\n`;
+    md += `**Monto Presupuesto:** $${(project.totalIncome || 0).toLocaleString('es-CL')} ${project.currency || 'USD'}\n\n`;
+
+    md += `## 1. Documentación de Todas las Fases y Checklists\n\n`;
+    project.phases.forEach((p, idx) => {
+      const cleanTitle = getCleanPhaseTitle(p.label, p.id, idx);
+      const pEntries = (project.timeEntries || []).filter(t => t.phaseId === p.id || t.phaseId === p.label);
+      const pHours = pEntries.reduce((s, t) => s + (Number(t.hours) || 0), 0);
+
+      md += `### Fase ${idx + 1}: ${cleanTitle}\n`;
+      md += `- **Estatus:** ${p.status === 'completed' ? 'Completada' : 'En Progreso'}\n`;
+      md += `- **Horas Consumidas:** ${pHours}h\n`;
+      md += `- **Fecha de Cierre:** ${p.completedAt ? new Date(p.completedAt).toLocaleDateString('es-CL') : 'Pendiente'}\n\n`;
+
+      if (p.checklist && p.checklist.length > 0) {
+        md += `#### Checklist de Actividades, Hitos y Aprendizajes:\n`;
+        p.checklist.forEach((item, itemIdx) => {
+          md += `${itemIdx + 1}. [${item.completed ? 'X' : ' '}] ${item.text}\n`;
+          if (item.startDate) md += `   - Fecha Inicio: ${item.startDate}\n`;
+          if (item.endDate) md += `   - Fecha Término: ${item.endDate}\n`;
+          if (item.milestones) md += `   - Hitos y Avances: ${item.milestones}\n`;
+          if (item.learnings) md += `   - Aprendizaje: ${item.learnings}\n`;
+        });
+        md += `\n`;
+      }
+
+      if (p.fields && Object.keys(p.fields).length > 0) {
+        md += `#### Campos de Fase:\n`;
+        Object.entries(p.fields).forEach(([k, v]) => {
+          if (v) md += `- **${k}:** ${v}\n`;
+        });
+        md += `\n`;
+      }
+    });
+
+    md += `## 2. Historial de Todos los Movimientos del Proyecto\n\n`;
+    const fullLog = (project.auditLog && project.auditLog.length > 0)
+      ? project.auditLog
+      : (project.timeEntries || []).map(te => ({
+          id: `te-${te.id}`,
+          timestamp: te.createdAt || te.date || new Date().toISOString(),
+          userId: te.userId,
+          username: te.username,
+          userRole: te.role,
+          action: 'REGISTRO_HORAS',
+          entityType: 'Horas',
+          details: `Registro de ${te.hours}h: "${te.description || 'Avance en proyecto'}"`,
+          phaseId: te.phaseId
+        }));
+
+    if (fullLog.length > 0) {
+      fullLog.forEach((log) => {
+        md += `- [${new Date(log.timestamp).toLocaleString('es-CL')}] **${log.username}** (${log.userRole}): ${log.action} - ${log.details}\n`;
+      });
+    } else {
+      md += `- Proyecto iniciado el ${new Date(project.createdAt || Date.now()).toLocaleDateString('es-CL')}\n`;
+    }
+
+    md += `\n---\n*Expediente completo descargado el ${new Date().toLocaleDateString('es-CL')}*\n`;
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Expediente_Proyecto_Completo_${project.name.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const isGeneralDisabled = userRole === 'contents' || userRole === 'contentd' || userRole === 'invitado';
   const isPhaseDisabled = userRole === 'invitado';
@@ -418,7 +661,6 @@ export default function PhaseContent({
   const totalHours = project.hoursTotal || 40;
   const retrabajoStats = getRetrabajoStats(project);
 
-  const activePhaseIndex = project.phases.findIndex((p) => p.id === activePhase.id);
   const activeIndex = activePhaseIndex >= 0 ? activePhaseIndex : 0;
   const expectedMaxPercent = Math.round(((activeIndex + 1) / project.phases.length) * 100);
   const hoursPercent = totalHours > 0 ? Math.round((totalConsumedHours / totalHours) * 100) : 0;
@@ -434,8 +676,9 @@ export default function PhaseContent({
       
       {/* 1. TOP SUB-NAV PHASE PILLS BAR */}
       <div className="bg-slate-100/90 border-b border-slate-200/80 px-6 py-2 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0" id="phase-pills-bar">
-        {project.phases.map((p) => {
+        {project.phases.map((p, pIdx) => {
           const isActive = p.id === activePhase.id;
+          const cleanPTitle = getCleanPhaseTitle(p.label, p.id, pIdx);
           return (
             <button
               key={p.id}
@@ -451,7 +694,7 @@ export default function PhaseContent({
                   : 'bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/80'
               }`}
             >
-              <span>{p.id} {p.label}</span>
+              <span>{cleanPTitle}</span>
             </button>
           );
         })}
@@ -472,28 +715,14 @@ export default function PhaseContent({
                 {project.name}
               </h2>
               <span className="px-2.5 py-0.5 text-[10px] rounded-full font-bold border bg-blue-50 border-blue-200 text-blue-700">
-                • En Progreso ({activePhase.id})
+                • {activePhase.status === 'completed' ? 'Completada' : 'En Progreso'} ({getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)})
               </span>
             </div>
           </div>
         </div>
 
-        {/* User Info Avatar + Actions */}
+        {/* Header Actions */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className="flex items-center gap-2.5 bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-1.5">
-            <div className="w-7 h-7 rounded-full bg-slate-800 border border-slate-600 overflow-hidden flex items-center justify-center text-white text-[10px] font-bold">
-              {currentUser?.username ? currentUser.username.substring(0, 2).toUpperCase() : 'CV'}
-            </div>
-            <div className="text-left">
-              <div className="text-xs font-bold text-slate-900 leading-tight">
-                {currentUser?.username || 'Carlos Vega'}
-              </div>
-              <div className="text-[10px] text-slate-500 font-medium capitalize">
-                {currentUser?.puesto || currentUser?.role || 'Senior PM'}
-              </div>
-            </div>
-          </div>
-
           <span
             className={`text-xs text-lime-600 font-bold transition-all duration-300 flex items-center gap-1 ${
               showSaveToast ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2'
@@ -536,7 +765,7 @@ export default function PhaseContent({
           }`}
         >
           <FileCode className="w-3.5 h-3.5 text-slate-600" />
-          <span>Fase {activePhase.id} & Checklist</span>
+          <span>Fase {getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)} & Checklist</span>
         </button>
 
         <button
@@ -692,446 +921,222 @@ export default function PhaseContent({
 
               {/* SECTION HEADER */}
               <h3 className="text-base font-black text-slate-900 tracking-tight pt-2">
-                Fase {activePhase.id}: Campos y Hitos
+                {getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)}: Checklist y Control de Fase
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                {/* Left Form: Phase Specific Fields */}
+                {/* Left Column: Checklist of the Phase */}
                 <div className="md:col-span-3 space-y-6">
-                <fieldset disabled={isPhaseDisabled} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-5 disabled:opacity-85">
-                  <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                    <FileCode className="w-4 h-4 text-lime-600" />
-                    <h3 className="font-bold text-xs uppercase tracking-widest text-slate-400">
-                      Campos Específicos de la Fase {activePhase.id}
-                    </h3>
-                  </div>
-
-                  {activePhase.id === 'A1' && (
-                    <div className="space-y-4">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+                    {/* Phase Control Header & Metrics */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Minuta / Acuerdos de Reunión de Inicio</label>
-                        <textarea
-                          value={activePhase.fields.minuta || ''}
-                          onChange={(e) => handleSpecificFieldChange('minuta', e.target.value)}
-                          rows={4}
-                          placeholder="Tratados principales, expectativas y primeros acuerdos con el cliente..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all resize-none"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Stakeholders y Equipo Asignado</label>
-                        <textarea
-                          value={activePhase.fields.stakeholders || ''}
-                          onChange={(e) => handleSpecificFieldChange('stakeholders', e.target.value)}
-                          rows={3}
-                          placeholder="Ej: María López (Product Lead), Carlos Díaz (Dev), etc."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all resize-none"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {activePhase.id === 'A2' && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha Inicio</label>
-                          <input
-                            type="date"
-                            value={activePhase.fields.fechaInicio || ''}
-                            onChange={(e) => handleSpecificFieldChange('fechaInicio', e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all"
-                          />
+                        <div className="flex items-center gap-2">
+                          <ClipboardList className="w-5 h-5 text-lime-600" />
+                          <h3 className="text-base font-black text-slate-900 tracking-tight">
+                            Checklist de {getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)}
+                          </h3>
                         </div>
-                        <div className="space-y-1">
-                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha Estimada Entrega</label>
-                          <input
-                            type="date"
-                            value={activePhase.fields.fechaEntrega || ''}
-                            onChange={(e) => handleSpecificFieldChange('fechaEntrega', e.target.value)}
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all"
-                          />
-                        </div>
+                        <p className="text-xs text-slate-500">
+                          Control de tareas, hitos, fechas y lecciones aprendidas de la fase.
+                        </p>
                       </div>
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Calendario de Hitos Clave</label>
-                        <textarea
-                          value={activePhase.fields.hitosClave || ''}
-                          onChange={(e) => handleSpecificFieldChange('hitosClave', e.target.value)}
-                          rows={4}
-                          placeholder="Hito 1: Entrega Wireframes&#10;Hito 2: Desarrollo Core API&#10;Hito 3: Lanzamiento MVP"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all resize-none font-mono"
-                        />
-                      </div>
-                    </div>
-                  )}
 
-                  {activePhase.id === 'A3' && (
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Enlace a Prototipos / Wireframes (Figma)</label>
-                        <div className="relative">
-                          <span className="absolute left-4 top-3 text-slate-400">
-                            <Link className="w-3.5 h-3.5" />
-                          </span>
-                          <input
-                            type="url"
-                            value={activePhase.fields.linkPrototipo || ''}
-                            onChange={(e) => handleSpecificFieldChange('linkPrototipo', e.target.value)}
-                            placeholder="https://figma.com/file/..."
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Feedback del Cliente sobre Diseño</label>
-                        <textarea
-                          value={activePhase.fields.comentariosCliente || ''}
-                          onChange={(e) => handleSpecificFieldChange('comentariosCliente', e.target.value)}
-                          rows={4}
-                          placeholder="Correcciones de UI/UX o flujos solicitados por el cliente antes de la aprobación..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all resize-none"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {activePhase.id === 'A4' && (
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nombre del Aprobador</label>
-                        <input
-                          type="text"
-                          value={activePhase.fields.aprobador || ''}
-                          onChange={(e) => handleSpecificFieldChange('aprobador', e.target.value)}
-                          placeholder="Ej: María López (Product Lead)"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all"
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Método de Aprobación Formal</label>
-                        <textarea
-                          value={activePhase.fields.metodoAprobacion || ''}
-                          onChange={(e) => handleSpecificFieldChange('metodoAprobacion', e.target.value)}
-                          rows={3}
-                          placeholder="Ej: Firmado por DocuSign, Aprobación formal por escrito en minuta..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all resize-none"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {activePhase.id === 'A5' && (
-                    <div className="space-y-4">
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Enlace del Repositorio de Código</label>
-                        <div className="relative">
-                          <span className="absolute left-4 top-3 text-slate-400">
-                            <Link className="w-3.5 h-3.5" />
-                          </span>
-                          <input
-                            type="url"
-                            value={activePhase.fields.repoUrl || ''}
-                            onChange={(e) => handleSpecificFieldChange('repoUrl', e.target.value)}
-                            placeholder="https://github.com/organization/repo"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estado del Sprint / Reporte de Avance Técnico</label>
-                        <textarea
-                          value={activePhase.fields.estadoDesarrollo || ''}
-                          onChange={(e) => handleSpecificFieldChange('estadoDesarrollo', e.target.value)}
-                          rows={4}
-                          placeholder="Detalla qué endpoints están listos, base de datos migrada, o componentes implementados..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all resize-none"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {activePhase.id === 'A6' && (
-                    <div className="space-y-4">
-                      {/* QA Quality Assurance Banner */}
-                      <div className="bg-gradient-to-r from-emerald-900 via-teal-950 to-slate-900 text-white p-4 rounded-xl border border-emerald-800 shadow-xs space-y-3">
-                        <div className="flex items-center justify-between border-b border-emerald-800/80 pb-2">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                            <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-200">
-                              QA & UAT Quality Control Suite
-                            </span>
-                          </div>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                            100% Pass Rate
-                          </span>
+                      <div className="flex items-center gap-2 flex-wrap shrink-0">
+                        {/* Total Time Badge */}
+                        <div className="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs">
+                          <Clock className="w-3.5 h-3.5 text-lime-400" />
+                          <span><strong className="text-lime-300 font-mono text-sm">{totalPhaseHoursLogged} hrs</strong></span>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 text-[10px]">
-                          <div className="bg-white/5 p-2 rounded-lg border border-white/10">
-                            <span className="text-slate-400 block font-semibold">Casos de Prueba</span>
-                            <span className="font-extrabold text-emerald-300 font-mono text-xs">14 / 14 Aprobados</span>
-                          </div>
-                          <div className="bg-white/5 p-2 rounded-lg border border-white/10">
-                            <span className="text-slate-400 block font-semibold">Bugs Resueltos</span>
-                            <span className="font-extrabold text-indigo-300 font-mono text-xs">3 / 3 Solucionados</span>
-                          </div>
-                        </div>
-                      </div>
+                        {/* Download Phase Button */}
+                        <button
+                          onClick={() => handleDownloadPhase(activePhase)}
+                          className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 border border-slate-200 cursor-pointer shadow-xs"
+                          title="Descargar documentación de esta fase en formato Markdown"
+                        >
+                          <Download className="w-3.5 h-3.5 text-slate-600" />
+                          Descargar
+                        </button>
 
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Enlace a Entorno de Staging</label>
-                        <div className="relative">
-                          <span className="absolute left-4 top-3 text-slate-400">
-                            <Link className="w-3.5 h-3.5" />
-                          </span>
-                          <input
-                            type="url"
-                            value={activePhase.fields.entornoTest || ''}
-                            onChange={(e) => handleSpecificFieldChange('entornoTest', e.target.value)}
-                            placeholder="https://staging.app.com"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reporte de Bugs Encontrados / Resueltos</label>
-                        <textarea
-                          value={activePhase.fields.bugsPendientes || ''}
-                          onChange={(e) => handleSpecificFieldChange('bugsPendientes', e.target.value)}
-                          rows={4}
-                          placeholder="Enumera bugs críticos detectados, prioridades y responsables de QA..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all resize-none"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {activePhase.id === 'A7' && (
-                    <div className="space-y-4">
-                      {/* Go-Live & Project Handoff Celebration Banner */}
-                      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-4 rounded-xl border border-indigo-800 shadow-xs space-y-3">
-                        <div className="flex items-center justify-between border-b border-indigo-800/80 pb-2">
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-emerald-400" />
-                            <span className="text-[11px] font-extrabold uppercase tracking-wider text-indigo-200">
-                              Go-Live & Acta de Cierre Firmada
-                            </span>
-                          </div>
-                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                            ✔ Proyecto Entregado
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 text-[10px]">
-                          <div className="bg-white/5 p-2 rounded-lg border border-white/10">
-                            <span className="text-slate-400 block font-semibold">Estado de Garantía</span>
-                            <span className="font-extrabold text-emerald-300 font-mono text-xs">SLA 90 Días Activo</span>
-                          </div>
-                          <div className="bg-white/5 p-2 rounded-lg border border-white/10">
-                            <span className="text-slate-400 block font-semibold">Siguiente Fase</span>
-                            <span className="font-extrabold text-indigo-300 font-mono text-xs">Mantenimiento & Retainer</span>
-                          </div>
-                        </div>
-
-                        {activePhase.fields.urlProduccion && (
-                          <div className="pt-1">
-                            <a
-                              href={activePhase.fields.urlProduccion}
-                              target="_blank"
-                              referrerPolicy="no-referrer"
-                              rel="noopener noreferrer"
-                              className="w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black text-xs rounded-lg flex items-center justify-center gap-2 transition-all shadow-xs"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                              <span>Abrir Sitio en Producción Oficial</span>
-                            </a>
-                          </div>
+                        {/* Mark Completed Button */}
+                        {userRole !== 'invitado' && (
+                          <button
+                            onClick={handleMarkPhaseCompleted}
+                            disabled={activePhase.status === 'completed'}
+                            className={`font-bold px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-xs ${
+                              activePhase.status === 'completed'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-default'
+                                : 'bg-lime-500 hover:bg-lime-600 text-slate-950 cursor-pointer'
+                            }`}
+                          >
+                            {activePhase.status === 'completed' ? (
+                              <>
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                Finalizada
+                              </>
+                            ) : (
+                              <>
+                                <Check className="w-3.5 h-3.5" />
+                                Finalizar Fase
+                              </>
+                            )}
+                          </button>
                         )}
                       </div>
+                    </div>
 
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">URL de Producción Oficial</label>
-                        <div className="relative">
-                          <span className="absolute left-4 top-3 text-slate-400">
-                            <Link className="w-3.5 h-3.5" />
-                          </span>
+                    {/* Checklist Items List with Milestones, Dates, Learnings */}
+                    <div className="space-y-4" id="expanded-checklist-section">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                          Pasos del Checklist
+                        </span>
+                        <span className="text-xs font-bold text-lime-700 bg-lime-50 border border-lime-200/80 px-2.5 py-0.5 rounded-full">
+                          {checklistPercent}% Completado ({completedChecklistCount} de {checklistTotal})
+                        </span>
+                      </div>
+
+                      <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-lime-500 transition-all duration-500 rounded-full"
+                          style={{ width: `${checklistPercent}%` }}
+                        />
+                      </div>
+
+                      {checklistItems.length === 0 ? (
+                        <div className="p-6 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                          <p className="text-xs text-slate-400 italic">No hay pasos agregados aún a este checklist.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4">
+                          {checklistItems.map((item, idx) => (
+                            <div
+                              key={item.id}
+                              className={`p-4 rounded-xl border transition-all space-y-3 ${
+                                item.completed
+                                  ? 'bg-slate-50/60 border-slate-200 opacity-90'
+                                  : 'bg-white border-slate-200/90 shadow-xs hover:border-slate-300'
+                              }`}
+                            >
+                              {/* Step Header + Checkbox */}
+                              <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-2">
+                                <button
+                                  disabled={userRole === 'invitado'}
+                                  onClick={() => handleToggleChecklist(item.id)}
+                                  className="flex items-center gap-3 text-left group cursor-pointer"
+                                >
+                                  <span className="shrink-0">
+                                    {item.completed ? (
+                                      <CheckSquare className="w-5 h-5 text-lime-600" />
+                                    ) : (
+                                      <Square className="w-5 h-5 text-slate-300 group-hover:text-lime-500 transition-colors" />
+                                    )}
+                                  </span>
+                                  <span className={`text-xs font-black text-slate-900 ${item.completed ? 'line-through text-slate-500' : ''}`}>
+                                    Paso {idx + 1}: {item.text}
+                                  </span>
+                                </button>
+
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                  item.completed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                                }`}>
+                                  {item.completed ? 'Completado' : 'Pendiente'}
+                                </span>
+                              </div>
+
+                              {/* Detailed Input Grid */}
+                              <div className="grid grid-cols-1 gap-3 pt-1">
+                                {/* Milestones / Advances */}
+                                <div className="space-y-1">
+                                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                    Hitos y Avances
+                                  </label>
+                                  <textarea
+                                    disabled={userRole === 'invitado'}
+                                    rows={2}
+                                    value={item.milestones || ''}
+                                    onChange={(e) => handleUpdateChecklistItemField(item.id, 'milestones', e.target.value)}
+                                    placeholder="Detalla entregas parciales, links de avance, decisiones clave..."
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all resize-none"
+                                  />
+                                </div>
+
+                                {/* Dates & Learnings */}
+                                <div className="space-y-3">
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="space-y-1">
+                                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                        Fecha Inicio
+                                      </label>
+                                      <input
+                                        type="date"
+                                        disabled={userRole === 'invitado'}
+                                        value={item.startDate || ''}
+                                        onChange={(e) => handleUpdateChecklistItemField(item.id, 'startDate', e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all"
+                                      />
+                                    </div>
+                                    <div className="space-y-1">
+                                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                        Fecha Finalización
+                                      </label>
+                                      <input
+                                        type="date"
+                                        disabled={userRole === 'invitado'}
+                                        value={item.endDate || ''}
+                                        onChange={(e) => handleUpdateChecklistItemField(item.id, 'endDate', e.target.value)}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="space-y-1">
+                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                                      <BookOpen className="w-3 h-3 text-indigo-500" />
+                                      <span>Aprendizaje / Lecciones Aprendidas</span>
+                                    </label>
+                                    <textarea
+                                      disabled={userRole === 'invitado'}
+                                      rows={2}
+                                      value={item.learnings || ''}
+                                      onChange={(e) => handleUpdateChecklistItemField(item.id, 'learnings', e.target.value)}
+                                      placeholder="¿Qué aprendió el equipo en esta tarea o fase?"
+                                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-400/50 focus:bg-white outline-none transition-all resize-none"
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Add step to checklist */}
+                      {userRole !== 'invitado' && (
+                        <div className="flex items-center gap-2 pt-2">
                           <input
-                            type="url"
-                            value={activePhase.fields.urlProduccion || ''}
-                            onChange={(e) => handleSpecificFieldChange('urlProduccion', e.target.value)}
-                            placeholder="https://app.com"
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all"
+                            type="text"
+                            value={newPhaseTaskText}
+                            onChange={(e) => setNewPhaseTaskText(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleAddChecklistTask(); }}
+                            placeholder="Agregar nuevo paso al checklist de la fase..."
+                            className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all"
                           />
+                          <button
+                            onClick={handleAddChecklistTask}
+                            className="bg-slate-900 hover:bg-slate-800 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            Agregar Paso
+                          </button>
                         </div>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Notas de Entrega y Cierre</label>
-                        <textarea
-                          value={activePhase.fields.notasEntrega || ''}
-                          onChange={(e) => handleSpecificFieldChange('notasEntrega', e.target.value)}
-                          rows={4}
-                          placeholder="Resumen del despliegue final, manuales de usuario cargados y agradecimientos del cierre..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all resize-none"
-                        />
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+                </div>
 
-                  {activePhase.id === 'A8' && (
-                    <div className="space-y-4">
-                      {/* SLA & Retainer Active Card Banner */}
-                      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-emerald-950 text-white p-4 rounded-xl border border-emerald-800/80 shadow-xs space-y-3">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                            <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-200">
-                              Centro de Control SLA & Retainer Activo
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                              Uptime 99.98%
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 text-[10px]">
-                          <div className="bg-white/5 p-2 rounded-lg border border-white/10">
-                            <span className="text-slate-400 block font-semibold">Nivel de SLA</span>
-                            <span className="font-extrabold text-amber-300 font-mono text-xs">SLA Oro (&lt; 1h P1)</span>
-                          </div>
-                          <div className="bg-white/5 p-2 rounded-lg border border-white/10">
-                            <span className="text-slate-400 block font-semibold">Bolsa Retainer Mensual</span>
-                            <span className="font-extrabold text-emerald-300 font-mono text-xs">4.5h / 15.0h Consumidas</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Acuerdo de Nivel de Servicio (SLA Tier)</label>
-                        <input
-                          type="text"
-                          value={activePhase.fields.slaTier || ''}
-                          onChange={(e) => handleSpecificFieldChange('slaTier', e.target.value)}
-                          placeholder="SLA Nivel Oro (Respuesta Críticos < 1h | Mantenimiento 15h/mes)"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500/30 focus:bg-white outline-none transition-all"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Canal Directo de Soporte / Helpdesk</label>
-                        <input
-                          type="text"
-                          value={activePhase.fields.soporteContacto || ''}
-                          onChange={(e) => handleSpecificFieldChange('soporteContacto', e.target.value)}
-                          placeholder="soporte@agencia.com / Slack: #acme-support"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500/30 focus:bg-white outline-none transition-all"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Métricas de Rendimiento & Uptime</label>
-                        <input
-                          type="text"
-                          value={activePhase.fields.metricasUptime || ''}
-                          onChange={(e) => handleSpecificFieldChange('metricasUptime', e.target.value)}
-                          placeholder="99.98% Uptime en los últimos 30 días. 0 Incidencias P1."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500/30 focus:bg-white outline-none transition-all"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Registro de Bolsa Evolutiva y Mantenimiento</label>
-                        <textarea
-                          value={activePhase.fields.bolsaEvolutiva || ''}
-                          onChange={(e) => handleSpecificFieldChange('bolsaEvolutiva', e.target.value)}
-                          rows={3}
-                          placeholder="Horas contratadas, horas consumidas del período actual y solicitudes pendientes..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500/30 focus:bg-white outline-none transition-all resize-none"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {activePhase.id === 'A9' && (
-                    <div className="space-y-4">
-                      {/* Post-Mortem & Evaluation Banner */}
-                      <div className="bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-900 text-white p-4 rounded-xl border border-emerald-800/80 shadow-xs space-y-3">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                          <div className="flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-emerald-400" />
-                            <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-200">
-                              Evaluación de Proyecto & Retrospectiva Post-Mortem
-                            </span>
-                          </div>
-                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                            NPS 10/10 • CSAT 98%
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2 text-[10px]">
-                          <div className="bg-white/5 p-2 rounded-lg border border-white/10">
-                            <span className="text-slate-400 block font-semibold">Rentabilidad Final</span>
-                            <span className="font-extrabold text-emerald-300 font-mono text-xs">38.2% EBITDA (Ahorro 6.87% hrs)</span>
-                          </div>
-                          <div className="bg-white/5 p-2 rounded-lg border border-white/10">
-                            <span className="text-slate-400 block font-semibold">Cierre de Proyecto</span>
-                            <span className="font-extrabold text-indigo-300 font-mono text-xs">Aprobado al 100% Sin Deuda Técnica</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Satisfacción del Cliente (NPS / CSAT / Testimonio)</label>
-                        <textarea
-                          value={activePhase.fields.satisfaccionCliente || ''}
-                          onChange={(e) => handleSpecificFieldChange('satisfaccionCliente', e.target.value)}
-                          rows={2}
-                          placeholder="Puntuación NPS, CSAT y testimonio destacado del cliente..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500/30 focus:bg-white outline-none transition-all resize-none"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Balance de Horas & Varianza de Rentabilidad</label>
-                        <input
-                          type="text"
-                          value={activePhase.fields.balanceHorasRentabilidad || ''}
-                          onChange={(e) => handleSpecificFieldChange('balanceHorasRentabilidad', e.target.value)}
-                          placeholder="Planificadas vs Consumidas, margen bruto y varianza final..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500/30 focus:bg-white outline-none transition-all"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Lecciones Aprendidas & Retrospectiva Interna</label>
-                        <textarea
-                          value={activePhase.fields.aprendizajesPostMortem || ''}
-                          onChange={(e) => handleSpecificFieldChange('aprendizajesPostMortem', e.target.value)}
-                          rows={3}
-                          placeholder="Logros clave, eficiencias identificadas y oportunidades de mejora para futuros proyectos..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500/30 focus:bg-white outline-none transition-all resize-none"
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Caso de Éxito & Roadmap de Evolutivos Futuros</label>
-                        <textarea
-                          value={activePhase.fields.casoExitoRoadmap || ''}
-                          onChange={(e) => handleSpecificFieldChange('casoExitoRoadmap', e.target.value)}
-                          rows={2}
-                          placeholder="Publicación de caso de éxito, alcance acordado para fase 2 u oportunidades de venta cruzada..."
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-500/30 focus:bg-white outline-none transition-all resize-none"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </fieldset>
-              </div>
-
-              {/* Checklist Column */}
+                {/* Right Column: Historial de Movimientos del Proyecto */}
               <div className="md:col-span-2 space-y-6">
                 {/* Exit Criteria Gate Card */}
                 <div className="bg-gradient-to-br from-amber-50 to-orange-50/60 p-5 rounded-2xl border border-amber-200/80 shadow-xs space-y-2">
@@ -1146,76 +1151,85 @@ export default function PhaseContent({
                   </p>
                 </div>
 
+                {/* Historial de Movimientos del Proyecto */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div className="flex items-center gap-2">
-                      <ClipboardList className="w-4 h-4 text-lime-600" />
-                      <h3 className="font-bold text-xs uppercase tracking-widest text-slate-400">
-                        Checklist Obligatoria
+                      <History className="w-4 h-4 text-indigo-600" />
+                      <h3 className="font-bold text-xs uppercase tracking-widest text-slate-800">
+                        Historial de Movimientos
                       </h3>
                     </div>
-                    <span className="text-[10px] bg-lime-50 text-lime-800 font-mono font-bold px-2 py-0.5 rounded-full">
-                      {checklistPercent}%
+                    <span className="text-[10px] bg-indigo-50 text-indigo-700 font-mono font-bold px-2 py-0.5 rounded-full border border-indigo-100">
+                      {(project.auditLog?.length || project.timeEntries?.length || 0)} registros
                     </span>
                   </div>
 
-                  {checklistItems.length === 0 ? (
-                    <p className="text-xs text-slate-400 italic">No hay tareas configuradas para esta fase.</p>
+                  {(!project.auditLog || project.auditLog.length === 0) && (!project.timeEntries || project.timeEntries.length === 0) ? (
+                    <div className="p-4 text-center bg-slate-50 rounded-xl border border-slate-100">
+                      <p className="text-xs text-slate-400 italic">No hay movimientos o registros recientes aún.</p>
+                    </div>
                   ) : (
-                    <div className="space-y-1" id="checklist-items">
-                      {checklistItems.map((item) => (
-                        <button
-                          key={item.id}
-                          disabled={userRole === 'invitado'}
-                          onClick={() => handleToggleChecklist(item.id)}
-                          className={`w-full flex items-start gap-3 p-2 rounded-xl text-left text-xs transition-colors group ${
-                            userRole === 'invitado'
-                              ? 'opacity-80 cursor-default'
-                              : 'cursor-pointer hover:bg-slate-50'
-                          } ${
-                            item.completed 
-                              ? 'bg-slate-50/50 text-slate-400 font-medium' 
-                              : 'text-slate-700 font-medium'
-                          }`}
-                        >
-                          <span className="shrink-0 mt-0.5">
-                            {item.completed ? (
-                              <CheckSquare className="w-4 h-4 text-lime-500" />
-                            ) : (
-                              <Square className="w-4 h-4 text-slate-300 group-hover:text-lime-500 transition-colors" />
-                            )}
-                          </span>
-                          <span className={`leading-tight ${item.completed ? 'line-through opacity-75' : ''}`}>
-                            {item.text}
-                          </span>
-                        </button>
+                    <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
+                      {(project.auditLog && project.auditLog.length > 0
+                        ? project.auditLog
+                        : (project.timeEntries || []).map(te => ({
+                            id: `te-${te.id}`,
+                            timestamp: te.createdAt || te.date || new Date().toISOString(),
+                            username: te.username || 'Colaborador',
+                            userRole: te.role || 'contents',
+                            action: 'REGISTRO_HORAS',
+                            details: `Registro de ${te.hours}h: "${te.description || 'Avance de trabajo'}"`,
+                            phaseId: te.phaseId
+                          }))
+                      ).map((log, idx) => (
+                        <div key={log.id || idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-slate-800">{log.username || 'Sistema'}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">
+                              {new Date(log.timestamp).toLocaleDateString('es-CL', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-600 leading-snug">
+                            {log.details || log.action}
+                          </div>
+                          {log.phaseId && (
+                            <span className="inline-block text-[9px] bg-slate-200/80 text-slate-600 px-1.5 py-0.2 rounded font-semibold mt-1">
+                              Fase: {log.phaseId}
+                            </span>
+                          )}
+                        </div>
                       ))}
                     </div>
                   )}
-
-                  <div className="pt-2">
-                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-lime-400 transition-all duration-500 rounded-full"
-                        style={{ width: `${checklistPercent}%` }}
-                      ></div>
-                    </div>
-                    <p className="text-[9px] text-slate-400 text-right mt-2 font-bold uppercase tracking-wider">
-                      {completedChecklistCount} de {checklistTotal} completadas
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 p-4 border border-slate-200/50 rounded-xl flex items-start gap-3">
-                  <Sparkles className="w-4 h-4 text-lime-600 shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-slate-500 leading-relaxed">
-                    Marcar los requerimientos completados actualiza instantáneamente el estatus del proyecto. Al finalizar todo, puedes liberar la fase formalmente.
-                  </p>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+
+              {/* Global Download Button Banner (Last Phase / Global Export) */}
+              <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-6 rounded-2xl border border-indigo-800/80 shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="space-y-1 text-center md:text-left">
+                  <div className="flex items-center justify-center md:justify-start gap-2">
+                    <Sparkles className="w-5 h-5 text-lime-400" />
+                    <h4 className="text-sm font-black tracking-tight text-white">
+                      Expediente Completo e Historial del Proyecto
+                    </h4>
+                  </div>
+                  <p className="text-xs text-slate-300">
+                    Descarga un documento único con todas las fases, checklists, hitos, aprendizajes y el historial completo de movimientos.
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleDownloadFullProject}
+                  className="bg-lime-400 hover:bg-lime-300 text-slate-950 font-black px-5 py-3 rounded-xl text-xs transition-all flex items-center gap-2 cursor-pointer shadow-lg shrink-0"
+                >
+                  <Download className="w-4 h-4" />
+                  Descargar Expediente Completo
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* TAB 2: FICHA & MARCA (IA) */}
           {activeTab === 'brandbible' && (

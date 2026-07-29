@@ -20,6 +20,7 @@ import {
   PanelLeftOpen
 } from 'lucide-react';
 import { Project, UserSession, TimeEntryType, getUserAvatarUrl } from '../types';
+import { TppLogo } from './TppLogo';
 import { AIAssistantModal } from './AIAssistantModal';
 import { GlobalLogTimeModal } from './GlobalLogTimeModal';
 
@@ -67,17 +68,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const renderSidebarContent = (isCollapsed: boolean) => (
     <div className="flex flex-col h-full justify-between select-none">
       <div className="overflow-y-auto flex-1 scrollbar-none">
-        {/* Logo / Branding */}
+        {/* Logo / Branding TPP HUB DIGITAL */}
         <div className={`p-4 border-b border-slate-800/80 flex items-center ${isCollapsed ? 'justify-center flex-col gap-2' : 'justify-between'}`}>
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-8 h-8 bg-orange-600 rounded-xl flex items-center justify-center shadow-md shadow-orange-950/20 shrink-0">
-              <Shield className="w-4 h-4 text-white font-black" />
-            </div>
-            {!isCollapsed && (
-              <div className="overflow-hidden">
-                <span className="text-white font-black text-xs tracking-tight block uppercase truncate">Operations Atelier</span>
-                <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block truncate">Herramienta Interna</span>
-              </div>
+            {!isCollapsed ? (
+              <TppLogo size="sm" variant="full" darkMode={true} />
+            ) : (
+              <TppLogo size="sm" variant="icon" darkMode={true} />
             )}
           </div>
           
@@ -109,11 +106,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               setIsMobileMenuOpen(false);
             }}
             title="Registrar Horas"
-            className={`flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-500 text-white rounded-2xl transition-all cursor-pointer text-xs font-black shadow-md shadow-orange-950/30 ${
+            className={`flex items-center justify-center gap-2 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-2xl transition-all cursor-pointer text-xs font-black shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] ${
               isCollapsed ? 'w-10 h-10 p-0' : 'w-full px-3 py-2.5 min-h-[40px]'
             }`}
           >
-            <Plus className="w-4 h-4 shrink-0" />
+            <Plus className="w-4 h-4 shrink-0 text-white" />
             {!isCollapsed && <span>Registrar Horas</span>}
           </button>
         </div>
@@ -135,10 +132,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <button 
                 onClick={() => handleNavClick('dashboard')}
                 title="Torre de Control"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'dashboard' 
-                    ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
+                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
                 }`}
               >
                 <LayoutDashboard className="w-4 h-4 shrink-0" />
@@ -149,10 +146,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <button 
               onClick={() => handleNavClick('planner')}
               title="Planner Diario"
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'planner' 
-                  ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
+                  ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                  : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
               }`}
             >
               <CalendarDays className="w-4 h-4 shrink-0" />
@@ -162,10 +159,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <button 
               onClick={() => handleNavClick('gantt')}
               title="Línea de Tiempo"
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'gantt' 
-                  ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
+                  ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                  : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
               }`}
             >
               <Layers className="w-4 h-4 shrink-0" />
@@ -185,10 +182,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <button 
               onClick={() => handleNavClick('project')}
               title="Expediente del Proyecto"
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'project' 
-                  ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
+                  ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                  : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
               }`}
             >
               <Activity className="w-4 h-4 shrink-0" />
@@ -208,10 +205,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <button 
               onClick={() => handleNavClick('profile')}
               title="Mi Perfil y Horas"
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'profile' 
-                  ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
-                  : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
+                  ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                  : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
               }`}
             >
               <User className="w-4 h-4 shrink-0" />
@@ -222,10 +219,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <button 
                 onClick={() => handleNavClick('team')}
                 title="Equipo"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'team' 
-                    ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
+                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
                 }`}
               >
                 <Users className="w-4 h-4 shrink-0" />
@@ -237,10 +234,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <button 
                 onClick={() => handleNavClick('clients')}
                 title="Clientes y Marca IA"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'clients' 
-                    ? 'bg-orange-600 text-white shadow-none border border-orange-500' 
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-white border border-transparent'
+                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
                 }`}
               >
                 <Building2 className="w-4 h-4 shrink-0" />
@@ -327,20 +324,15 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <Menu className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-orange-600 rounded-md flex items-center justify-center">
-              <Shield className="w-3.5 h-3.5 text-white font-black" />
-            </div>
-            <span className="text-white font-black text-xs uppercase tracking-tight truncate max-w-[150px]">Atelier</span>
-          </div>
+          <TppLogo size="sm" variant="full" darkMode={true} />
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsGlobalLogTimeOpen(true)}
-            className="px-2.5 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-[11px] font-black transition-all flex items-center gap-1 shadow-xs"
+            className="px-2.5 py-1.5 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl text-[11px] font-extrabold transition-all flex items-center gap-1 shadow-md shadow-orange-500/20"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 text-white" />
             Horas
           </button>
 
@@ -373,7 +365,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
       {/* ⬛ ZONA 1: SIDEBAR OSCURO DESKTOP (El Ancla - Collapsible) */}
       <aside 
-        className={`hidden md:flex bg-slate-900 text-slate-300 flex-col justify-between shrink-0 border-r border-slate-800 transition-all duration-300 ${
+        className={`hidden md:flex bg-slate-900/95 backdrop-blur-xl text-slate-300 flex-col justify-between shrink-0 border-r border-slate-800/80 transition-all duration-300 ${
           isSidebarCollapsed ? 'w-[68px]' : 'w-[240px]'
         }`} 
         id="dark-sidebar"
@@ -381,9 +373,17 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         {renderSidebarContent(isSidebarCollapsed)}
       </aside>
 
-      {/* ⬜ ZONA 2: CONTENEDOR PRINCIPAL DINÁMICO */}
-      <main className="flex-1 flex flex-col min-w-0 bg-slate-50 relative overflow-hidden" id="main-content-area">
-        {children}
+      {/* ⬜ ZONA 2: CONTENEDOR PRINCIPAL DINÁMICO (Versa Glassmorphic Background) */}
+      <main className="flex-1 flex flex-col min-w-0 versa-bg-gradient relative overflow-hidden" id="main-content-area">
+        {/* Soft Ambient Radial Glass Orbs matching Versa UI Reference */}
+        <div className="absolute -top-24 -left-24 w-[600px] h-[600px] bg-purple-400/25 rounded-full blur-[100px] pointer-events-none -z-0 animate-pulse" />
+        <div className="absolute top-1/4 -right-24 w-[700px] h-[700px] bg-blue-400/25 rounded-full blur-[120px] pointer-events-none -z-0" />
+        <div className="absolute -bottom-32 left-1/3 w-[650px] h-[650px] bg-orange-400/20 rounded-full blur-[110px] pointer-events-none -z-0" />
+        <div className="absolute top-2/3 left-10 w-[450px] h-[450px] bg-lime-300/20 rounded-full blur-[90px] pointer-events-none -z-0" />
+        
+        <div className="relative z-10 flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+          {children}
+        </div>
       </main>
 
       <AIAssistantModal 

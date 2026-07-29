@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Project, UserSession } from '../types';
+import { TppLogo } from './TppLogo';
+import { ExportReportModal } from './ExportReportModal';
 import { 
   CheckCircle2, 
   AlertTriangle, 
@@ -17,6 +19,7 @@ import {
   PieChart as PieChartIcon, 
   BarChart3, 
   Printer, 
+  Download,
   ChevronRight, 
   HelpCircle,
   ShieldAlert,
@@ -121,21 +124,33 @@ export const ExecutiveDashboard: React.FC<Props> = ({
     { name: 'Go Live', status: 'PENDIENTE', month: 'SEP', active: false, done: false },
   ];
 
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
   const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div className="min-h-full bg-slate-100/80 p-4 sm:p-6 lg:p-8 space-y-6 text-slate-900 font-sans print:p-0 print:bg-white">
+    <div className="min-h-full bg-slate-100/50 p-4 sm:p-6 lg:p-8 space-y-6 text-slate-900 font-sans print:p-0 print:bg-white relative">
       
+      {/* 🏷️ WATERMARK OFICIAL TPP HUB DIGITAL EN IMPRESIÓN (PRINT ONLY) */}
+      <div className="hidden print:flex items-center justify-between border-b-2 border-slate-900 pb-4 mb-6">
+        <TppLogo size="md" variant="full" />
+        <div className="text-right">
+          <p className="text-xs font-black uppercase tracking-widest text-[#FF5500]">INFORME EJECUTIVO OFICIAL DE OPERACIONES</p>
+          <p className="text-[10px] font-bold text-slate-500 uppercase">TPP HUB DIGITAL · CONFIDENCIAL Y EXCLUSIVO</p>
+          <p className="text-[9px] font-mono text-slate-400">FECHA DE GENERACIÓN: {new Date().toLocaleDateString('es-ES')} {new Date().toLocaleTimeString('es-ES')}</p>
+        </div>
+      </div>
+
       {/* HEADER PRINCIPAL VISTA EJECUTIVA */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 border border-white/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 print:border-none print:shadow-none print:p-0">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-900 text-white">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#FF5500] text-white shadow-xs">
               Executive View
             </span>
-            <span className="text-xs text-slate-500 font-medium">Dashboard C-Level</span>
+            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Dashboard C-Level</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 mt-1 uppercase">
             DASHBOARD EJECUTIVO DEL PROYECTO
@@ -150,7 +165,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
             <select
               value={selectedProject?.id}
               onChange={(e) => onSelectProject(e.target.value)}
-              className="bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 cursor-pointer"
+              className="bg-white/80 border border-slate-200/80 rounded-2xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5500]/50 cursor-pointer shadow-xs"
             >
               {projects.map(p => (
                 <option key={p.id} value={p.id}>
@@ -161,11 +176,19 @@ export const ExecutiveDashboard: React.FC<Props> = ({
           )}
 
           <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+            onClick={() => setIsExportModalOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-2xl text-xs font-extrabold transition-all cursor-pointer shadow-md shadow-orange-500/20 hover:scale-[1.02]"
           >
-            <Printer className="w-3.5 h-3.5" />
-            Imprimir Reporte
+            <Download className="w-3.5 h-3.5 text-[#84CC16]" />
+            Exportar (PDF / CSV)
+          </button>
+
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-md hover:scale-[1.02]"
+          >
+            <Printer className="w-3.5 h-3.5 text-[#84CC16]" />
+            Imprimir
           </button>
         </div>
       </div>
@@ -174,8 +197,8 @@ export const ExecutiveDashboard: React.FC<Props> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* PROYECTO */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 text-slate-700">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-100/80 border border-slate-200 flex items-center justify-center shrink-0 text-slate-700">
             <Briefcase className="w-5 h-5" />
           </div>
           <div className="min-w-0">
@@ -192,8 +215,8 @@ export const ExecutiveDashboard: React.FC<Props> = ({
         </div>
 
         {/* FECHA DE CORTE */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 text-blue-600">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-50/80 border border-blue-100 flex items-center justify-center shrink-0 text-blue-600">
             <Calendar className="w-5 h-5" />
           </div>
           <div>
@@ -210,8 +233,8 @@ export const ExecutiveDashboard: React.FC<Props> = ({
         </div>
 
         {/* SPONSOR */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0 text-purple-600">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple-50/80 border border-purple-100 flex items-center justify-center shrink-0 text-purple-600">
             <Users className="w-5 h-5" />
           </div>
           <div>
@@ -228,8 +251,8 @@ export const ExecutiveDashboard: React.FC<Props> = ({
         </div>
 
         {/* PROJECT MANAGER */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 text-emerald-600">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50/80 border border-emerald-100 flex items-center justify-center shrink-0 text-emerald-600">
             <User className="w-5 h-5" />
           </div>
           <div>
@@ -251,7 +274,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         
         {/* 1. ESTADO GENERAL */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
           <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
             ESTADO GENERAL
           </span>
@@ -269,7 +292,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
         </div>
 
         {/* 2. % AVANCE */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
           <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
             % AVANCE
           </span>
@@ -302,7 +325,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
         </div>
 
         {/* 3. SPI (Schedule Performance Index) */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
           <div className="flex justify-between items-start">
             <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
               SPI
@@ -319,13 +342,13 @@ export const ExecutiveDashboard: React.FC<Props> = ({
               &lt; 1 = Atrasado
             </p>
           </div>
-          <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-center">
+          <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50/80 border border-emerald-200/80 px-2 py-0.5 rounded-lg text-center">
             Levemente en plan
           </div>
         </div>
 
         {/* 4. CPI (Cost Performance Index) */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
           <div className="flex justify-between items-start">
             <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
               CPI
@@ -342,13 +365,13 @@ export const ExecutiveDashboard: React.FC<Props> = ({
               &lt; 1 = Sobre presupuesto
             </p>
           </div>
-          <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-center">
+          <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50/80 border border-emerald-200/80 px-2 py-0.5 rounded-lg text-center">
             Eficiencia positiva
           </div>
         </div>
 
         {/* 5. PRESUPUESTO */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
           <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
             PRESUPUESTO
           </span>
@@ -359,7 +382,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
             <div className="text-[10px] text-slate-500 font-semibold my-1">
               Ejecutado: {progressPercent}%
             </div>
-            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+            <div className="w-full bg-slate-100/80 rounded-full h-2 overflow-hidden border border-slate-200/80">
               <div 
                 className="bg-emerald-500 h-full rounded-full" 
                 style={{ width: `${progressPercent}%` }}
@@ -373,19 +396,19 @@ export const ExecutiveDashboard: React.FC<Props> = ({
         </div>
 
         {/* 6. FECHA ESTIMADA DE SALIDA */}
-        <div className="bg-white rounded-xl p-4 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
           <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
             ESTIMADA GO LIVE
           </span>
           <div className="my-1 flex flex-col items-center text-center">
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center mb-1">
+            <div className="w-8 h-8 rounded-lg bg-blue-50/80 text-blue-600 flex items-center justify-center mb-1">
               <Calendar className="w-4 h-4" />
             </div>
             <div className="text-xs font-black text-slate-900 uppercase">
               30 SEP 2026
             </div>
           </div>
-          <div className="text-[10px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded text-center">
+          <div className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 border border-emerald-200/80 px-2 py-0.5 rounded-lg text-center">
             En riesgo bajo
           </div>
         </div>
@@ -396,7 +419,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* LÍNEA DE TIEMPO - HITOS PRINCIPALES (7 COLS) */}
-        <div className="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+        <div className="lg:col-span-7 bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-white/80 shadow-lg shadow-slate-200/30 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
@@ -821,6 +844,13 @@ export const ExecutiveDashboard: React.FC<Props> = ({
         </div>
 
       </div>
+
+      {/* EXPORT REPORT MODAL */}
+      <ExportReportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        project={selectedProject}
+      />
 
     </div>
   );

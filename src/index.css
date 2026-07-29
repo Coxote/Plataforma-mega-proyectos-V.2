@@ -10,6 +10,78 @@
   }
 }
 
+/* 🧊 VERSA GLASSMORPHISM STYLING SYSTEM */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px 0 rgba(0, 0, 0, 0.02);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 24px -4px rgba(31, 38, 135, 0.05);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-card-hover:hover {
+  background: rgba(255, 255, 255, 0.85);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 32px -4px rgba(255, 85, 0, 0.12), 0 4px 12px 0 rgba(0, 0, 0, 0.03);
+}
+
+.glass-pill {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+}
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 85, 0, 0.5);
+  box-shadow: 0 0 0 3px rgba(255, 85, 0, 0.15);
+}
+
+.glass-dark-sidebar {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-light-sidebar {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-right: 1px solid rgba(255, 255, 255, 0.7);
+}
+
+/* Versa UI Ambient Animated Background Gradients */
+.versa-bg-gradient {
+  background-color: #f1f4f9;
+  background-image: 
+    radial-gradient(at 10% 10%, rgba(192, 132, 252, 0.2) 0px, transparent 50%),
+    radial-gradient(at 90% 10%, rgba(96, 165, 250, 0.25) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(255, 120, 50, 0.18) 0px, transparent 50%),
+    radial-gradient(at 80% 90%, rgba(132, 204, 22, 0.15) 0px, transparent 50%),
+    radial-gradient(at 20% 85%, rgba(147, 197, 253, 0.2) 0px, transparent 50%);
+}
+
 /* Pixel Grid utilities matching the design system */
 .oa-pixel-grid-orange {
   background:
@@ -38,10 +110,10 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
+  background: rgba(156, 163, 175, 0.3);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #d1d5db;
+  background: rgba(156, 163, 175, 0.5);
 }
 

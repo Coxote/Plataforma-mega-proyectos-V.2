@@ -17,6 +17,7 @@ interface NewProjectWizardProps {
   onClose: () => void;
   onCreateProject: (projectData: any) => void;
   users: UserSession[];
+  registeredClients?: any[];
 }
 
 export interface ProjectDraftOV {
@@ -186,7 +187,7 @@ const OrdenesVentaArrayManager: React.FC<{
   );
 };
 
-export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onClose, onCreateProject, users }) => {
+export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onClose, onCreateProject, users, registeredClients }) => {
   const [step, setStep] = useState<1 | 2>(1);
   const [activeTab, setActiveTab] = useState<'general' | 'fases' | 'integrantes'>('general');
   const [clients, setClients] = useState<any[]>([]);
@@ -207,16 +208,20 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
 
   useEffect(() => {
     if (isOpen) {
-      try {
-        const stored = localStorage.getItem('saas_phase_system_clients');
-        if (stored) {
-          setClients(JSON.parse(stored));
+      if (registeredClients && registeredClients.length > 0) {
+        setClients(registeredClients);
+      } else {
+        try {
+          const v5 = localStorage.getItem('saas_phase_system_clients_v5');
+          const v1 = localStorage.getItem('saas_phase_system_clients');
+          if (v5) setClients(JSON.parse(v5));
+          else if (v1) setClients(JSON.parse(v1));
+        } catch (err) {
+          console.error(err);
         }
-      } catch (err) {
-        console.error(err);
       }
     }
-  }, [isOpen]);
+  }, [isOpen, registeredClients]);
 
   // --- ESTADO UNIFICADO DE BORRADOR (DRAFT) DE PROYECTO ---
   interface ProjectDraft {

@@ -202,10 +202,10 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
     <div className="flex-1 flex flex-col h-full bg-slate-50/50 overflow-hidden relative" id="coordinator-control-tower">
       
       {/* Header Superior Interno con Conmutador de Vistas */}
-      <div className="px-6 py-4 bg-white border-b border-slate-200 flex flex-wrap justify-between items-center gap-4 shrink-0">
+      <div className="px-6 py-4 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 flex flex-wrap justify-between items-center gap-4 shrink-0 shadow-xs">
         <div>
           <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">
-            <Shield className="w-3.5 h-3.5 text-emerald-600" />
+            <Shield className="w-3.5 h-3.5 text-[#84CC16]" />
             {subView === 'executive' ? 'Dirección C-Level' : 'Herramienta de Control Interno'}
           </div>
           <h1 className="text-xl font-black text-slate-900 tracking-tight">
@@ -214,13 +214,13 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-bold">
+        <div className="flex items-center bg-white/40 backdrop-blur-md p-1 rounded-2xl border border-white/60 text-xs font-bold shadow-inner">
           <button
             onClick={() => setSubView('executive')}
-            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 font-extrabold ${
               subView === 'executive' 
-                ? 'bg-slate-900 text-white shadow-xs' 
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-gradient-to-r from-[#FF5500] to-[#E04B00] text-white shadow-md shadow-orange-500/25 border border-white/30 backdrop-blur-md scale-[1.02]' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
@@ -228,10 +228,10 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
           </button>
           <button
             onClick={() => setSubView('operations')}
-            className={`px-3.5 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 font-extrabold ${
               subView === 'operations' 
-                ? 'bg-slate-900 text-white shadow-xs' 
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-gradient-to-r from-[#FF5500] to-[#E04B00] text-white shadow-md shadow-orange-500/25 border border-white/30 backdrop-blur-md scale-[1.02]' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
             }`}
           >
             <Activity className="w-3.5 h-3.5" />
@@ -257,7 +257,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           
           {/* Horas de Operación */}
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-none flex flex-col justify-between" id="metric-global-hours">
+          <div className="bg-white/70 backdrop-blur-xl p-5 rounded-2xl border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between" id="metric-global-hours">
             <div className="flex justify-between items-start mb-3">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Horas de Operación</span>
               <Clock className="w-4 h-4 text-slate-400" />
@@ -267,7 +267,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
               <p className="text-xs font-medium text-slate-500 mb-2">Consumidas de {financials.totalSoldHours} h vendidas</p>
               
               {/* Dynamic progress bar */}
-              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+              <div className="w-full bg-slate-100/80 h-1.5 rounded-full overflow-hidden border border-slate-200/50">
                 <div 
                   className="h-full bg-slate-800 rounded-full transition-all duration-500" 
                   style={{ width: `${Math.min(globalHoursProgress, 100)}%` }}
@@ -277,7 +277,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
           </div>
 
           {/* Costo Operativo Real */}
-          <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-none flex flex-col justify-between" id="metric-real-cost">
+          <div className="bg-white/70 backdrop-blur-xl p-5 rounded-2xl border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between" id="metric-real-cost">
             <div className="flex justify-between items-start mb-3">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Costo Operativo Real</span>
               <DollarSign className="w-4 h-4 text-slate-400" />
@@ -294,10 +294,10 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
 
           {/* Desviación de Costo */}
           <div 
-            className={`p-5 rounded-xl border flex flex-col justify-between transition-all duration-300 ${
+            className={`p-5 rounded-2xl border backdrop-blur-xl flex flex-col justify-between transition-all duration-300 shadow-md ${
               financials.costDeviation > 10 
-                ? 'border-rose-200 bg-rose-50/70 shadow-none' 
-                : 'border-slate-200 bg-white shadow-none'
+                ? 'border-rose-200/80 bg-rose-50/60 shadow-rose-200/20' 
+                : 'border-white/80 bg-white/70 shadow-slate-200/30'
             }`}
             id="metric-profitability-deviation"
             title="Cálculo: ((Costo Real - Costo Estimado) / Costo Estimado) * 100"

@@ -18,75 +18,94 @@ import { generatePhasesForTemplate } from './projectTemplates';
 import { NewProjectWizard } from './components/NewProjectWizard';
 import { useDeliverableMonitoring } from './hooks/useDeliverableMonitoring';
 
-const STORAGE_KEY = 'saas_phase_system_projects';
-const ACTIVE_PROJECT_KEY = 'saas_phase_system_active_project';
-const SESSION_USER_KEY = 'saas_phase_system_current_user';
-const USERS_LIST_KEY = 'saas_phase_system_users_list';
-const CLIENTS_STORAGE_KEY = 'saas_phase_system_clients';
+const DEMO_VERSION_KEY = 'saas_phase_system_demo_v5_clean';
+const STORAGE_KEY = 'saas_phase_system_projects_v5';
+const ACTIVE_PROJECT_KEY = 'saas_phase_system_active_project_v5';
+const SESSION_USER_KEY = 'saas_phase_system_current_user_v5';
+const USERS_LIST_KEY = 'saas_phase_system_users_list_v5';
+const CLIENTS_STORAGE_KEY = 'saas_phase_system_clients_v5';
 
 const DEFAULT_CLIENTS: Client[] = [
   {
-    id: 'c1',
-    nombreComercial: 'Acme Corp',
-    categoria: 'Retail',
-    contactoPrincipal: 'María López (Product Lead)',
-    email: 'mlopez@acme.com',
-    telefono: '+502 5555-1234',
-    sitioWebRedes: 'https://acme.com',
+    id: 'c-famosa',
+    nombreComercial: 'Famosa',
+    categoria: 'Comercial',
+    contactoPrincipal: 'Contacto Famosa',
+    email: 'contacto@famosa.com',
+    telefono: '+502 2222-1001',
+    sitioWebRedes: 'https://famosa.com',
     estado: 'activo',
-    fechaAlta: '2026-01-15T08:00:00.000Z',
-    brandBible: {
-      archetype: 'El Creador / El Sabio',
-      misionVision: 'Automatizar el autoservicio de clientes con soluciones eficientes y transparentes.',
-      tonoVoz: 'Profesional, atento, directo y empático.',
-      coloresHex: ['#0f172a', '#10b981', '#3b82f6', '#f8fafc'],
-      mensajesClave: 'La eficiencia y el control en un solo lugar.'
-    }
+    fechaAlta: '2026-01-15T08:00:00.000Z'
   },
   {
-    id: 'c2',
-    nombreComercial: 'Fintech Go',
-    categoria: 'Finanzas',
-    contactoPrincipal: 'Alejandro Ruiz (CEO)',
-    email: 'aruiz@fintechgo.com',
-    telefono: '+502 5555-5678',
-    sitioWebRedes: 'https://fintechgo.com',
+    id: 'c-eltejar',
+    nombreComercial: 'El tejar',
+    categoria: 'Materiales',
+    contactoPrincipal: 'Contacto El Tejar',
+    email: 'contacto@eltejar.com',
+    telefono: '+502 2222-1002',
+    sitioWebRedes: 'https://eltejar.com',
     estado: 'activo',
-    fechaAlta: '2026-02-01T08:00:00.000Z',
-    brandBible: {
-      archetype: 'El Mago / El Héroe',
-      misionVision: 'Disrumpir el onboarding financiero haciéndolo express y sin fricciones.',
-      tonoVoz: 'Tecnológico, seguro, moderno y confiable.',
-      coloresHex: ['#06b6d4', '#1e293b', '#10b981'],
-      mensajesClave: 'Onboarding express en menos de 3 minutos, Finanzas sin límites.'
-    }
+    fechaAlta: '2026-01-15T08:00:00.000Z'
   },
   {
-    id: 'c3',
-    nombreComercial: 'Globex S.A.',
-    categoria: 'Logística',
-    contactoPrincipal: 'Ricardo Toro (CTO)',
-    email: 'rtoro@globex.com',
-    telefono: '+502 5555-9012',
-    sitioWebRedes: 'https://globex.com',
+    id: 'c-fajonda',
+    nombreComercial: 'Fajonda',
+    categoria: 'Automotriz',
+    contactoPrincipal: 'Contacto Fajonda',
+    email: 'contacto@fajonda.com',
+    telefono: '+502 2222-1003',
+    sitioWebRedes: 'https://fajonda.com',
     estado: 'activo',
-    fechaAlta: '2026-03-10T08:00:00.000Z',
-    brandBible: {
-      archetype: 'El Gobernante / El Creador',
-      misionVision: 'Brindar infraestructura logística robusta y de alta disponibilidad global.',
-      tonoVoz: 'Corporativo, seguro, líder e institucional.',
-      coloresHex: ['#1e3a8a', '#d97706', '#f3f4f6'],
-      mensajesClave: 'Alta disponibilidad, Resiliencia total, Cobertura global.'
-    }
+    fechaAlta: '2026-01-15T08:00:00.000Z'
+  },
+  {
+    id: 'c-adoc',
+    nombreComercial: 'ADOC',
+    categoria: 'Calzado & Retail',
+    contactoPrincipal: 'Contacto ADOC',
+    email: 'contacto@adoc.com',
+    telefono: '+502 2222-1004',
+    sitioWebRedes: 'https://adoc.com',
+    estado: 'activo',
+    fechaAlta: '2026-01-15T08:00:00.000Z'
+  },
+  {
+    id: 'c-impelsa',
+    nombreComercial: 'Impelsa',
+    categoria: 'Distribución',
+    contactoPrincipal: 'Contacto Impelsa',
+    email: 'contacto@impelsa.com',
+    telefono: '+502 2222-1005',
+    sitioWebRedes: 'https://impelsa.com',
+    estado: 'activo',
+    fechaAlta: '2026-01-15T08:00:00.000Z'
+  },
+  {
+    id: 'c-bicredid',
+    nombreComercial: 'BI-Credid',
+    categoria: 'Banca & Finanzas',
+    contactoPrincipal: 'Contacto BI-Credid',
+    email: 'contacto@bicredid.com',
+    telefono: '+502 2222-1006',
+    sitioWebRedes: 'https://bicredid.com',
+    estado: 'activo',
+    fechaAlta: '2026-01-15T08:00:00.000Z'
   }
 ];
 
 const DEFAULT_USERS: UserSession[] = [
-  { id: 'u1', username: 'carlos', puesto: 'Coordinador', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u2', username: 'ana', puesto: 'SAC', role: 'sac', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u3', username: 'lucia', puesto: 'ContentS', role: 'contents', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u5', username: 'pedro', puesto: 'ContentD', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u4', username: 'invitado', puesto: 'Cliente / Invitado', role: 'invitado', password: '123', projectId: 'p1', capacidadMensualHoras: 0 },
+  { id: 'u-rodrigo', username: 'rodrigo', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-lourdes', username: 'lourdes', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-maylin', username: 'maylin', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-eduardo', username: 'eduardo', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-edgar', username: 'edgar', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-jeremy', username: 'jeremy', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-noemi', username: 'noemi', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-alejandra', username: 'alejandra', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-fabiola', username: 'fabiola', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-luis', username: 'luis', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-invitado', username: 'invitado', puesto: 'Invitado', role: 'invitado', password: '123', projectId: 'p1', capacidadMensualHoras: 0 },
 ];
 
 export default function App() {
@@ -151,6 +170,27 @@ export default function App() {
 
   // Load from local storage or default
   useEffect(() => {
+    const isDemoVersion = localStorage.getItem(DEMO_VERSION_KEY);
+    if (!isDemoVersion) {
+      localStorage.setItem(DEMO_VERSION_KEY, 'true');
+      const defaults = INITIAL_PROJECTS.map(normalizeProject);
+      setProjects(defaults);
+      setActiveProjectId(defaults[0].id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
+
+      setUsersList(DEFAULT_USERS);
+      localStorage.setItem(USERS_LIST_KEY, JSON.stringify(DEFAULT_USERS));
+
+      setClients(DEFAULT_CLIENTS);
+      localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(DEFAULT_CLIENTS));
+
+      // Auto login as Rodrigo (Supervisor) by default for seamless demo testing
+      setCurrentUser(DEFAULT_USERS[0]);
+      setCurrentView('planner');
+      localStorage.setItem(SESSION_USER_KEY, JSON.stringify(DEFAULT_USERS[0]));
+      return;
+    }
+
     // 1. Load Projects
     const stored = localStorage.getItem(STORAGE_KEY);
     const storedActiveId = localStorage.getItem(ACTIVE_PROJECT_KEY);
@@ -756,6 +796,7 @@ export default function App() {
         onClose={() => setIsNewProjectModalOpen(false)}
         onCreateProject={handleAddProject}
         users={usersList}
+        registeredClients={clients}
       />
     </MainLayout>
   );

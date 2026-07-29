@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Project } from '../types';
+import { TppLogo } from './TppLogo';
 import { 
   Plus, 
   Search, 
@@ -7,7 +8,6 @@ import {
   AlertCircle, 
   AlertTriangle, 
   Trash2, 
-  Sparkles, 
   X,
   Pin,
   PanelLeftClose,
@@ -40,6 +40,27 @@ export default function Sidebar({
   onToggleCollapse
 }: SidebarProps) {
   const [searchTerm, setSearchTerm] = useState('');
+  const PINNED_KEY = 'saas_phase_system_pinned_projects_v2';
+  const [pinnedIds, setPinnedIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(PINNED_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  const togglePin = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    let updated: string[];
+    if (pinnedIds.includes(id)) {
+      updated = pinnedIds.filter(pid => pid !== id);
+    } else {
+      updated = [...pinnedIds, id];
+    }
+    setPinnedIds(updated);
+    localStorage.setItem(PINNED_KEY, JSON.stringify(updated));
+  };
 
   // Filter projects by search term
   const filteredProjects = projects.filter((project) => {
@@ -52,39 +73,34 @@ export default function Sidebar({
     );
   });
 
+  // Sort pinned projects to the top
+  const sortedProjects = [...filteredProjects].sort((a, b) => {
+    const aPinned = pinnedIds.includes(a.id);
+    const bPinned = pinnedIds.includes(b.id);
+    if (aPinned && !bPinned) return -1;
+    if (!aPinned && bPinned) return 1;
+    return 0;
+  });
+
   return (
     <aside 
-      className={`bg-white border-r border-slate-200 flex flex-col h-full select-none transition-all duration-300 relative shrink-0 ${
+      className={`bg-white/80 backdrop-blur-xl border-r border-slate-200/80 flex flex-col h-full select-none transition-all duration-300 relative shrink-0 shadow-sm ${
         isCollapsed ? 'w-16' : 'w-72'
       }`}
       id="main-projects-sidebar"
     >
-      {/* 🟢 HEADER SIDEBAR */}
+      {/* 🟢 HEADER SIDEBAR WITH OFFICIAL TPP LOGO */}
       <div className="p-4 border-b border-slate-100 flex items-center justify-between">
         {!isCollapsed ? (
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white shadow-xs shrink-0">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <div className="min-w-0">
-              <h2 className="font-black text-sm text-slate-900 tracking-tight truncate leading-tight">
-                PhaseSystem
-              </h2>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate">
-                {projects.length} Proyectos Activos
-              </span>
-            </div>
-          </div>
+          <TppLogo size="sm" variant="full" />
         ) : (
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-orange-600 to-amber-500 flex items-center justify-center text-white shadow-xs mx-auto">
-            <Sparkles className="w-4 h-4" />
-          </div>
+          <TppLogo size="sm" variant="icon" className="mx-auto" />
         )}
 
         {/* MINIMIZE / COLLAPSE BUTTON */}
         <button
           onClick={onToggleCollapse}
-          className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer"
+          className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer ml-1"
           title={isCollapsed ? 'Expandir barra lateral' : 'Minimizar barra lateral'}
           aria-label={isCollapsed ? 'Expandir barra lateral' : 'Minimizar barra lateral'}
         >
@@ -97,13 +113,13 @@ export default function Sidebar({
         {(userRole === 'coordinador' || userRole === 'sac') && (
           <button
             onClick={onAddProject}
-            className={`w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl py-2.5 px-3 transition-all cursor-pointer font-bold text-xs shadow-xs ${
+            className={`w-full flex items-center justify-center gap-2 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-2xl py-2.5 px-3 transition-all cursor-pointer font-extrabold text-xs shadow-md shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] ${
               isCollapsed ? 'p-2.5' : ''
             }`}
             title="Nuevo Proyecto"
             id="btn-add-new-project-sidebar"
           >
-            <Plus className="w-4 h-4 shrink-0 text-emerald-400" />
+            <Plus className="w-4 h-4 shrink-0 text-white" />
             {!isCollapsed && <span className="truncate">Nuevo proyecto</span>}
           </button>
         )}
@@ -160,23 +176,36 @@ export default function Sidebar({
           </div>
         )}
 
-        {filteredProjects.map((project) => {
+        {sortedProjects.map((project) => {
           const isActive = project.id === activeProjectId;
+          const isPinned = pinnedIds.includes(project.id);
           const isOverdue = overdueProjectIds.has(project.id);
           const isApproaching = approachingProjectIds.has(project.id);
           const completedPhases = project.phases.filter((p) => p.status === 'completed').length;
 
+          let statusBadgeText = 'en tiempo';
+          let badgeTextStyle = 'text-emerald-600 font-bold';
+
+          if (isOverdue) {
+            statusBadgeText = 'vencido';
+            badgeTextStyle = 'text-rose-600 font-bold';
+          } else if (isApproaching) {
+            statusBadgeText = 'por vencer';
+            badgeTextStyle = 'text-amber-600 font-bold';
+          } else if (project.activePhaseId) {
+            statusBadgeText = 'activo';
+            badgeTextStyle = 'text-sky-600 font-bold';
+          }
+
           return (
             <div
               key={project.id}
-              className={`group relative flex items-center justify-between rounded-2xl transition-all ${
-                isCollapsed ? 'p-2 justify-center' : 'px-3 py-2.5'
+              className={`group relative flex items-center justify-between rounded-xl transition-all duration-200 ${
+                isCollapsed ? 'p-2 justify-center' : 'px-3 py-2'
               } ${
                 isActive
-                  ? 'bg-slate-900 text-white font-bold shadow-xs'
-                  : isOverdue
-                  ? 'bg-rose-50/80 text-rose-950 hover:bg-rose-100/80 border border-rose-200/80'
-                  : 'text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 border border-transparent'
+                  ? 'bg-slate-100 text-slate-900 border-l-3 border-slate-900 font-semibold shadow-2xs'
+                  : 'text-slate-700 bg-transparent hover:bg-slate-100/70 hover:text-slate-900 border-l-3 border-transparent'
               }`}
             >
               <button
@@ -189,27 +218,26 @@ export default function Sidebar({
                 {/* Status Indicator Icon */}
                 <div className="shrink-0 flex items-center justify-center">
                   {isOverdue ? (
-                    <AlertCircle className={`w-4 h-4 ${isActive ? 'text-rose-400' : 'text-rose-600'} animate-pulse`} />
+                    <AlertCircle className="w-3.5 h-3.5 text-rose-500" />
                   ) : isApproaching ? (
-                    <AlertTriangle className={`w-4 h-4 ${isActive ? 'text-amber-400' : 'text-amber-600'}`} />
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                   ) : (
-                    <FolderGit className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                    <FolderGit className={`w-3.5 h-3.5 ${isActive ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-600'}`} />
                   )}
                 </div>
 
                 {!isCollapsed && (
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className={`text-xs truncate block ${isActive ? 'text-white font-black' : 'font-semibold text-slate-800'}`}>
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span className={`text-xs truncate block ${isActive ? 'text-slate-900 font-bold' : 'font-semibold text-slate-800'}`}>
                         {project.name}
                       </span>
-                      {isOverdue && (
-                        <span className="text-[9px] font-black uppercase bg-rose-600 text-white px-1.5 py-0.2 rounded shrink-0">
-                          Vencido
-                        </span>
-                      )}
+                      {/* Text-only status label as requested */}
+                      <span className={`text-[10px] ${badgeTextStyle} shrink-0`}>
+                        {statusBadgeText}
+                      </span>
                     </div>
-                    <span className={`text-[10px] truncate block ${isActive ? 'text-slate-300' : 'text-slate-400'}`}>
+                    <span className="text-[10px] text-slate-400 truncate block mt-0.5">
                       {project.clientName || 'Cliente no asignado'}
                     </span>
                   </div>
@@ -217,14 +245,23 @@ export default function Sidebar({
               </button>
 
               {!isCollapsed && (
-                <div className="flex items-center gap-1.5 shrink-0 ml-1">
-                  {isActive ? (
-                    <Pin className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400/20" />
-                  ) : (
-                    <span className="text-[10px] text-slate-400 font-mono font-medium">
-                      {completedPhases}/{project.phases.length}
-                    </span>
-                  )}
+                <div className="flex items-center gap-1 shrink-0 ml-1.5">
+                  {/* Pin button */}
+                  <button
+                    onClick={(e) => togglePin(project.id, e)}
+                    className={`p-1 rounded-md transition-all cursor-pointer ${
+                      isPinned
+                        ? 'text-slate-600 bg-slate-200/60'
+                        : 'text-slate-400 hover:text-slate-700 hover:bg-slate-200/40 opacity-0 group-hover:opacity-100'
+                    }`}
+                    title={isPinned ? 'Despinear proyecto' : 'Pinear proyecto'}
+                  >
+                    <Pin className={`w-3 h-3 ${isPinned ? 'fill-slate-600 text-slate-600' : ''}`} />
+                  </button>
+
+                  <span className="text-[10px] text-slate-400 font-mono font-medium">
+                    {completedPhases}/{project.phases.length}
+                  </span>
 
                   {(userRole === 'coordinador' || userRole === 'sac') && projects.length > 1 && (
                     <button
@@ -232,14 +269,10 @@ export default function Sidebar({
                         e.stopPropagation();
                         onDeleteProject(project.id);
                       }}
-                      className={`p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer ${
-                        isActive 
-                          ? 'text-slate-400 hover:text-rose-400 hover:bg-slate-800' 
-                          : 'text-slate-400 hover:text-rose-600 hover:bg-rose-50'
-                      }`}
+                      className="p-1 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                       title="Eliminar proyecto"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   )}
                 </div>

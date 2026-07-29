@@ -53,30 +53,56 @@ interface PlannerGridProps {
   currentUser: UserSession;
 }
 
-const STORAGE_KEY = 'saas_phase_system_planner_tasks_v2';
+const STORAGE_KEY = 'saas_phase_system_planner_tasks_v4_demo';
 
 const INITIAL_TASKS: PlannerTask[] = [
   { 
     id: 't-1', 
-    brand: 'Alpha Brand', 
-    project: 'Renovación de UI & Copy', 
-    start: '2026-07-24', 
-    deadline: '2026-07-28', 
+    brand: 'Famosa', 
+    project: 'Rediseño de Marca y Empaques - Fase: Sprint', 
+    projectId: 'p1',
+    start: '2026-07-28', 
+    deadline: '2026-08-05', 
     status: 'proceso',
-    assignedToUsers: ['u-1', 'u-2'],
+    assignedToUsers: ['u-rodrigo', 'u-eduardo'],
     priority: 'alta',
-    estimatedHours: 8
+    estimatedHours: 40
   },
   { 
     id: 't-2', 
-    brand: 'Beta Global', 
-    project: 'Campaña Creativa Redes', 
-    start: '2026-07-25', 
-    deadline: '2026-07-30', 
+    brand: 'El tejar', 
+    project: 'Catálogo Digital 2026 - Fase: Aprobación', 
+    projectId: 'p3',
+    start: '2026-07-27', 
+    deadline: '2026-08-02', 
+    status: 'proceso',
+    assignedToUsers: ['u-noemi', 'u-edgar'],
+    priority: 'alta',
+    estimatedHours: 35
+  },
+  { 
+    id: 't-3', 
+    brand: 'El tejar', 
+    project: 'E-commerce B2B Portal - Fase: Sprint', 
+    projectId: 'p4',
+    start: '2026-07-29', 
+    deadline: '2026-08-10', 
     status: 'pendiente',
-    assignedToUsers: ['u-3'],
-    priority: 'media',
-    estimatedHours: 12
+    assignedToUsers: ['u-luis', 'u-eduardo'],
+    priority: 'alta',
+    estimatedHours: 50
+  },
+  { 
+    id: 't-4', 
+    brand: 'BI-Credid', 
+    project: 'Portal BI-Credid Express - Fase: Sprint', 
+    projectId: 'p9',
+    start: '2026-07-28', 
+    deadline: '2026-08-08', 
+    status: 'proceso',
+    assignedToUsers: ['u-lourdes', 'u-edgar'],
+    priority: 'alta',
+    estimatedHours: 45
   },
 ];
 
@@ -480,11 +506,11 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
         {/* KPI 1: Total Active Projects */}
         <div 
           onClick={() => kpiPanel.openPanel('active_projects')}
-          className="p-3.5 sm:p-4 bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:-translate-y-1 hover:scale-[1.01] hover:border-indigo-300 transition-all duration-300 flex items-center justify-between gap-3 cursor-pointer group"
+          className="p-3.5 sm:p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/80 shadow-md shadow-slate-200/30 hover:shadow-lg hover:-translate-y-1 hover:scale-[1.01] hover:bg-white/85 transition-all duration-300 flex items-center justify-between gap-3 cursor-pointer group"
           title="Haz clic para ver el desglose de proyectos activos en el panel lateral"
         >
           <div className="flex items-center gap-3 w-full">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 text-indigo-600 shadow-2xs group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-indigo-50/80 border border-indigo-100 flex items-center justify-center shrink-0 text-indigo-600 shadow-2xs group-hover:bg-indigo-600 group-hover:text-white transition-colors">
               <Briefcase className="w-5 h-5" />
             </div>
             <div className="w-full space-y-1 min-w-0">
@@ -492,7 +518,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
                   Proyectos Activos
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 text-indigo-800 border border-indigo-200 shadow-2xs flex items-center gap-1 shrink-0">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-100/80 text-indigo-800 border border-indigo-200 shadow-2xs flex items-center gap-1 shrink-0">
                   {topHeaderKpis.totalActiveProjectsCount} / {topHeaderKpis.totalProjects} Portafolio
                   <ChevronRight className="w-3 h-3 text-indigo-500" />
                 </span>
@@ -503,12 +529,12 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
               </div>
 
               <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-medium text-slate-500 pt-0.5">
-                <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 text-[10px] font-bold">
+                <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50/80 px-2 py-0.5 rounded-full border border-emerald-200 text-[10px] font-bold">
                   <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                   {topHeaderKpis.optimalHealthProjects} óptima
                 </span>
                 {topHeaderKpis.criticalHealthProjects > 0 && (
-                  <span className="inline-flex items-center gap-1 text-rose-800 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 text-[10px] font-bold">
+                  <span className="inline-flex items-center gap-1 text-rose-800 bg-rose-50/80 px-2 py-0.5 rounded-full border border-rose-200 text-[10px] font-bold">
                     <AlertCircle className="w-3 h-3 text-rose-600" />
                     {topHeaderKpis.criticalHealthProjects} atención
                   </span>

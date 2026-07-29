@@ -33,15 +33,20 @@ export default function UserManagementModal({
 
   const getRoleFromPuesto = (p: string): 'coordinador' | 'sac' | 'contents' | 'contentd' | 'invitado' => {
     switch (p) {
+      case 'Supervisor':
       case 'Coordinador':
         return 'coordinador';
+      case 'PM':
       case 'SAC':
         return 'sac';
+      case 'Social media':
       case 'ContentS':
         return 'contents';
+      case 'Diseñador':
+      case 'Diseño':
       case 'ContentD':
         return 'contentd';
-      case 'Cliente / Invitado':
+      case 'Invitado':
       default:
         return 'invitado';
     }
@@ -50,16 +55,16 @@ export default function UserManagementModal({
   const getPuestoFromRole = (r: 'coordinador' | 'sac' | 'contents' | 'contentd' | 'invitado'): string => {
     switch (r) {
       case 'coordinador':
-        return 'Coordinador';
+        return 'Supervisor';
       case 'sac':
-        return 'SAC';
+        return 'PM';
       case 'contents':
-        return 'ContentS';
+        return 'Social media';
       case 'contentd':
-        return 'ContentD';
+        return 'Diseñador';
       case 'invitado':
       default:
-        return 'Cliente / Invitado';
+        return 'Invitado';
     }
   };
 
@@ -219,11 +224,11 @@ export default function UserManagementModal({
                     onChange={(e) => setNewPuesto(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all font-medium cursor-pointer"
                   >
-                    <option value="Coordinador">Coordinador (coordinador)</option>
-                    <option value="SAC">SAC (sac)</option>
-                    <option value="ContentS">ContentS (contents)</option>
-                    <option value="ContentD">ContentD (contentd)</option>
-                    <option value="Cliente / Invitado">Cliente / Invitado (invitado)</option>
+                    <option value="Supervisor">Supervisor</option>
+                    <option value="PM">PM</option>
+                    <option value="Social media">Social media</option>
+                    <option value="Diseñador">Diseñador</option>
+                    <option value="Invitado">Invitado</option>
                   </select>
                 </div>
               </div>

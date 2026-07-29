@@ -1,5 +1,13 @@
 export type Role = 'coordinador' | 'sac' | 'contents' | 'contentd' | 'invitado';
 
+export const ROLE_LABELS: Record<Role, string> = {
+  coordinador: 'Supervisor',
+  sac: 'PM',
+  contents: 'Social media',
+  contentd: 'Diseñador',
+  invitado: 'Invitado'
+};
+
 export const ROLE_HOURLY_RATES: Record<Role, number> = {
   coordinador: 40.00,
   sac: 35.50,
@@ -10,17 +18,35 @@ export const ROLE_HOURLY_RATES: Record<Role, number> = {
 
 export const getUserAvatarUrl = (username: string): string => {
   const name = username.toLowerCase();
-  if (name.includes('carlos')) {
+  if (name.includes('rodrigo') || name.includes('carlos')) {
     return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256';
   }
-  if (name.includes('ana')) {
+  if (name.includes('lourdes') || name.includes('ana')) {
     return 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=256';
   }
-  if (name.includes('lucia')) {
+  if (name.includes('maylin') || name.includes('lucia')) {
     return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256';
   }
-  if (name.includes('pedro')) {
+  if (name.includes('eduardo') || name.includes('pedro')) {
     return 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=256';
+  }
+  if (name.includes('edgar')) {
+    return 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=256';
+  }
+  if (name.includes('jeremy')) {
+    return 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=256';
+  }
+  if (name.includes('noemi')) {
+    return 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=256';
+  }
+  if (name.includes('alejandra')) {
+    return 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=256';
+  }
+  if (name.includes('fabiola')) {
+    return 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=256';
+  }
+  if (name.includes('luis')) {
+    return 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=256';
   }
   if (name.includes('invitado') || name.includes('cliente')) {
     return 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=256';
@@ -192,6 +218,10 @@ export interface ChecklistItem {
   id: string;
   text: string;
   completed: boolean;
+  milestones?: string;
+  startDate?: string;
+  endDate?: string;
+  learnings?: string;
 }
 
 export interface DecisionLogEntry {
@@ -217,6 +247,9 @@ export interface Phase {
   checklist: ChecklistItem[];
   fields: Record<string, string>;
   exitCriteria?: string;
+  startDate?: string;
+  endDate?: string;
+  learnings?: string;
 }
 
 export interface RoleHoursAllocation {

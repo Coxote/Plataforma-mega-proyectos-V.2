@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { UserSession } from '../types';
-import { Lock, User, Briefcase, Eye, EyeOff, Shield } from 'lucide-react';
+import { TppLogo } from './TppLogo';
+import { Lock, User, Briefcase, Eye, EyeOff } from 'lucide-react';
 
 interface LoginProps {
   onLogin: (user: UserSession) => void;
@@ -110,13 +111,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
           <div>
             {/* Logo / Brand Header */}
             <div className="flex items-center gap-3 mb-8">
-              <div className="w-8 h-8 bg-orange-600 rounded-lg flex items-center justify-center shadow-md">
-                <Shield className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <h1 className="font-black text-sm tracking-tight text-slate-950 uppercase leading-none">Operations Atelier</h1>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Consola de Control</p>
-              </div>
+              <TppLogo size="md" variant="full" />
             </div>
 
             <div className="space-y-1 mb-6">
@@ -208,10 +203,10 @@ export default function Login({ onLogin, usersList }: LoginProps) {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white font-extrabold py-3 rounded-xl text-xs transition-colors shadow-lg shadow-orange-600/10 cursor-pointer uppercase tracking-wider"
+                className="w-full bg-[#FF5500] hover:bg-[#E04B00] text-white font-black py-3 rounded-2xl text-xs transition-all shadow-lg shadow-orange-500/25 cursor-pointer uppercase tracking-wider hover:scale-[1.01] active:scale-[0.99]"
                 id="login-submit-btn"
               >
-                Acceder a la Consola
+                Acceder al Hub Digital
               </button>
             </form>
           </div>
