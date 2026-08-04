@@ -366,6 +366,114 @@ app.post('/api/ai-assistant', async (req, res) => {
   }
 });
 
+// Endpoint to parse PDF or Image OV documents and auto-fill sales order fields
+app.post('/api/parse-ov-document', async (req, res) => {
+  const { fileData, mimeType, textContent } = req.body;
+
+  if (!apiKey) {
+    return res.status(500).json({ 
+      error: 'GEMINI_API_KEY no está configurada. Por favor configúrala en el panel de Secrets.' 
+    });
+  }
+
+  const model = 'gemini-3.6-flash';
+
+  const extractionPrompt = `
+    Eres un auditor contable e IA experta en extracción de datos de Presupuestos, Cotizaciones y Órdenes de Venta (OVs / Sales Orders).
+    Analiza el documento o imagen adjunto de la Orden de Venta y extrae con precisión los siguientes campos clave en formato JSON estructurado:
+
+    1. "numero": El código o número correlativo de la Orden de Venta o Presupuesto (por ejemplo: "SO19229", "OV-2024-001", "COT-4592"). Si no encuentras uno, genera "OV-001".
+    2. "fechaEmision": La fecha del presupuesto u orden de venta en formato AAAA-MM-DD (ej: "2026-12-21").
+    3. "subtotal": El subtotal neto antes de impuestos/comisiones como número decimal (ej: 7175.10). Si no se desglosa, pon el mismo valor del total.
+    4. "impuestos": El monto acumulado de impuestos / IVA como número decimal (ej: 861.02). Si es 0 o no figura, pon 0.
+    5. "comisiones": El monto de comisiones, tasa preferencial o retenciones como número decimal (ej: 35.88). Si es 0 o no figura, pon 0.
+    6. "monto": El monto TOTAL final contratado como número decimal (ej: 8072.00). Extrae únicamente el número limpio.
+    7. "moneda": La moneda identificada ("USD", "CLP", "EUR", "GTQ", "UF").
+    8. "descripcion": Un resumen breve de los servicios o entregables especificados en los detalles.
+    9. "horasPorRol": Desglose de horas por puesto de trabajo identificadas en los ítems de detalles:
+       - "supervisor": Horas asociadas a supervisión, dirección general o consultoría senior.
+       - "coordinador": Horas de Coordinación de proyectos, Project Manager, reportería o gestión.
+       - "sac": Horas de Atención al cliente, Ejecutiva de relación cliente, SAC o consultoría.
+       - "contents": Horas de Social Media, redacción de contenidos o community management.
+       - "contentd": Horas de Diseño gráfico, Diseñador, creativos o piezas digitales.
+
+    Reglas de mapeo de horas por ítems del documento:
+    - Si ves "Social Media", "Content S", "Redes Sociales", asigna las horas a "contents".
+    - Si ves "Diseñador", "Diseño", "Content D", asigna las horas a "contentd".
+    - Si ves "Ejecutiva relacion cliente", "SAC", "Consultor", "Atención a la comunidad", asigna las horas a "sac".
+    - Si ves "Coordinador", "PM", "Gestión de Proyectos", "Reportería", asigna las horas a "coordinador".
+    - Si ves "Supervisor", "Dirección", asigna las horas a "supervisor".
+  `;
+
+  try {
+    let geminiContents: any[] = [];
+
+    if (fileData) {
+      // Clean base64 string if it contains data URI prefix
+      const cleanBase64 = fileData.replace(/^data:[^;]+;base64,/, '');
+      const validMime = mimeType || 'image/png';
+
+      geminiContents = [
+        {
+          inlineData: {
+            mimeType: validMime,
+            data: cleanBase64
+          }
+        },
+        { text: extractionPrompt }
+      ];
+    } else if (textContent) {
+      geminiContents = [
+        { text: `${extractionPrompt}\n\nTEXTO DEL DOCUMENTO DE ORDEN DE VENTA:\n"""\n${textContent}\n"""` }
+      ];
+    } else {
+      return res.status(400).json({ error: 'Se requiere fileData (base64) o textContent' });
+    }
+
+    const response = await ai.models.generateContent({
+      model: model,
+      contents: geminiContents,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            numero: { type: Type.STRING },
+            fechaEmision: { type: Type.STRING },
+            subtotal: { type: Type.NUMBER },
+            impuestos: { type: Type.NUMBER },
+            comisiones: { type: Type.NUMBER },
+            monto: { type: Type.NUMBER },
+            moneda: { type: Type.STRING },
+            descripcion: { type: Type.STRING },
+            horasPorRol: {
+              type: Type.OBJECT,
+              properties: {
+                supervisor: { type: Type.NUMBER },
+                coordinador: { type: Type.NUMBER },
+                sac: { type: Type.NUMBER },
+                contents: { type: Type.NUMBER },
+                contentd: { type: Type.NUMBER },
+              }
+            }
+          },
+          required: ['numero', 'monto', 'horasPorRol']
+        }
+      }
+    });
+
+    if (response.text) {
+      const parsed = JSON.parse(response.text);
+      return res.json(parsed);
+    }
+
+    throw new Error('No se obtuvieron datos válidos de la IA.');
+  } catch (error: any) {
+    console.error('Error parsing OV document:', error);
+    return res.status(500).json({ error: error.message || 'Error al procesar el documento con la IA.' });
+  }
+});
+
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

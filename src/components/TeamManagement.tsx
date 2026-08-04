@@ -86,6 +86,8 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
         return 'bg-purple-600';
       case 'contentd':
         return 'bg-blue-600';
+      case 'proveedor':
+        return 'bg-amber-600';
       case 'invitado':
         return 'bg-amber-500';
       default:
@@ -107,6 +109,8 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
         baseSkills = ['Social Media', 'Estrategia', 'SEO'];
       } else if (load.role === 'contentd') {
         baseSkills = ['UI/UX Refactor', 'Illustrator', 'Branding'];
+      } else if (load.role === 'proveedor') {
+        baseSkills = ['Servicio Externo', 'Contrata', 'Desarrollo / Especializado'];
       } else {
         baseSkills = ['Invitado'];
       }

@@ -7,10 +7,12 @@ export const IDLE_TIME_HOURS = GROSS_MONTHLY_CAPACITY * (IDLE_TIME_PERCENT / 100
 export const EFFECTIVE_MONTHLY_CAPACITY = GROSS_MONTHLY_CAPACITY - IDLE_TIME_HOURS; // 153.6 horas efectivas
 
 export const ROLE_CAPACITIES: Record<Role, number> = {
+  supervisor: 192,
   coordinador: 192,
   sac: 192,
   contents: 192,
   contentd: 192,
+  proveedor: 160,
   invitado: 0
 };
 
@@ -44,7 +46,6 @@ export const calculateGlobalFinancials = (projects: Project[]) => {
     let projIncome = p.totalIncome || 0;
     if (!projIncome && p.ordenesVenta && p.ordenesVenta.length > 0) {
       projIncome = p.ordenesVenta
-        .filter(ov => ov.estado !== 'cancelada')
         .reduce((sum, ov) => sum + (ov.monto || 0), 0);
     }
 

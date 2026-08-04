@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Project, OrdenVenta } from '../types';
+import { Project, OrdenVenta, EstadoOV } from '../types';
 import { 
   User, 
   Hash, 
@@ -48,6 +48,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
   // Agrupacion de horas consumidas por rol real
   const consumedByRole = useMemo(() => {
     const map: Record<string, number> = {
+      supervisor: 0,
       coordinador: 0,
       sac: 0,
       contents: 0,
@@ -55,7 +56,8 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
     };
     timeEntries.forEach((e) => {
       const r = (e.role || '').toLowerCase();
-      if (r.includes('coord')) map.coordinador += e.hours || 0;
+      if (r.includes('superv')) map.supervisor += e.hours || 0;
+      else if (r.includes('coord')) map.coordinador += e.hours || 0;
       else if (r.includes('sac')) map.sac += e.hours || 0;
       else if (r.includes('contents') || r.includes('content s')) map.contents += e.hours || 0;
       else if (r.includes('contentd') || r.includes('content d')) map.contentd += e.hours || 0;
@@ -82,11 +84,11 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
       horasAsociadas: project.hoursTotal || 0,
       fechaEmision: project.startDate || new Date().toISOString().split('T')[0],
       descripcion: 'Orden de Venta Principal',
-      estado: 'activa'
+      estado: 'creada'
     }];
   }, [project.ordenesVenta, project.saleOrderNumber, project.ovNumber, project.totalIncome, project.currency, project.hoursTotal, project.startDate, project.id]);
 
-  const activeOVs = useMemo(() => ordenesVentaList.filter(o => o.estado !== 'cancelada'), [ordenesVentaList]);
+  const activeOVs = useMemo(() => ordenesVentaList, [ordenesVentaList]);
 
   const [newOvNumber, setNewOvNumber] = useState('');
   const [newOvMonto, setNewOvMonto] = useState<number | ''>('');
@@ -95,9 +97,8 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
   const [isAddingOv, setIsAddingOv] = useState(false);
 
   const saveUpdatedOVs = (updatedList: OrdenVenta[]) => {
-    const activeOVsList = updatedList.filter(o => o.estado !== 'cancelada');
-    const calcTotalIncome = activeOVsList.reduce((sum, o) => sum + (o.monto || 0), 0);
-    const ovNumbersConcat = activeOVsList.map(o => o.numero).join(', ') || updatedList[0]?.numero || 'OV-001';
+    const calcTotalIncome = updatedList.reduce((sum, o) => sum + (o.monto || 0), 0);
+    const ovNumbersConcat = updatedList.map(o => o.numero).join(', ') || updatedList[0]?.numero || 'OV-001';
 
     onUpdateProject({
       ...project,
@@ -124,7 +125,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
       horasAsociadas: horasNum,
       fechaEmision: new Date().toISOString().split('T')[0],
       descripcion: newOvDesc.trim() || `Orden de Venta ${cleanNum}`,
-      estado: 'activa'
+      estado: 'creada'
     };
 
     const updated = [...ordenesVentaList, newOV];
@@ -147,7 +148,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
     saveUpdatedOVs(updated);
   };
 
-  const handleQuickStatusChange = (ovId: string, newStatus: 'activa' | 'facturada' | 'cancelada') => {
+  const handleQuickStatusChange = (ovId: string, newStatus: EstadoOV) => {
     const updated = ordenesVentaList.map(o => o.id === ovId ? { ...o, estado: newStatus } : o);
     saveUpdatedOVs(updated);
   };
@@ -380,15 +381,15 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             {/* LISTA DE OVS */}
             <div className="space-y-2.5">
               {ordenesVentaList.map((ov, index) => {
-                const isCancelada = ov.estado === 'cancelada';
+                const isBloqueada = ov.estado === 'bloqueada';
                 const isFacturada = ov.estado === 'facturada';
 
                 return (
                   <div 
                     key={ov.id || index}
                     className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                      isCancelada ? 'bg-slate-800/40 border-slate-800 text-slate-500' :
-                      isFacturada ? 'bg-slate-800/80 border-blue-500/30 text-white' :
+                      isBloqueada ? 'bg-amber-500/10 border-amber-500/30 text-amber-200' :
+                      isFacturada ? 'bg-emerald-500/10 border-emerald-500/30 text-white' :
                       'bg-slate-800/90 border-slate-700 text-white'
                     }`}
                   >
@@ -407,6 +408,13 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                             </span>
                           ) : null}
                         </div>
+                        {(ov.subtotal !== undefined || ov.impuestos !== undefined || ov.comisiones !== undefined) && (
+                          <div className="text-[10px] text-slate-400 font-mono mt-0.5 space-x-1.5 flex flex-wrap">
+                            {typeof ov.subtotal === 'number' && <span>Subtotal: ${ov.subtotal.toLocaleString('es-CL')}</span>}
+                            {typeof ov.impuestos === 'number' && ov.impuestos > 0 && <span className="text-amber-400">IVA: ${ov.impuestos.toLocaleString('es-CL')}</span>}
+                            {typeof ov.comisiones === 'number' && ov.comisiones > 0 && <span className="text-cyan-400">Com/T.P.: ${ov.comisiones.toLocaleString('es-CL')}</span>}
+                          </div>
+                        )}
                         {ov.descripcion && (
                           <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{ov.descripcion}</p>
                         )}
@@ -417,22 +425,25 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                       {isCoordinador ? (
                         <select
                           value={ov.estado}
-                          onChange={(e) => handleQuickStatusChange(ov.id, e.target.value as any)}
+                          onChange={(e) => handleQuickStatusChange(ov.id, e.target.value as EstadoOV)}
                           className={`text-[10px] font-bold px-3 py-1 rounded-xl border focus:outline-none cursor-pointer bg-slate-900 ${
-                            ov.estado === 'activa' ? 'text-emerald-400 border-emerald-500/40' :
-                            ov.estado === 'facturada' ? 'text-blue-400 border-blue-500/40' :
-                            'text-slate-400 border-slate-700'
+                            ov.estado === 'creada' ? 'text-slate-300 border-slate-700' :
+                            ov.estado === 'enviada' ? 'text-cyan-400 border-cyan-500/40' :
+                            ov.estado === 'bloqueada' ? 'text-amber-400 border-amber-500/40' :
+                            'text-emerald-400 border-emerald-500/40'
                           }`}
                         >
-                          <option value="activa">Activa</option>
+                          <option value="creada">Creada</option>
+                          <option value="enviada">Enviada</option>
+                          <option value="bloqueada">Bloqueada</option>
                           <option value="facturada">Facturada</option>
-                          <option value="cancelada">Cancelada</option>
                         </select>
                       ) : (
                         <span className={`text-[10px] font-bold px-3 py-1 rounded-xl border ${
-                          ov.estado === 'activa' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' :
-                          ov.estado === 'facturada' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
-                          'bg-slate-800 text-slate-400 border-slate-700'
+                          ov.estado === 'creada' ? 'bg-slate-800 text-slate-300 border-slate-700' :
+                          ov.estado === 'enviada' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' :
+                          ov.estado === 'bloqueada' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
+                          'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
                         }`}>
                           {ov.estado.toUpperCase()}
                         </span>
@@ -648,8 +659,18 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
           </div>
 
           {/* TARJETAS DE ROLES CON COMPARADOR EN TIEMPO REAL */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             
+            {/* Supervisor */}
+            <RoleCard
+              roleKey="supervisor"
+              label="Supervisor"
+              allocated={roleHours.supervisor || 0}
+              consumed={consumedByRole.supervisor}
+              isCoordinador={isCoordinador}
+              onChange={(val) => handleRoleHourChange('supervisor', val)}
+            />
+
             {/* Coordinador */}
             <RoleCard
               roleKey="coordinador"

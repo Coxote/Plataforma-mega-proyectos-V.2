@@ -17,14 +17,15 @@ import {
   ChevronLeft,
   ChevronRight,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  DollarSign
 } from 'lucide-react';
 import { Project, UserSession, TimeEntryType, getUserAvatarUrl } from '../types';
 import { TppLogo } from './TppLogo';
 import { AIAssistantModal } from './AIAssistantModal';
 import { GlobalLogTimeModal } from './GlobalLogTimeModal';
 
-export type ViewState = 'dashboard' | 'planner' | 'team' | 'project' | 'gantt' | 'clients' | 'profile';
+export type ViewState = 'dashboard' | 'planner' | 'team' | 'project' | 'gantt' | 'clients' | 'profile' | 'financial';
 
 interface MainLayoutProps {
   currentUser: UserSession;
@@ -143,31 +144,35 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               </button>
             )}
             
-            <button 
-              onClick={() => handleNavClick('planner')}
-              title="Planner Diario"
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
-                currentView === 'planner' 
-                  ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                  : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
-              }`}
-            >
-              <CalendarDays className="w-4 h-4 shrink-0" />
-              {!isCollapsed && <span>Planner Diario</span>}
-            </button>
+            {currentUser.role !== 'proveedor' && (
+              <button 
+                onClick={() => handleNavClick('planner')}
+                title="Planner Diario"
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                  currentView === 'planner' 
+                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                }`}
+              >
+                <CalendarDays className="w-4 h-4 shrink-0" />
+                {!isCollapsed && <span>Planner Diario</span>}
+              </button>
+            )}
 
-            <button 
-              onClick={() => handleNavClick('gantt')}
-              title="Línea de Tiempo"
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
-                currentView === 'gantt' 
-                  ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                  : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
-              }`}
-            >
-              <Layers className="w-4 h-4 shrink-0" />
-              {!isCollapsed && <span>Línea de Tiempo</span>}
-            </button>
+            {currentUser.role !== 'proveedor' && (
+              <button 
+                onClick={() => handleNavClick('gantt')}
+                title="Línea de Tiempo"
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                  currentView === 'gantt' 
+                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                }`}
+              >
+                <Layers className="w-4 h-4 shrink-0" />
+                {!isCollapsed && <span>Línea de Tiempo</span>}
+              </button>
+            )}
           </div>
 
           {/* GRUPO: PROYECTO */}
@@ -230,7 +235,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               </button>
             )}
 
-            {currentUser.role === 'coordinador' && (
+            {(currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') && (
               <button 
                 onClick={() => handleNavClick('clients')}
                 title="Clientes y Marca IA"
@@ -242,6 +247,21 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               >
                 <Building2 className="w-4 h-4 shrink-0" />
                 {!isCollapsed && <span>Clientes y Marca IA</span>}
+              </button>
+            )}
+
+            {(currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') && (
+              <button 
+                onClick={() => handleNavClick('financial')}
+                title="Salud Financiera"
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                  currentView === 'financial' 
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                }`}
+              >
+                <DollarSign className="w-4 h-4 shrink-0 text-emerald-400" />
+                {!isCollapsed && <span>Salud Financiera</span>}
               </button>
             )}
           </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Project, UserSession, RoleHoursAllocation, Client, TimeEntryType } from './types';
 import { INITIAL_PROJECTS, createDefaultPhases, createDefaultBudget, createDefaultRaci } from './initialData';
 import Sidebar from './components/Sidebar';
@@ -13,7 +13,8 @@ import { PlannerGrid } from './components/PlannerGrid';
 import { GanttView } from './components/GanttView';
 import { ClientsManagement } from './components/ClientsManagement';
 import { MyProfileView } from './components/MyProfileView';
-import { Sparkles, Shield, Users, LogOut, Activity } from 'lucide-react';
+import { FinancialDashboard } from './components/FinancialDashboard';
+import { Sparkles, Shield, Users, LogOut, Activity, Briefcase } from 'lucide-react';
 import { generatePhasesForTemplate } from './projectTemplates';
 import { NewProjectWizard } from './components/NewProjectWizard';
 import { useDeliverableMonitoring } from './hooks/useDeliverableMonitoring';
@@ -105,6 +106,8 @@ const DEFAULT_USERS: UserSession[] = [
   { id: 'u-alejandra', username: 'alejandra', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-fabiola', username: 'fabiola', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-luis', username: 'luis', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-sofia', username: 'sofia', puesto: 'Directora Financiera', role: 'director_financiero', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-proveedor', username: 'proveedor', puesto: 'Proveedor Dev', role: 'proveedor', password: '123', tarifaHoraProveedor: 50, empresaProveedor: 'TechStudio Latam', proyectosAsignados: ['p1'], capacidadMensualHoras: 160 },
   { id: 'u-invitado', username: 'invitado', puesto: 'Invitado', role: 'invitado', password: '123', projectId: 'p1', capacidadMensualHoras: 0 },
 ];
 
@@ -336,8 +339,44 @@ export default function App() {
     });
   };
 
+  // Filter visible projects based on user role
+  const visibleProjects = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.role === 'invitado') {
+      return projects.filter((p) => p.id === currentUser.projectId);
+    }
+    if (currentUser.role === 'proveedor') {
+      return projects.filter((p) => {
+        const isAssigned = currentUser.proyectosAsignados && currentUser.proyectosAsignados.length > 0
+          ? currentUser.proyectosAsignados.includes(p.id)
+          : false;
+        const isMember = p.members?.some(
+          (m) => m.id === currentUser.id || m.userId === currentUser.id || m.name?.toLowerCase() === currentUser.username.toLowerCase()
+        );
+        return isAssigned || isMember;
+      });
+    }
+    return projects;
+  }, [projects, currentUser]);
+
+  // Keep activeProjectId synced with visibleProjects
+  useEffect(() => {
+    if (currentUser && visibleProjects.length > 0) {
+      if (!visibleProjects.some((p) => p.id === activeProjectId)) {
+        setActiveProjectId(visibleProjects[0].id);
+      }
+    }
+  }, [currentUser, visibleProjects, activeProjectId]);
+
+  // Restrict proveedor from accessing coordinator-only views
+  useEffect(() => {
+    if (currentUser?.role === 'proveedor' && (currentView === 'dashboard' || currentView === 'team' || currentView === 'clients')) {
+      setCurrentView('project');
+    }
+  }, [currentUser, currentView]);
+
   // Find currently active project
-  const activeProject = projects.find((p) => p.id === activeProjectId) || projects[0];
+  const activeProject = visibleProjects.find((p) => p.id === activeProjectId) || visibleProjects[0] || projects[0];
 
   const handleSelectProject = (id: string) => {
     setActiveProjectId(id);
@@ -364,6 +403,7 @@ export default function App() {
 
     // 2. Crear presupuesto desglosado
     const customBudget = {
+      supervisor: { allocated: data.roleHours?.supervisor || 0, consumed: 0 },
       coordinador: { allocated: data.roleHours?.coordinador || 0, consumed: 0 },
       sac: { allocated: data.roleHours?.sac || 0, consumed: 0 },
       contents: { allocated: data.roleHours?.contents || 0, consumed: 0 },
@@ -566,6 +606,8 @@ export default function App() {
     localStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
     if (user.role === 'coordinador') {
       setCurrentView('dashboard');
+    } else if (user.role === 'director_financiero') {
+      setCurrentView('financial');
     } else {
       setCurrentView('planner');
     }
@@ -691,7 +733,7 @@ export default function App() {
       onLogout={handleLogout}
       currentView={currentView}
       onNavigate={(view) => setCurrentView(view)}
-      projects={projects}
+      projects={visibleProjects}
       users={usersList}
       onLogTimeGlobal={handleLogTimeGlobal}
     >
@@ -699,7 +741,7 @@ export default function App() {
         <div className="flex-1 overflow-y-auto h-full">
           <MyProfileView
             currentUser={currentUser}
-            projects={projects}
+            projects={visibleProjects}
           />
         </div>
       ) : currentView === 'dashboard' && currentUser.role === 'coordinador' ? (
@@ -725,7 +767,7 @@ export default function App() {
       ) : currentView === 'planner' ? (
         <div className="flex-1 overflow-y-auto h-full">
           <PlannerGrid
-            projects={projects}
+            projects={visibleProjects}
             users={usersList}
             currentUser={currentUser}
           />
@@ -733,16 +775,26 @@ export default function App() {
       ) : currentView === 'gantt' ? (
         <div className="flex-1 overflow-y-auto h-full">
           <GanttView
-            projects={projects}
+            projects={visibleProjects}
             users={usersList}
           />
         </div>
-      ) : currentView === 'clients' && currentUser.role === 'coordinador' ? (
+      ) : currentView === 'clients' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') ? (
         <div className="flex-1 overflow-y-auto h-full">
           <ClientsManagement
             clients={clients}
+            projects={projects}
             onAddClient={handleAddClient}
             onUpdateClientStatus={handleUpdateClientStatus}
+          />
+        </div>
+      ) : currentView === 'financial' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') ? (
+        <div className="flex-1 overflow-y-auto h-full">
+          <FinancialDashboard
+            projects={projects}
+            clients={clients}
+            users={usersList}
+            currentUser={currentUser}
           />
         </div>
       ) : (
@@ -750,7 +802,7 @@ export default function App() {
           
           {/* LEFT SIDEBAR: PROJECTS & SEARCH */}
           <Sidebar
-            projects={projects}
+            projects={visibleProjects}
             activeProjectId={activeProjectId}
             onSelectProject={handleSelectProject}
             onAddProject={() => setIsNewProjectModalOpen(true)}
@@ -764,16 +816,28 @@ export default function App() {
 
           {/* MAIN WORKSPACE */}
           <div className="flex-1 h-full overflow-hidden flex flex-col min-w-0">
-            <PhaseContent
-              activePhase={activePhase}
-              project={activeProject}
-              onUpdateProject={handleUpdateProject}
-              onSave={handleSave}
-              onCompletePhase={handleCompletePhase}
-              showSaveToast={showSaveToast}
-              userRole={currentUser.role}
-              currentUser={currentUser}
-            />
+            {visibleProjects.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50/50">
+                <div className="w-16 h-16 bg-amber-100 text-amber-700 rounded-3xl flex items-center justify-center mb-4 border border-amber-200 shadow-sm">
+                  <Briefcase className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-black text-slate-800 mb-2">Sin Proyectos Asignados</h3>
+                <p className="text-xs text-slate-500 max-w-md font-medium leading-relaxed">
+                  Hola <strong className="text-slate-800 capitalize">{currentUser.username}</strong>, actualmente no tienes proyectos asociados a tu perfil de <span className="text-amber-600 font-bold">Proveedor Externo</span>. Solicita a tu Coordinador que te asigne a los proyectos correspondientes.
+                </p>
+              </div>
+            ) : (
+              <PhaseContent
+                activePhase={activePhase}
+                project={activeProject}
+                onUpdateProject={handleUpdateProject}
+                onSave={handleSave}
+                onCompletePhase={handleCompletePhase}
+                showSaveToast={showSaveToast}
+                userRole={currentUser.role}
+                currentUser={currentUser}
+              />
+            )}
           </div>
         </div>
       )}

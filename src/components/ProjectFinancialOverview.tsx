@@ -36,10 +36,11 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
 }) => {
   // Extract or calculate hours sold (allocated) and hours consumed per role
   const stats = useMemo(() => {
-    const roles: Role[] = ['coordinador', 'sac', 'contents', 'contentd'];
+    const roles: Role[] = ['supervisor', 'coordinador', 'sac', 'contents', 'contentd'];
     
     // Get sold hours from project.roleHours or fallback to project.budget allocated
     const hoursSold = {
+      supervisor: project.roleHours?.supervisor ?? project.budget?.supervisor?.allocated ?? 0,
       coordinador: project.roleHours?.coordinador ?? project.budget?.coordinador?.allocated ?? 0,
       sac: project.roleHours?.sac ?? project.budget?.sac?.allocated ?? 0,
       contents: project.roleHours?.contents ?? project.budget?.contents?.allocated ?? 0,
@@ -48,6 +49,7 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
 
     // Get consumed hours from project.budget consumed
     const hoursConsumed = {
+      supervisor: project.budget?.supervisor?.consumed ?? 0,
       coordinador: project.budget?.coordinador?.consumed ?? 0,
       sac: project.budget?.sac?.consumed ?? 0,
       contents: project.budget?.contents?.consumed ?? 0,
@@ -80,6 +82,16 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
 
     // Transform roles for chart data
     const chartData = [
+      {
+        name: 'Supervisor',
+        roleKey: 'supervisor',
+        'Horas Vendidas': hoursSold.supervisor,
+        'Horas Consumidas': hoursConsumed.supervisor,
+        'Horas Restantes': hoursSold.supervisor - hoursConsumed.supervisor,
+        costSold: hoursSold.supervisor * ROLE_HOURLY_RATES.supervisor,
+        costConsumed: hoursConsumed.supervisor * ROLE_HOURLY_RATES.supervisor,
+        rate: ROLE_HOURLY_RATES.supervisor,
+      },
       {
         name: 'Coordinador',
         roleKey: 'coordinador',

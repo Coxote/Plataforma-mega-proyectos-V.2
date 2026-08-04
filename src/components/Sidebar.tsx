@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Project } from '../types';
+import { Project, Role } from '../types';
 import { TppLogo } from './TppLogo';
 import { 
   Plus, 
@@ -20,7 +20,7 @@ interface SidebarProps {
   onSelectProject: (id: string) => void;
   onAddProject: () => void;
   onDeleteProject: (id: string) => void;
-  userRole: 'coordinador' | 'sac' | 'contents' | 'contentd' | 'invitado';
+  userRole: Role;
   overdueProjectIds?: Set<string>;
   approachingProjectIds?: Set<string>;
   isCollapsed: boolean;

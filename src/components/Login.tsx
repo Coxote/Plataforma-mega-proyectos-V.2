@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { UserSession } from '../types';
+import { UserSession, Role } from '../types';
 import { TppLogo } from './TppLogo';
 import { Lock, User, Briefcase, Eye, EyeOff } from 'lucide-react';
 
@@ -12,12 +12,12 @@ interface LoginProps {
 export default function Login({ onLogin, usersList }: LoginProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [puesto, setPuesto] = useState('Coordinador de Proyectos');
+  const [puesto, setPuesto] = useState('Coordinador');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Map Puesto to Role
-  const getRoleFromPuesto = (p: string): 'coordinador' | 'sac' | 'contents' | 'contentd' | 'invitado' => {
+  const getRoleFromPuesto = (p: string): Role => {
     switch (p) {
       case 'Coordinador':
         return 'coordinador';
@@ -27,6 +27,12 @@ export default function Login({ onLogin, usersList }: LoginProps) {
         return 'contents';
       case 'ContentD':
         return 'contentd';
+      case 'Director Financiero':
+      case 'Finanzas':
+        return 'director_financiero';
+      case 'Proveedor':
+      case 'Proveedor Externo':
+        return 'proveedor';
       case 'Cliente / Invitado':
       default:
         return 'invitado';
@@ -164,9 +170,11 @@ export default function Login({ onLogin, usersList }: LoginProps) {
                     id="login-puesto"
                   >
                     <option value="Coordinador">Coordinador</option>
+                    <option value="Director Financiero">Director Financiero</option>
                     <option value="SAC">SAC</option>
                     <option value="ContentS">ContentS</option>
                     <option value="ContentD">ContentD</option>
+                    <option value="Proveedor">Proveedor Externo</option>
                     <option value="Cliente / Invitado">Cliente / Invitado</option>
                   </select>
                   <span className="absolute right-4 top-3.5 text-slate-400 pointer-events-none text-[10px]">▼</span>
@@ -216,38 +224,54 @@ export default function Login({ onLogin, usersList }: LoginProps) {
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               Accesos de Prueba
             </p>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleDemoFill('sofia', 'Director Financiero')}
+                className="px-2.5 py-1.5 bg-emerald-50/90 hover:bg-emerald-100/80 border border-emerald-300 rounded-xl text-[10.5px] font-bold text-emerald-950 text-left flex flex-col transition-all cursor-pointer shadow-2xs"
+              >
+                <span>Sofía</span>
+                <span className="text-[9px] text-emerald-700 font-extrabold truncate">Dir. Financiera</span>
+              </button>
               <button
                 type="button"
                 onClick={() => handleDemoFill('carlos', 'Coordinador')}
-                className="px-3 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
+                className="px-2.5 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
               >
                 <span>Carlos</span>
-                <span className="text-[9px] text-slate-400 font-medium">Coordinador</span>
+                <span className="text-[9px] text-slate-400 font-medium truncate">Coordinador</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleDemoFill('ana', 'SAC')}
-                className="px-3 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
+                className="px-2.5 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
               >
                 <span>Ana</span>
-                <span className="text-[9px] text-slate-400 font-medium">Ejecutivo SAC</span>
+                <span className="text-[9px] text-slate-400 font-medium truncate">SAC</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDemoFill('proveedor', 'Proveedor')}
+                className="px-2.5 py-1.5 bg-amber-50/80 hover:bg-amber-100/60 border border-amber-200 rounded-xl text-[10.5px] font-bold text-amber-900 text-left flex flex-col transition-all cursor-pointer"
+              >
+                <span>Proveedor</span>
+                <span className="text-[9px] text-amber-600 font-medium truncate">Proveedor Dev</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleDemoFill('lucia', 'ContentS')}
-                className="px-3 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
+                className="px-2.5 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
               >
                 <span>Lucía</span>
-                <span className="text-[9px] text-slate-400 font-medium">Content S</span>
+                <span className="text-[9px] text-slate-400 font-medium truncate">Content S</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleDemoFill('pedro', 'ContentD')}
-                className="px-3 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
+                className="px-2.5 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
               >
                 <span>Pedro</span>
-                <span className="text-[9px] text-slate-400 font-medium">Content D</span>
+                <span className="text-[9px] text-slate-400 font-medium truncate">Content D</span>
               </button>
             </div>
           </div>

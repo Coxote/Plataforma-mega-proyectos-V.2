@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { 
   X, Plus, Trash2, FileText, ArrowLeft, 
   FileCode2, CheckCircle2, ShieldAlert, GripVertical, 
-  ChevronUp, ChevronDown, Layers
+  ChevronUp, ChevronDown, Layers, Clock, Upload, Sparkles, Loader2
 } from 'lucide-react';
-import { RoleHoursAllocation, UserSession } from '../types';
+import { RoleHoursAllocation, UserSession, EstadoOV } from '../types';
 
 const PREDEFINED_TAGS = {
   'Entregable': ['#RedesSociales', '#Branding', '#UI/UX', '#VideoMotion', '#PixelArt', '#GameDev', '#DesarrolloWeb'],
@@ -26,9 +26,16 @@ export interface ProjectDraftOV {
   monto: number | '';
   moneda: string;
   horasAsociadas: number | '';
+  horasPorRol?: {
+    supervisor?: number | '';
+    coordinador?: number | '';
+    sac?: number | '';
+    contents?: number | '';
+    contentd?: number | '';
+  };
   fechaEmision: string;
   descripcion: string;
-  estado: 'activa' | 'facturada' | 'cancelada';
+  estado: EstadoOV;
 }
 
 // Componente para gestión unificada de Array de Órdenes de Venta (OV)
@@ -38,6 +45,74 @@ const OrdenesVentaArrayManager: React.FC<{
   onRemoveOV: (id: string) => void;
   onUpdateOV: (id: string, field: string, value: any) => void;
 }> = ({ draft, onAddOV, onRemoveOV, onUpdateOV }) => {
+  const [parsingOVId, setParsingOVId] = useState<string | null>(null);
+
+  const handleFileUpload = async (ovId: string, file: File) => {
+    if (!file) return;
+    setParsingOVId(ovId);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64Data = reader.result as string;
+        try {
+          const res = await fetch('/api/parse-ov-document', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              fileData: base64Data,
+              mimeType: file.type || 'application/pdf',
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data) {
+            if (data.numero) onUpdateOV(ovId, 'numero', data.numero);
+            if (typeof data.subtotal === 'number') onUpdateOV(ovId, 'subtotal', data.subtotal);
+            if (typeof data.impuestos === 'number') onUpdateOV(ovId, 'impuestos', data.impuestos);
+            if (typeof data.comisiones === 'number') onUpdateOV(ovId, 'comisiones', data.comisiones);
+            if (typeof data.monto === 'number') onUpdateOV(ovId, 'monto', data.monto);
+            if (data.moneda) onUpdateOV(ovId, 'moneda', data.moneda);
+            if (data.fechaEmision) onUpdateOV(ovId, 'fechaEmision', data.fechaEmision);
+            if (data.descripcion) onUpdateOV(ovId, 'descripcion', data.descripcion);
+            if (data.horasPorRol) {
+              if (typeof data.horasPorRol.supervisor === 'number') onUpdateOV(ovId, 'horasPorRol_supervisor', data.horasPorRol.supervisor);
+              if (typeof data.horasPorRol.coordinador === 'number') onUpdateOV(ovId, 'horasPorRol_coordinador', data.horasPorRol.coordinador);
+              if (typeof data.horasPorRol.sac === 'number') onUpdateOV(ovId, 'horasPorRol_sac', data.horasPorRol.sac);
+              if (typeof data.horasPorRol.contents === 'number') onUpdateOV(ovId, 'horasPorRol_contents', data.horasPorRol.contents);
+              if (typeof data.horasPorRol.contentd === 'number') onUpdateOV(ovId, 'horasPorRol_contentd', data.horasPorRol.contentd);
+            }
+          } else {
+            alert(data.error || 'No se pudo extraer información del archivo de la OV.');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Error de conexión al procesar el archivo.');
+        } finally {
+          setParsingOVId(null);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+      setParsingOVId(null);
+    }
+  };
+
+  const getEstadoBadge = (st: EstadoOV) => {
+    switch (st) {
+      case 'creada':
+        return { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: '• Creada' };
+      case 'enviada':
+        return { bg: 'bg-sky-50 text-sky-700 border-sky-200', label: '• Enviada' };
+      case 'bloqueada':
+        return { bg: 'bg-indigo-50 text-indigo-700 border-indigo-200', label: '• Bloqueada' };
+      case 'facturada':
+        return { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: '• Facturada' };
+      default:
+        return { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: '• Creada' };
+    }
+  };
+
   return (
     <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
@@ -50,7 +125,7 @@ const OrdenesVentaArrayManager: React.FC<{
               Órdenes de Venta (OV) del Proyecto ({draft.ordenesVenta.length})
             </span>
             <span className="text-[10px] text-slate-500 font-medium">
-              Agrega y administra múltiples OVs, montos, estados y horas vendidas.
+              Agrega múltiples OVs o sube tu PDF/Imagen para autocompletar horas por rol con IA.
             </span>
           </div>
         </div>
@@ -65,107 +140,290 @@ const OrdenesVentaArrayManager: React.FC<{
       </div>
 
       <div className="space-y-3">
-        {draft.ordenesVenta.map((ov: any, index: number) => (
-          <div key={ov.id} className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs space-y-3">
-            <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
-              <div className="flex items-center gap-2">
-                <span className="w-5 h-5 bg-cyan-100 text-cyan-800 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">
-                  {index + 1}
-                </span>
-                <span className="text-xs font-extrabold text-slate-800">
-                  OV #{ov.numero || 'Sin número'}
-                </span>
-                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${
-                  ov.estado === 'activa' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                  ov.estado === 'facturada' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                  'bg-rose-50 text-rose-700 border-rose-200'
-                }`}>
-                  {ov.estado === 'activa' ? '• Activa' : ov.estado === 'facturada' ? '• Facturada' : '• Cancelada'}
-                </span>
-              </div>
-              {draft.ordenesVenta.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => onRemoveOV(ov.id)}
-                  className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors cursor-pointer"
-                  title="Eliminar esta OV"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+        {draft.ordenesVenta.map((ov: any, index: number) => {
+          const badge = getEstadoBadge(ov.estado || 'creada');
+          const isParsing = parsingOVId === ov.id;
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-              <div>
-                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Número / Código *</label>
-                <input
-                  type="text"
-                  value={ov.numero}
-                  onChange={(e) => onUpdateOV(ov.id, 'numero', e.target.value)}
-                  placeholder="Ej: OV-104"
-                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
+          return (
+            <div key={ov.id} className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="w-5 h-5 bg-cyan-100 text-cyan-800 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">
+                    {index + 1}
+                  </span>
+                  <span className="text-xs font-extrabold text-slate-800">
+                    OV #{ov.numero || 'Sin número'}
+                  </span>
+                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${badge.bg}`}>
+                    {badge.label}
+                  </span>
+                </div>
 
-              <div>
-                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Monto ({draft.currency}) *</label>
-                <input
-                  type="number"
-                  value={ov.monto}
-                  onChange={(e) => onUpdateOV(ov.id, 'monto', e.target.value ? Number(e.target.value) : '')}
-                  placeholder="Ej: 2500"
-                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
-                />
-              </div>
+                <div className="flex items-center gap-2">
+                  {/* UPLOADER BUTTON WITH IA AUTO-FILL */}
+                  <label className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all border ${
+                    isParsing 
+                      ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                      : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200/80'
+                  }`}>
+                    {isParsing ? (
+                      <>
+                        <Loader2 className="w-3 h-3 animate-spin text-amber-600" />
+                        <span>Analizando con IA...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3 h-3 text-indigo-600" />
+                        <span>Subir PDF / Imagen</span>
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      accept=".pdf,image/*,.png,.jpg,.jpeg,.webp"
+                      disabled={isParsing}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(ov.id, file);
+                        e.target.value = '';
+                      }}
+                      className="hidden"
+                    />
+                  </label>
 
-              <div>
-                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Estado OV *</label>
-                <select
-                  value={ov.estado}
-                  onChange={(e) => onUpdateOV(ov.id, 'estado', e.target.value as any)}
-                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-cyan-500"
-                >
-                  <option value="activa">Activa</option>
-                  <option value="facturada">Facturada</option>
-                  <option value="cancelada">Cancelada</option>
-                </select>
+                  {draft.ordenesVenta.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => onRemoveOV(ov.id)}
+                      className="text-slate-400 hover:text-rose-600 p-1 rounded-lg transition-colors cursor-pointer"
+                      title="Eliminar esta OV"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
               </div>
 
-              <div>
-                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Horas Vendidas</label>
-                <input
-                  type="number"
-                  value={ov.horasAsociadas}
-                  onChange={(e) => onUpdateOV(ov.id, 'horasAsociadas', e.target.value ? Number(e.target.value) : '')}
-                  placeholder="Ej: 40"
-                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-none focus:border-cyan-500"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Número / Código *</label>
+                  <input
+                    type="text"
+                    value={ov.numero}
+                    onChange={(e) => onUpdateOV(ov.id, 'numero', e.target.value)}
+                    placeholder="Ej: SO19229"
+                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-cyan-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Estado OV *</label>
+                  <select
+                    value={ov.estado || 'creada'}
+                    onChange={(e) => onUpdateOV(ov.id, 'estado', e.target.value as any)}
+                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:border-cyan-500"
+                  >
+                    <option value="creada">Creada</option>
+                    <option value="enviada">Enviada</option>
+                    <option value="bloqueada">Bloqueada</option>
+                    <option value="facturada">Facturada</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Fecha Emisión</label>
+                  <input
+                    type="date"
+                    value={ov.fechaEmision}
+                    onChange={(e) => onUpdateOV(ov.id, 'fechaEmision', e.target.value)}
+                    className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Descripción / Detalle</label>
+                  <input
+                    type="text"
+                    value={ov.descripcion}
+                    onChange={(e) => onUpdateOV(ov.id, 'descripcion', e.target.value)}
+                    placeholder="Servicios contratados..."
+                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Fecha Emisión</label>
-                <input
-                  type="date"
-                  value={ov.fechaEmision}
-                  onChange={(e) => onUpdateOV(ov.id, 'fechaEmision', e.target.value)}
-                  className="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:border-cyan-500"
-                />
+              {/* DESGLOSE FINANCIERO CON IMPUESTOS Y COMISIONES */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 p-2.5 bg-slate-50/80 rounded-lg border border-slate-200/80">
+                <div>
+                  <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Subtotal Neto</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={ov.subtotal ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value ? Number(e.target.value) : '';
+                      onUpdateOV(ov.id, 'subtotal', val);
+                      const imp = typeof ov.impuestos === 'number' ? ov.impuestos : 0;
+                      const com = typeof ov.comisiones === 'number' ? ov.comisiones : 0;
+                      if (val !== '') {
+                        onUpdateOV(ov.id, 'monto', Number((Number(val) + imp + com).toFixed(2)));
+                      }
+                    }}
+                    placeholder="Ej: 7175.10"
+                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Impuestos / IVA</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={ov.impuestos ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value ? Number(e.target.value) : '';
+                      onUpdateOV(ov.id, 'impuestos', val);
+                      const sub = typeof ov.subtotal === 'number' ? ov.subtotal : 0;
+                      const com = typeof ov.comisiones === 'number' ? ov.comisiones : 0;
+                      if (sub > 0) {
+                        onUpdateOV(ov.id, 'monto', Number((sub + (val !== '' ? Number(val) : 0) + com).toFixed(2)));
+                      }
+                    }}
+                    placeholder="Ej: 861.02"
+                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Comisión / Retención</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={ov.comisiones ?? ''}
+                    onChange={(e) => {
+                      const val = e.target.value ? Number(e.target.value) : '';
+                      onUpdateOV(ov.id, 'comisiones', val);
+                      const sub = typeof ov.subtotal === 'number' ? ov.subtotal : 0;
+                      const imp = typeof ov.impuestos === 'number' ? ov.impuestos : 0;
+                      if (sub > 0) {
+                        onUpdateOV(ov.id, 'monto', Number((sub + imp + (val !== '' ? Number(val) : 0)).toFixed(2)));
+                      }
+                    }}
+                    placeholder="Ej: 35.88"
+                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] font-bold text-cyan-800 uppercase mb-1">Monto Total ({draft.currency}) *</label>
+                  <input
+                    type="number"
+                    step="any"
+                    value={ov.monto}
+                    onChange={(e) => onUpdateOV(ov.id, 'monto', e.target.value ? Number(e.target.value) : '')}
+                    placeholder="Ej: 8072"
+                    className="w-full px-2.5 py-1 bg-white border border-cyan-300 rounded-md text-xs font-bold text-cyan-950 focus:outline-none focus:border-cyan-500 font-mono shadow-2xs"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Descripción</label>
-                <input
-                  type="text"
-                  value={ov.descripcion}
-                  onChange={(e) => onUpdateOV(ov.id, 'descripcion', e.target.value)}
-                  placeholder="Concepto..."
-                  className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:border-cyan-500"
-                />
+              {/* SECCIÓN DESGLOSE DE HORAS POR ROL */}
+              <div className="pt-2.5 border-t border-slate-100 bg-slate-50/70 p-3 rounded-xl space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-cyan-600" />
+                    Horas Vendidas por Rol (OV #{ov.numero || 'Sin número'})
+                  </span>
+                  <span className="text-[10px] font-black text-cyan-700 bg-cyan-50 border border-cyan-200 px-2.5 py-0.5 rounded-full font-mono">
+                    Total Horas OV: {typeof ov.horasAsociadas === 'number' ? ov.horasAsociadas : 0} hrs
+                  </span>
+                </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {/* Supervisor */}
+                <div className="bg-white p-2 rounded-lg border border-slate-200">
+                  <label className="block text-[9px] font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-purple-500 inline-block"></span>
+                    Supervisor
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={ov.horasPorRol?.supervisor ?? ''}
+                    onChange={(e) => onUpdateOV(ov.id, 'horasPorRol_supervisor', e.target.value ? Number(e.target.value) : '')}
+                    placeholder="0 hrs"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-md text-xs font-bold text-slate-900 focus:outline-none focus:border-purple-500"
+                  />
+                </div>
+
+                {/* Coordinador PM */}
+                <div className="bg-white p-2 rounded-lg border border-slate-200">
+                  <label className="block text-[9px] font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-cyan-500 inline-block"></span>
+                    Coordinador PM
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={ov.horasPorRol?.coordinador ?? ''}
+                    onChange={(e) => onUpdateOV(ov.id, 'horasPorRol_coordinador', e.target.value ? Number(e.target.value) : '')}
+                    placeholder="0 hrs"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-md text-xs font-bold text-slate-900 focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+
+                {/* SAC / Consultor */}
+                <div className="bg-white p-2 rounded-lg border border-slate-200">
+                  <label className="block text-[9px] font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
+                    SAC / Consultor
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={ov.horasPorRol?.sac ?? ''}
+                    onChange={(e) => onUpdateOV(ov.id, 'horasPorRol_sac', e.target.value ? Number(e.target.value) : '')}
+                    placeholder="0 hrs"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-md text-xs font-bold text-slate-900 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Social Media (ContentS) */}
+                <div className="bg-white p-2 rounded-lg border border-slate-200">
+                  <label className="block text-[9px] font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                    Social Media
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={ov.horasPorRol?.contents ?? ''}
+                    onChange={(e) => onUpdateOV(ov.id, 'horasPorRol_contents', e.target.value ? Number(e.target.value) : '')}
+                    placeholder="0 hrs"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-md text-xs font-bold text-slate-900 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Diseñador (ContentD) */}
+                <div className="bg-white p-2 rounded-lg border border-slate-200">
+                  <label className="block text-[9px] font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>
+                    Diseñador
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={ov.horasPorRol?.contentd ?? ''}
+                    onChange={(e) => onUpdateOV(ov.id, 'horasPorRol_contentd', e.target.value ? Number(e.target.value) : '')}
+                    placeholder="0 hrs"
+                    className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-md text-xs font-bold text-slate-900 focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
+    </div>
 
       <div className="flex flex-wrap justify-between items-center pt-3 border-t border-slate-200/80 gap-2 text-xs">
         <div className="flex items-center gap-4">
@@ -261,7 +519,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
         horasAsociadas: '',
         fechaEmision: new Date().toISOString().split('T')[0],
         descripcion: 'Orden de Venta Inicial',
-        estado: 'activa'
+        estado: 'creada'
       }
     ],
     deliverablesCount: '',
@@ -273,6 +531,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     currency: 'USD',
     totalIncome: '',
     roleHours: { 
+      supervisor: 0,
       coordinador: 0, 
       sac: 0, 
       contents: 0, 
@@ -303,6 +562,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
   if (!isOpen) return null;
 
   const totalHoursCalculated = 
+    Number(draft.roleHours.supervisor || 0) +
     Number(draft.roleHours.coordinador || 0) + 
     Number(draft.roleHours.sac || 0) + 
     Number(draft.roleHours.contents || 0) + 
@@ -508,6 +768,30 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     }
   };
 
+  // Helper para recalcular rol de horas del borrador desde las OVs
+  const recalculateRoleHoursFromOVs = (ordenesVenta: ProjectDraftOV[]): RoleHoursAllocation => {
+    const activeOVs = ordenesVenta;
+    const roleHours: RoleHoursAllocation = {
+      supervisor: 0,
+      coordinador: 0,
+      sac: 0,
+      contents: 0,
+      contentd: 0
+    };
+    activeOVs.forEach(o => {
+      if (o.horasPorRol) {
+        roleHours.supervisor = (roleHours.supervisor || 0) + (typeof o.horasPorRol.supervisor === 'number' ? o.horasPorRol.supervisor : 0);
+        roleHours.coordinador += (typeof o.horasPorRol.coordinador === 'number' ? o.horasPorRol.coordinador : 0);
+        roleHours.sac += (typeof o.horasPorRol.sac === 'number' ? o.horasPorRol.sac : 0);
+        roleHours.contents += (typeof o.horasPorRol.contents === 'number' ? o.horasPorRol.contents : 0);
+        roleHours.contentd += (typeof o.horasPorRol.contentd === 'number' ? o.horasPorRol.contentd : 0);
+      } else if (typeof o.horasAsociadas === 'number') {
+        roleHours.coordinador += o.horasAsociadas;
+      }
+    });
+    return roleHours;
+  };
+
   // --- HANDLERS MULTI-OV DRAFT ---
   const handleAddDraftOV = () => {
     setDraft(prev => {
@@ -518,17 +802,26 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
         monto: '',
         moneda: prev.currency || 'USD',
         horasAsociadas: '',
+        horasPorRol: {
+          supervisor: '',
+          coordinador: '',
+          sac: '',
+          contents: '',
+          contentd: ''
+        },
         fechaEmision: prev.startDate || new Date().toISOString().split('T')[0],
         descripcion: 'Orden de Venta Adicional',
-        estado: 'activa'
+        estado: 'creada'
       };
       const updatedOVs = [...prev.ordenesVenta, newOV];
       const sumIncome = updatedOVs.reduce((s, o) => s + (typeof o.monto === 'number' ? o.monto : 0), 0);
+      const computedRoleHours = recalculateRoleHoursFromOVs(updatedOVs);
       return {
         ...prev,
         ordenesVenta: updatedOVs,
         totalIncome: sumIncome > 0 ? sumIncome : prev.totalIncome,
-        saleOrderNumber: updatedOVs.map(o => o.numero).join(', ')
+        saleOrderNumber: updatedOVs.map(o => o.numero).join(', '),
+        roleHours: computedRoleHours
       };
     });
   };
@@ -538,24 +831,49 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
       if (prev.ordenesVenta.length <= 1) return prev;
       const updatedOVs = prev.ordenesVenta.filter(o => o.id !== ovId);
       const sumIncome = updatedOVs.reduce((s, o) => s + (typeof o.monto === 'number' ? o.monto : 0), 0);
+      const computedRoleHours = recalculateRoleHoursFromOVs(updatedOVs);
       return {
         ...prev,
         ordenesVenta: updatedOVs,
         totalIncome: sumIncome,
-        saleOrderNumber: updatedOVs.map(o => o.numero).join(', ')
+        saleOrderNumber: updatedOVs.map(o => o.numero).join(', '),
+        roleHours: computedRoleHours
       };
     });
   };
 
-  const handleUpdateDraftOV = (ovId: string, field: keyof ProjectDraftOV, value: any) => {
+  const handleUpdateDraftOV = (ovId: string, field: string, value: any) => {
     setDraft(prev => {
-      const updatedOVs = prev.ordenesVenta.map(o => o.id === ovId ? { ...o, [field]: value } : o);
+      const updatedOVs = prev.ordenesVenta.map(o => {
+        if (o.id !== ovId) return o;
+        if (field.startsWith('horasPorRol_')) {
+          const roleKey = field.replace('horasPorRol_', '');
+          const existing = o.horasPorRol || { supervisor: '', coordinador: '', sac: '', contents: '', contentd: '' };
+          const updatedRoleHours = { ...existing, [roleKey]: value };
+          const sumOV = 
+            (typeof updatedRoleHours.supervisor === 'number' ? updatedRoleHours.supervisor : 0) +
+            (typeof updatedRoleHours.coordinador === 'number' ? updatedRoleHours.coordinador : 0) +
+            (typeof updatedRoleHours.sac === 'number' ? updatedRoleHours.sac : 0) +
+            (typeof updatedRoleHours.contents === 'number' ? updatedRoleHours.contents : 0) +
+            (typeof updatedRoleHours.contentd === 'number' ? updatedRoleHours.contentd : 0);
+          return {
+            ...o,
+            horasPorRol: updatedRoleHours,
+            horasAsociadas: sumOV > 0 ? sumOV : ''
+          };
+        }
+        return { ...o, [field]: value };
+      });
+
       const sumIncome = updatedOVs.reduce((s, o) => s + (typeof o.monto === 'number' ? o.monto : 0), 0);
+      const computedRoleHours = recalculateRoleHoursFromOVs(updatedOVs);
+
       return {
         ...prev,
         ordenesVenta: updatedOVs,
         totalIncome: sumIncome > 0 ? sumIncome : prev.totalIncome,
-        saleOrderNumber: updatedOVs.map(o => o.numero).join(', ')
+        saleOrderNumber: updatedOVs.map(o => o.numero).join(', '),
+        roleHours: computedRoleHours
       };
     });
   };
@@ -610,6 +928,13 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
       monto: typeof ov.monto === 'number' ? ov.monto : 0,
       moneda: ov.moneda || draft.currency || 'USD',
       horasAsociadas: typeof ov.horasAsociadas === 'number' ? ov.horasAsociadas : 0,
+      horasPorRol: ov.horasPorRol ? {
+        supervisor: typeof ov.horasPorRol.supervisor === 'number' ? ov.horasPorRol.supervisor : 0,
+        coordinador: typeof ov.horasPorRol.coordinador === 'number' ? ov.horasPorRol.coordinador : 0,
+        sac: typeof ov.horasPorRol.sac === 'number' ? ov.horasPorRol.sac : 0,
+        contents: typeof ov.horasPorRol.contents === 'number' ? ov.horasPorRol.contents : 0,
+        contentd: typeof ov.horasPorRol.contentd === 'number' ? ov.horasPorRol.contentd : 0,
+      } : undefined,
       fechaEmision: ov.fechaEmision || draft.startDate || new Date().toISOString().split('T')[0],
       descripcion: ov.descripcion || 'Orden de Venta',
       estado: ov.estado || 'activa'
@@ -811,31 +1136,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                     />
                   </div>
 
-                  {/* Etiquetas Predefinidas */}
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 mb-3">Etiquetas del Proyecto</label>
-                    <div className="space-y-3">
-                      {Object.entries(PREDEFINED_TAGS).map(([category, tagList]) => (
-                        <div key={category} className="flex flex-wrap gap-2 items-center">
-                          <span className="text-[10px] font-black text-slate-400 uppercase w-20">{category}:</span>
-                          {tagList.map(tag => (
-                            <button
-                              key={tag}
-                              type="button"
-                              onClick={() => toggleTag(tag)}
-                              className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all border cursor-pointer ${
-                                draft.tags.includes(tag) 
-                                  ? 'bg-cyan-500 text-white border-cyan-600 shadow-xs' 
-                                  : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                              }`}
-                            >
-                              {tag}
-                            </button>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+
                 </div>
               )}
 

@@ -671,14 +671,29 @@ export default function PhaseContent({
   }
   const finalHealth = Math.min(100, Math.max(15, calculatedHealth));
 
+  const isProveedor = userRole === 'proveedor' || currentUser?.role === 'proveedor';
+  const visiblePhases = isProveedor
+    ? project.phases.filter((p) => {
+        if (currentUser?.fasesAsignadas && currentUser.fasesAsignadas.length > 0) {
+          return currentUser.fasesAsignadas.some(
+            (fa) => fa === p.id || fa.toLowerCase() === p.label?.toLowerCase() || p.id.toLowerCase().includes(fa.toLowerCase())
+          );
+        }
+        const pLabel = (p.label || '').toLowerCase();
+        const pId = (p.id || '').toLowerCase();
+        return pLabel.includes('sprint') || pLabel.includes('qa') || pLabel.includes('desarrollo') || pId === 'a5' || pId === 'a6' || p.status === 'active';
+      })
+    : project.phases;
+
   return (
     <main className="flex flex-col h-full overflow-hidden bg-white" id="phase-content-wrapper">
       
       {/* 1. TOP SUB-NAV PHASE PILLS BAR */}
       <div className="bg-slate-100/90 border-b border-slate-200/80 px-6 py-2 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0" id="phase-pills-bar">
-        {project.phases.map((p, pIdx) => {
+        {visiblePhases.map((p) => {
+          const pIdx = project.phases.findIndex((item) => item.id === p.id);
           const isActive = p.id === activePhase.id;
-          const cleanPTitle = getCleanPhaseTitle(p.label, p.id, pIdx);
+          const cleanPTitle = getCleanPhaseTitle(p.label, p.id, pIdx >= 0 ? pIdx : 0);
           return (
             <button
               key={p.id}
@@ -802,7 +817,7 @@ export default function PhaseContent({
             <div className="space-y-6" id="phase-tab-content">
               
               {/* 4 KPI CARDS ROW */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" id="kpi-cards-grid">
+              <div className={`grid grid-cols-1 sm:grid-cols-2 ${isProveedor ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-4`} id="kpi-cards-grid">
                 {/* Card 1: SALUD DEL PROYECTO */}
                 <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
                   <div className="flex items-center justify-between">
@@ -896,27 +911,29 @@ export default function PhaseContent({
                   </div>
                 </div>
 
-                {/* Card 4: COSTO ESTIMADO */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-                      <DollarSign className="w-4 h-4" />
+                {/* Card 4: COSTO ESTIMADO (Oculto para proveedor) */}
+                {!isProveedor && (
+                  <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs flex flex-col justify-between space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+                        <DollarSign className="w-4 h-4" />
+                      </div>
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                        COSTO ESTIMADO
+                      </span>
                     </div>
-                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-                      COSTO ESTIMADO
-                    </span>
+                    <div className="space-y-2">
+                      <div className="text-xl font-black text-slate-900 tracking-tight">
+                        ${(project.totalIncome || 16991).toLocaleString('es-CL')}{' '}
+                        <span className="text-xs text-slate-400 font-bold">USD</span>
+                      </div>
+                      <div className="text-[10px] text-slate-500 font-semibold bg-slate-50 p-2 rounded-xl border border-slate-100 flex items-center justify-between">
+                        <span className="text-slate-400">Presupuesto Base</span>
+                        <strong className="text-slate-700 font-bold">$3.627,20 USD</strong>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <div className="text-xl font-black text-slate-900 tracking-tight">
-                      ${(project.totalIncome || 16991).toLocaleString('es-CL')}{' '}
-                      <span className="text-xs text-slate-400 font-bold">USD</span>
-                    </div>
-                    <div className="text-[10px] text-slate-500 font-semibold bg-slate-50 p-2 rounded-xl border border-slate-100 flex items-center justify-between">
-                      <span className="text-slate-400">Presupuesto Base</span>
-                      <strong className="text-slate-700 font-bold">$3.627,20 USD</strong>
-                    </div>
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* SECTION HEADER */}

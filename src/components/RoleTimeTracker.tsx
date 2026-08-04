@@ -31,6 +31,7 @@ export const RoleTimeTracker: React.FC<Props> = ({
   const [showBudgetEditor, setShowBudgetEditor] = useState(false);
 
   // Form states for updating budget
+  const [allocatedSupervisor, setAllocatedSupervisor] = useState(project.budget?.supervisor?.allocated || 0);
   const [allocatedCoord, setAllocatedCoord] = useState(project.budget?.coordinador?.allocated || 0);
   const [allocatedSac, setAllocatedSac] = useState(project.budget?.sac?.allocated || 0);
   const [allocatedContentS, setAllocatedContentS] = useState(project.budget?.contents?.allocated || 0);
@@ -105,6 +106,10 @@ export const RoleTimeTracker: React.FC<Props> = ({
   const handleSaveBudget = () => {
     if (!onUpdateBudget) return;
     const newBudget: ProjectBudget = {
+      supervisor: {
+        allocated: allocatedSupervisor,
+        consumed: project.budget?.supervisor?.consumed || 0
+      },
       coordinador: { 
         allocated: allocatedCoord, 
         consumed: project.budget?.coordinador?.consumed || 0 

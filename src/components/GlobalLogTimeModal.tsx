@@ -27,9 +27,16 @@ export const GlobalLogTimeModal: React.FC<GlobalLogTimeModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  // Filter projects where current user is a member (or all projects if coordinator)
+  // Filter projects where current user is a member or assigned proveedor
   const userProjects = projects.filter(p => {
     if (currentUser.role === 'coordinador') return true;
+    if (currentUser.role === 'proveedor') {
+      const isAssigned = currentUser.proyectosAsignados && currentUser.proyectosAsignados.length > 0
+        ? currentUser.proyectosAsignados.includes(p.id)
+        : false;
+      const isMember = p.members?.some(m => m.id === currentUser.id || m.userId === currentUser.id || m.name?.toLowerCase() === currentUser.username.toLowerCase());
+      return isAssigned || isMember;
+    }
     return p.members?.some(m => m.id === currentUser.id || m.name?.toLowerCase() === currentUser.username.toLowerCase());
   });
 

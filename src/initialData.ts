@@ -136,6 +136,7 @@ export function createDefaultBudget(totalHours: number = 100): ProjectBudget {
   const sac = Math.round(totalHours * 0.35);
   const contentd = Math.round(totalHours * 0.40);
   return {
+    supervisor: { allocated: 0, consumed: 0 },
     coordinador: { allocated: coord, consumed: Math.round(coord * 0.6) },
     sac: { allocated: sac, consumed: Math.round(sac * 0.5) },
     contents: { allocated: 0, consumed: 0 },
@@ -180,6 +181,30 @@ export const INITIAL_PROJECTS: Project[] = [
     clientName: 'Famosa',
     clientContact: 'Contacto Famosa',
     description: 'Estrategia gráfica, rediseño de identidad de marca y nuevos empaques corporativos.',
+    ovNumber: 'OV-FAM-2026-01',
+    saleOrderNumber: 'OV-FAM-2026-01',
+    totalIncome: 4800,
+    currency: 'USD',
+    ordenesVenta: [
+      {
+        id: 'ov-p1-1',
+        numero: 'OV-FAM-2026-01',
+        monto: 3600,
+        moneda: 'USD',
+        horasAsociadas: 70,
+        fechaEmision: '2026-07-01',
+        estado: 'facturada'
+      },
+      {
+        id: 'ov-p1-2',
+        numero: 'OV-FAM-2026-01-ADD1',
+        monto: 1200,
+        moneda: 'USD',
+        horasAsociadas: 20,
+        fechaEmision: '2026-07-20',
+        estado: 'facturada'
+      }
+    ],
     activePhaseId: 'A5',
     health: 95,
     hoursTotal: 90,

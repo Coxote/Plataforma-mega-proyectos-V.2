@@ -1,23 +1,32 @@
-export type Role = 'coordinador' | 'sac' | 'contents' | 'contentd' | 'invitado';
+export type Role = 'supervisor' | 'coordinador' | 'sac' | 'contents' | 'contentd' | 'proveedor' | 'invitado' | 'director_financiero';
 
 export const ROLE_LABELS: Record<Role, string> = {
-  coordinador: 'Supervisor',
-  sac: 'PM',
-  contents: 'Social media',
+  supervisor: 'Supervisor',
+  coordinador: 'Coordinador PM',
+  sac: 'SAC / Consultor',
+  contents: 'Social Media',
   contentd: 'Diseñador',
-  invitado: 'Invitado'
+  proveedor: 'Proveedor Externo',
+  invitado: 'Invitado',
+  director_financiero: 'Director Financiero'
 };
 
 export const ROLE_HOURLY_RATES: Record<Role, number> = {
+  supervisor: 45.00,
   coordinador: 40.00,
   sac: 35.50,
   contents: 28.11,
   contentd: 33.19,
-  invitado: 0.00
+  proveedor: 0.00, // Tarifa variable configurada por proveedor
+  invitado: 0.00,
+  director_financiero: 65.00
 };
 
 export const getUserAvatarUrl = (username: string): string => {
   const name = username.toLowerCase();
+  if (name.includes('sofia') || name.includes('sofía') || name.includes('finanzas') || name.includes('director')) {
+    return 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=256';
+  }
   if (name.includes('rodrigo') || name.includes('carlos')) {
     return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=256';
   }
@@ -63,6 +72,18 @@ export const getUserAvatarUrl = (username: string): string => {
   return fallbacks[index];
 };
 
+export interface UserLeave {
+  id: string;
+  userId?: string;
+  motivo: string;
+  fechaDesde: string;
+  fechaHasta: string;
+  todoElDia: boolean;
+  horaInicio?: string;
+  horaFin?: string;
+  observaciones?: string;
+}
+
 export interface UserSession {
   id: string;
   username: string;
@@ -70,6 +91,10 @@ export interface UserSession {
   role: Role;
   password?: string;
   projectId?: string; // Restringir invitado a un proyecto específico
+  proyectosAsignados?: string[]; // IDs de proyectos permitidos para proveedores o consultores
+  fasesAsignadas?: string[]; // IDs o nombres de fases permitidas para proveedores
+  tarifaHoraProveedor?: number; // Tarifa por hora acordada con el proveedor ($ / h)
+  empresaProveedor?: string; // Nombre de la empresa o agencia del proveedor
   capacidadMensualHoras?: number; // Capacidad mensual (default 176h)
   estado?: 'activo' | 'inactivo';
   lastLoginAt?: string;
@@ -102,7 +127,14 @@ export interface RoleBudget {
   consumed: number;
 }
 
-export type ProjectBudget = Record<Role, RoleBudget>;
+export type ProjectBudget = Partial<Record<Role, RoleBudget>> & {
+  coordinador: RoleBudget;
+  sac: RoleBudget;
+  contents: RoleBudget;
+  contentd: RoleBudget;
+  invitado: RoleBudget;
+  supervisor?: RoleBudget;
+};
 
 // 2. Auditoría Global (Todo movimiento)
 export interface AuditLogEntry {
@@ -253,10 +285,12 @@ export interface Phase {
 }
 
 export interface RoleHoursAllocation {
+  supervisor?: number;
   coordinador: number;
   sac: number;
   contents: number;
   contentd: number;
+  proveedor?: number;
 }
 
 export interface ProjectMember {
@@ -288,15 +322,28 @@ export interface Client {
   fechaAlta?: string;
 }
 
+export type EstadoOV = 'creada' | 'enviada' | 'bloqueada' | 'facturada';
+
 export interface OrdenVenta {
   id: string;
   numero: string;
+  subtotal?: number;
+  impuestos?: number;
+  comisiones?: number;
   monto: number;
   moneda: string;
   horasAsociadas: number;
+  horasPorRol?: {
+    supervisor?: number;
+    coordinador?: number;
+    sac?: number;
+    contents?: number;
+    contentd?: number;
+    proveedor?: number;
+  };
   fechaEmision: string;
   descripcion?: string;
-  estado: 'activa' | 'facturada' | 'cancelada';
+  estado: EstadoOV;
 }
 
 export interface CargaMensualUsuario {
