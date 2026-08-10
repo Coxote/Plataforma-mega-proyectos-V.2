@@ -39,13 +39,6 @@ export default function Login({ onLogin, usersList }: LoginProps) {
     }
   };
 
-  const handleDemoFill = (demoUser: string, demoPuesto: string) => {
-    setUsername(demoUser);
-    setPassword('123');
-    setPuesto(demoPuesto);
-    setError(null);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -217,63 +210,6 @@ export default function Login({ onLogin, usersList }: LoginProps) {
                 Acceder al Hub Digital
               </button>
             </form>
-          </div>
-
-          {/* Quick Fill Demos */}
-          <div className="mt-8 border-t border-slate-100 pt-6 space-y-3">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              Accesos de Prueba
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => handleDemoFill('sofia', 'Director Financiero')}
-                className="px-2.5 py-1.5 bg-emerald-50/90 hover:bg-emerald-100/80 border border-emerald-300 rounded-xl text-[10.5px] font-bold text-emerald-950 text-left flex flex-col transition-all cursor-pointer shadow-2xs"
-              >
-                <span>Sofía</span>
-                <span className="text-[9px] text-emerald-700 font-extrabold truncate">Dir. Financiera</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoFill('carlos', 'Coordinador')}
-                className="px-2.5 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
-              >
-                <span>Carlos</span>
-                <span className="text-[9px] text-slate-400 font-medium truncate">Coordinador</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoFill('ana', 'SAC')}
-                className="px-2.5 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
-              >
-                <span>Ana</span>
-                <span className="text-[9px] text-slate-400 font-medium truncate">SAC</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoFill('proveedor', 'Proveedor')}
-                className="px-2.5 py-1.5 bg-amber-50/80 hover:bg-amber-100/60 border border-amber-200 rounded-xl text-[10.5px] font-bold text-amber-900 text-left flex flex-col transition-all cursor-pointer"
-              >
-                <span>Proveedor</span>
-                <span className="text-[9px] text-amber-600 font-medium truncate">Proveedor Dev</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoFill('lucia', 'ContentS')}
-                className="px-2.5 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
-              >
-                <span>Lucía</span>
-                <span className="text-[9px] text-slate-400 font-medium truncate">Content S</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoFill('pedro', 'ContentD')}
-                className="px-2.5 py-1.5 bg-white hover:border-orange-200 hover:bg-orange-50/50 border border-slate-200 rounded-xl text-[10.5px] font-bold text-slate-700 text-left flex flex-col transition-all cursor-pointer"
-              >
-                <span>Pedro</span>
-                <span className="text-[9px] text-slate-400 font-medium truncate">Content D</span>
-              </button>
-            </div>
           </div>
         </div>
 

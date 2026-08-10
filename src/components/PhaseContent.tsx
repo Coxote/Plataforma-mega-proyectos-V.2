@@ -1047,13 +1047,21 @@ export default function PhaseContent({
                         {/* Mark Completed Button */}
                         {userRole !== 'invitado' && (
                           <button
-                            onClick={handleMarkPhaseCompleted}
-                            disabled={activePhase.status === 'completed'}
-                            className={`font-bold px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-xs ${
+                            onClick={handleCompletePhaseClick}
+                            className={`font-bold px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer ${
                               activePhase.status === 'completed'
                                 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 cursor-default'
-                                : 'bg-lime-500 hover:bg-lime-600 text-slate-950 cursor-pointer'
+                                : (checklistTotal === 0 || checklistPercent === 100)
+                                ? 'bg-lime-500 hover:bg-lime-600 text-slate-950'
+                                : 'bg-amber-500 hover:bg-amber-600 text-white'
                             }`}
+                            title={
+                              activePhase.status === 'completed'
+                                ? 'Fase completada'
+                                : checklistPercent === 100
+                                ? 'Checklist al 100% - Lista para finalizar'
+                                : `Checklist al ${checklistPercent}% - Requiere 100% o Excepción Autorizada`
+                            }
                           >
                             {activePhase.status === 'completed' ? (
                               <>
@@ -1063,7 +1071,11 @@ export default function PhaseContent({
                             ) : (
                               <>
                                 <Check className="w-3.5 h-3.5" />
-                                Finalizar Fase
+                                <span>
+                                  {checklistTotal === 0 || checklistPercent === 100
+                                    ? 'Finalizar Fase (100%)'
+                                    : `Finalizar Fase (${checklistPercent}%)`}
+                                </span>
                               </>
                             )}
                           </button>

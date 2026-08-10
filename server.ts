@@ -11,10 +11,34 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
+// Rate Limiter para proteger los endpoints de la API (Máximo 20 peticiones por minuto por IP)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 minuto
+const RATE_LIMIT_MAX_REQUESTS = 20;
+
 // Middleware de seguridad para proteger los endpoints de la API de IA
 const API_AUTH_TOKEN = process.env.API_AUTH_TOKEN || 'mega-proyectos-secure-token-2026';
 
 app.use('/api', (req, res, next) => {
+  // 1. Rate Limiting Check
+  const clientIp = (req.headers['x-forwarded-for'] as string || req.socket.remoteAddress || 'unknown-ip').split(',')[0].trim();
+  const now = Date.now();
+
+  const record = rateLimitMap.get(clientIp);
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+  } else if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
+    const retryAfterSeconds = Math.ceil((record.resetTime - now) / 1000);
+    res.setHeader('Retry-After', retryAfterSeconds);
+    return res.status(429).json({
+      error: `Límite de peticiones excedido (máximo ${RATE_LIMIT_MAX_REQUESTS} peticiones por minuto). Por favor intente de nuevo en ${retryAfterSeconds} segundos.`,
+      retryAfterSeconds
+    });
+  } else {
+    record.count += 1;
+  }
+
+  // 2. Auth Token Check
   const token = req.headers['x-app-auth-token'];
   if (!token || token !== API_AUTH_TOKEN) {
     return res.status(401).json({ 
