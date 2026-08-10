@@ -35,6 +35,7 @@ import { EFFECTIVE_MONTHLY_CAPACITY } from '../dashboardUtils';
 interface MyProfileViewProps {
   currentUser: UserSession;
   projects: Project[];
+  onOpenOnboarding?: () => void;
 }
 
 const DEFAULT_LEAVES: UserLeave[] = [
@@ -94,7 +95,7 @@ const DEFAULT_LEAVES: UserLeave[] = [
   },
 ];
 
-export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, projects }) => {
+export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, projects, onOpenOnboarding }) => {
   const [activeTab, setActiveTab] = useState<'generales' | 'empleado' | 'adicionales' | 'vacaciones' | 'integraciones'>('vacaciones');
   const [filterProject, setFilterProject] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
@@ -530,14 +531,27 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                     <span>{currentUser.puesto || currentUser.role}</span>
                   </div>
 
-                  <button
-                    onClick={() => setIsChangingPhoto(!isChangingPhoto)}
-                    className="px-3 py-1.5 rounded-full bg-slate-900/90 hover:bg-slate-900 text-white font-extrabold text-[11px] backdrop-blur-md shadow-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105"
-                    title="Cambiar foto de perfil"
-                  >
-                    <Camera className="w-3.5 h-3.5 text-lime-400" />
-                    <span>{isChangingPhoto ? 'Cerrar' : 'Cambiar Foto'}</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {onOpenOnboarding && (
+                      <button
+                        onClick={onOpenOnboarding}
+                        className="px-3 py-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-amber-500 hover:opacity-95 text-white font-black text-[11px] backdrop-blur-md shadow-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105"
+                        title="Configurar preferencias de perfil"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-white" />
+                        <span>Onboarding / Preferencias</span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => setIsChangingPhoto(!isChangingPhoto)}
+                      className="px-3 py-1.5 rounded-full bg-slate-900/90 hover:bg-slate-900 text-white font-extrabold text-[11px] backdrop-blur-md shadow-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105"
+                      title="Cambiar foto de perfil"
+                    >
+                      <Camera className="w-3.5 h-3.5 text-lime-400" />
+                      <span>{isChangingPhoto ? 'Cerrar' : 'Cambiar Foto'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Change Photo Drawer */}

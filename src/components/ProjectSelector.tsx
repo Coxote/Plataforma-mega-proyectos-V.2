@@ -1,6 +1,6 @@
 import { Project } from '../types';
-import { FolderKanban, Plus, Trash2, FolderGit, AlertCircle, AlertTriangle } from 'lucide-react';
-import React from 'react';
+import { FolderKanban, Plus, Trash2, FolderGit, AlertCircle, AlertTriangle, Star } from 'lucide-react';
+import React, { useState } from 'react';
 
 interface ProjectSelectorProps {
   projects: Project[];
@@ -11,6 +11,7 @@ interface ProjectSelectorProps {
   userRole: 'coordinador' | 'sac' | 'contents' | 'contentd' | 'invitado';
   overdueProjectIds?: Set<string>;
   approachingProjectIds?: Set<string>;
+  followedProjectIds?: string[];
 }
 
 export default function ProjectSelector({
@@ -22,11 +23,26 @@ export default function ProjectSelector({
   userRole,
   overdueProjectIds = new Set(),
   approachingProjectIds = new Set(),
+  followedProjectIds = [],
 }: ProjectSelectorProps) {
+  const [filterFollowedOnly, setFilterFollowedOnly] = useState(false);
 
   const activeProject = projects.find((p) => p.id === activeProjectId);
   const isActiveOverdue = activeProject && overdueProjectIds.has(activeProject.id);
   const isActiveApproaching = activeProject && approachingProjectIds.has(activeProject.id);
+
+  // Sort projects: Followed first, then others
+  const sortedProjects = [...projects].sort((a, b) => {
+    const aFollowed = followedProjectIds.includes(a.id);
+    const bFollowed = followedProjectIds.includes(b.id);
+    if (aFollowed && !bFollowed) return -1;
+    if (!aFollowed && bFollowed) return 1;
+    return 0;
+  });
+
+  const displayedProjects = filterFollowedOnly
+    ? sortedProjects.filter((p) => followedProjectIds.includes(p.id))
+    : sortedProjects;
 
   return (
     <div className="border-b border-slate-200 bg-white" id="project-selector-container">
@@ -54,31 +70,54 @@ export default function ProjectSelector({
               {isActiveOverdue && (
                 <span className="text-[9px] font-black uppercase px-1.5 py-0.2 bg-rose-600 text-white rounded">Vencido</span>
               )}
+              {activeProject && followedProjectIds.includes(activeProject.id) && (
+                <span className="text-[9px] font-black uppercase px-1.5 py-0.2 bg-amber-100 text-amber-800 border border-amber-300 rounded flex items-center gap-0.5">
+                  <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" /> Seguido
+                </span>
+              )}
             </div>
             <h3 className="font-bold text-sm text-slate-900 truncate">
               {activeProject ? activeProject.name : 'Seleccionar...'}
             </h3>
           </div>
         </div>
-        {(userRole === 'coordinador' || userRole === 'sac') && (
-          <button
-            onClick={onAddProject}
-            className="p-2 text-slate-500 hover:text-lime-600 hover:bg-lime-50 rounded-lg transition-colors cursor-pointer"
-            title="Nuevo Proyecto"
-            id="btn-add-project"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {followedProjectIds.length > 0 && (
+            <button
+              onClick={() => setFilterFollowedOnly(!filterFollowedOnly)}
+              className={`p-1.5 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition-all cursor-pointer ${
+                filterFollowedOnly
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                  : 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
+              }`}
+              title={filterFollowedOnly ? "Mostrar todos los proyectos" : "Filtrar por mis proyectos seguidos"}
+            >
+              <Star className={`w-3.5 h-3.5 ${filterFollowedOnly ? 'fill-amber-500 text-amber-500' : ''}`} />
+              <span className="hidden sm:inline">Seguidos</span>
+            </button>
+          )}
+
+          {(userRole === 'coordinador' || userRole === 'sac') && (
+            <button
+              onClick={onAddProject}
+              className="p-2 text-slate-500 hover:text-lime-600 hover:bg-lime-50 rounded-lg transition-colors cursor-pointer"
+              title="Nuevo Proyecto"
+              id="btn-add-project"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Project Switcher List */}
       <div className="px-3 pb-3 max-h-40 overflow-y-auto space-y-1 border-t border-slate-100 pt-2" id="project-list">
-        {projects.map((project) => {
+        {displayedProjects.map((project) => {
           const isActive = project.id === activeProjectId;
           const completedPhases = project.phases.filter((p) => p.status === 'completed').length;
           const isOverdue = overdueProjectIds.has(project.id);
           const isApproaching = approachingProjectIds.has(project.id);
+          const isFollowed = followedProjectIds.includes(project.id);
           
           return (
             <div
@@ -107,6 +146,9 @@ export default function ProjectSelector({
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <p className="truncate font-semibold">{project.name}</p>
+                    {isFollowed && (
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" title="Proyecto Seguido" />
+                    )}
                     {isOverdue && (
                       <span className="text-[9px] font-black px-1 py-0.2 bg-rose-600 text-white rounded shrink-0">SLA Vencido</span>
                     )}

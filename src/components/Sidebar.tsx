@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Project, Role } from '../types';
+import { Project, Role, UserSession } from '../types';
 import { TppLogo } from './TppLogo';
 import { 
   Plus, 
@@ -11,7 +11,8 @@ import {
   X,
   Pin,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  Star
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,6 +26,7 @@ interface SidebarProps {
   approachingProjectIds?: Set<string>;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  currentUser?: UserSession;
 }
 
 export default function Sidebar({
@@ -37,7 +39,8 @@ export default function Sidebar({
   overdueProjectIds = new Set(),
   approachingProjectIds = new Set(),
   isCollapsed,
-  onToggleCollapse
+  onToggleCollapse,
+  currentUser
 }: SidebarProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const PINNED_KEY = 'saas_phase_system_pinned_projects_v2';
@@ -229,8 +232,11 @@ export default function Sidebar({
                 {!isCollapsed && (
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-1.5">
-                      <span className={`text-xs truncate block ${isActive ? 'text-slate-900 font-bold' : 'font-semibold text-slate-800'}`}>
-                        {project.name}
+                      <span className={`text-xs truncate flex items-center gap-1 ${isActive ? 'text-slate-900 font-bold' : 'font-semibold text-slate-800'}`}>
+                        {currentUser?.preferences?.followedProjectIds?.includes(project.id) && (
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" title="Proyecto Seguido" />
+                        )}
+                        <span className="truncate">{project.name}</span>
                       </span>
                       {/* Text-only status label as requested */}
                       <span className={`text-[10px] ${badgeTextStyle} shrink-0`}>

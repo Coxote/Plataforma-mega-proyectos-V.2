@@ -113,7 +113,16 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
   const [assignedFilter, setAssignedFilter] = useState<string>('todos');
 
   // Active view mode: 'list' | 'calendar' | 'cards' | 'kanban'
-  const [plannerViewMode, setPlannerViewMode] = useState<'list' | 'calendar' | 'cards' | 'kanban'>('list');
+  const [plannerViewMode, setPlannerViewMode] = useState<'list' | 'calendar' | 'cards' | 'kanban'>(
+    currentUser?.preferences?.defaultView || 'list'
+  );
+
+  // Sync plannerViewMode when user preferences change
+  useEffect(() => {
+    if (currentUser?.preferences?.defaultView) {
+      setPlannerViewMode(currentUser.preferences.defaultView);
+    }
+  }, [currentUser?.preferences?.defaultView]);
   
   // Configurable team limit per task (default 2)
   const [maxMembersPerTask, setMaxMembersPerTask] = useState<number>(2);

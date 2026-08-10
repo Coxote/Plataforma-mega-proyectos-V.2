@@ -84,6 +84,93 @@ export interface UserLeave {
   observaciones?: string;
 }
 
+export interface UserPreferences {
+  defaultView: 'list' | 'kanban' | 'calendar' | 'cards';
+  followedProjectIds: string[];
+  onboardingCompletedAt?: string;
+}
+
+export interface SyncLogEntry {
+  id: string;
+  source: 'odoo' | 'teams' | 'sharepoint' | 'outlook';
+  status: 'success' | 'error' | 'pending';
+  timestamp: string;
+  message?: string;
+  details?: string;
+}
+
+export interface IntegrationConfig {
+  source: 'odoo' | 'teams' | 'outlook' | 'sharepoint';
+  connected: boolean;
+  connectedAt?: string;
+  lastSync?: SyncLogEntry;
+  configuredBy?: string;
+  endpointUrl?: string;
+}
+
+export interface AutomationRule {
+  id: string;
+  name: string;
+  triggerEvent: 'deliverable.rework' | 'sla.vencido' | 'phase.completed' | 'deliverable.approaching_deadline' | 'time_entry.logged';
+  actionTarget: 'teams_channel' | 'odoo_log' | 'outlook_event' | 'sharepoint_sync' | 'webhook_custom';
+  enabled: boolean;
+  createdByName: string;
+  lastTriggeredAt?: string;
+  executionCount: number;
+  customWebhookUrl?: string;
+}
+
+export interface WebhookEndpoint {
+  id: string;
+  name: string;
+  url: string;
+  events: string[];
+  secretKey: string;
+  status: 'active' | 'paused' | 'failed';
+  lastStatusCode?: number;
+  lastLatencyMs?: number;
+  lastDeliveryAt?: string;
+}
+
+export interface WebhookDeliveryLog {
+  id: string;
+  webhookId: string;
+  eventName: string;
+  payload: Record<string, unknown>;
+  statusCode: number;
+  responseBody: string;
+  latencyMs: number;
+  timestamp: string;
+}
+
+export interface ScenarioSimulationParams {
+  reworkIncreasePct: number;
+  hourlyRateMultiplier: number;
+  slaDelayDays: number;
+  bufferContingencyPct: number;
+}
+
+export interface ScenarioSimulationResult {
+  projectedRevenue: number;
+  projectedCost: number;
+  projectedProfit: number;
+  projectedMarginPct: number;
+  deltaProfit: number;
+  recommendedOVAdjustment: number;
+  riskLevel: 'Bajo' | 'Moderado' | 'Alto' | 'Crítico';
+}
+
+export interface PredictiveProjectRisk {
+  projectId: string;
+  projectName: string;
+  clientName: string;
+  healthScore: number;
+  reworkRiskPct: number;
+  slaBreachProbability: number;
+  mainRiskFactor: string;
+  suggestedMitigation: string;
+}
+
 export interface UserSession {
   id: string;
   username: string;
@@ -98,6 +185,7 @@ export interface UserSession {
   capacidadMensualHoras?: number; // Capacidad mensual (default 176h)
   estado?: 'activo' | 'inactivo';
   lastLoginAt?: string;
+  preferences?: UserPreferences;
 }
 
 export type TimeEntryType = 'normal' | 'retrabajo' | 'no_facturable';

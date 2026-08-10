@@ -18,14 +18,17 @@ import {
   ChevronRight,
   PanelLeftClose,
   PanelLeftOpen,
-  DollarSign
+  DollarSign,
+  Sparkles,
+  Plug,
+  BrainCircuit
 } from 'lucide-react';
 import { Project, UserSession, TimeEntryType, getUserAvatarUrl } from '../types';
 import { TppLogo } from './TppLogo';
 import { AIAssistantModal } from './AIAssistantModal';
 import { GlobalLogTimeModal } from './GlobalLogTimeModal';
 
-export type ViewState = 'dashboard' | 'planner' | 'team' | 'project' | 'gantt' | 'clients' | 'profile' | 'financial';
+export type ViewState = 'dashboard' | 'planner' | 'team' | 'project' | 'gantt' | 'clients' | 'profile' | 'financial' | 'integrations' | 'predictive';
 
 interface MainLayoutProps {
   currentUser: UserSession;
@@ -44,6 +47,7 @@ interface MainLayoutProps {
     retrabajoOrigen?: 'cliente' | 'interno' | 'proveedor',
     retrabajoMotivo?: string
   ) => void;
+  onOpenOnboarding?: () => void;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ 
@@ -54,7 +58,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   onNavigate,
   projects,
   users,
-  onLogTimeGlobal
+  onLogTimeGlobal,
+  onOpenOnboarding
 }) => {
   const [isAIAssistantOpen, setIsAIAssistantOpen] = useState(false);
   const [isGlobalLogTimeOpen, setIsGlobalLogTimeOpen] = useState(false);
@@ -264,6 +269,36 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 {!isCollapsed && <span>Salud Financiera</span>}
               </button>
             )}
+
+            {(currentUser.role === 'coordinador' || currentUser.role === 'director_financiero') && (
+              <button 
+                onClick={() => handleNavClick('integrations')}
+                title="Integraciones"
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                  currentView === 'integrations' 
+                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                }`}
+              >
+                <Plug className="w-4 h-4 shrink-0 text-amber-400" />
+                {!isCollapsed && <span>Integraciones</span>}
+              </button>
+            )}
+
+            {(currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') && (
+              <button 
+                onClick={() => handleNavClick('predictive')}
+                title="Simulador IA"
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                  currentView === 'predictive' 
+                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                }`}
+              >
+                <BrainCircuit className="w-4 h-4 shrink-0 text-amber-400" />
+                {!isCollapsed && <span>Simulador Predictivo</span>}
+              </button>
+            )}
           </div>
 
         </nav>
@@ -312,6 +347,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             </div>
           )}
         </div>
+
+        {onOpenOnboarding && (
+          <button
+            onClick={onOpenOnboarding}
+            title="Configurar perfil y preferencias"
+            className={`flex items-center text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded-full transition-colors cursor-pointer text-xs font-semibold ${
+              isCollapsed ? 'w-10 h-10 justify-center mx-auto p-0' : 'w-full px-3 py-1.5 gap-2 min-h-[34px]'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+            {!isCollapsed && <span>Configurar Perfil</span>}
+          </button>
+        )}
 
         <button 
           onClick={() => {

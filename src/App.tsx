@@ -14,9 +14,12 @@ import { GanttView } from './components/GanttView';
 import { ClientsManagement } from './components/ClientsManagement';
 import { MyProfileView } from './components/MyProfileView';
 import { FinancialDashboard } from './components/FinancialDashboard';
+import { IntegrationsPanel } from './components/IntegrationsPanel';
+import { PredictiveAnalyticsPanel } from './components/PredictiveAnalyticsPanel';
 import { Sparkles, Shield, Users, LogOut, Activity, Briefcase } from 'lucide-react';
 import { generatePhasesForTemplate } from './projectTemplates';
 import { NewProjectWizard } from './components/NewProjectWizard';
+import { OnboardingModal } from './components/OnboardingModal';
 import { useDeliverableMonitoring } from './hooks/useDeliverableMonitoring';
 
 const DEMO_VERSION_KEY = 'saas_phase_system_demo_v5_clean';
@@ -124,7 +127,15 @@ export default function App() {
   const [currentView, setCurrentView] = useState<ViewState>('planner');
   const [clients, setClients] = useState<Client[]>([]);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const isInitialized = useRef(false);
+
+  // Trigger Onboarding modal if logged-in user hasn't completed onboarding preferences
+  useEffect(() => {
+    if (currentUser && !currentUser.preferences?.onboardingCompletedAt) {
+      setIsOnboardingOpen(true);
+    }
+  }, [currentUser?.id, currentUser?.preferences?.onboardingCompletedAt]);
 
   // Hook de monitoreo de entregables y SLAs del sistema
   const deliverableMonitoring = useDeliverableMonitoring(projects);
@@ -736,12 +747,14 @@ export default function App() {
       projects={visibleProjects}
       users={usersList}
       onLogTimeGlobal={handleLogTimeGlobal}
+      onOpenOnboarding={() => setIsOnboardingOpen(true)}
     >
       {currentView === 'profile' ? (
         <div className="flex-1 overflow-y-auto h-full">
           <MyProfileView
             currentUser={currentUser}
             projects={visibleProjects}
+            onOpenOnboarding={() => setIsOnboardingOpen(true)}
           />
         </div>
       ) : currentView === 'dashboard' && currentUser.role === 'coordinador' ? (
@@ -797,6 +810,18 @@ export default function App() {
             currentUser={currentUser}
           />
         </div>
+      ) : currentView === 'integrations' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero') ? (
+        <div className="flex-1 overflow-y-auto h-full">
+          <IntegrationsPanel currentUser={currentUser} />
+        </div>
+      ) : currentView === 'predictive' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') ? (
+        <div className="flex-1 overflow-y-auto h-full">
+          <PredictiveAnalyticsPanel 
+            projects={projects} 
+            users={usersList} 
+            currentUser={currentUser} 
+          />
+        </div>
       ) : (
         <div className="flex-1 flex overflow-hidden h-full relative" id="workspace-columns">
           
@@ -812,6 +837,7 @@ export default function App() {
             approachingProjectIds={deliverableMonitoring.approachingProjectIds}
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            currentUser={currentUser}
           />
 
           {/* MAIN WORKSPACE */}
@@ -861,6 +887,15 @@ export default function App() {
         onCreateProject={handleAddProject}
         users={usersList}
         registeredClients={clients}
+      />
+
+      {/* PREMIUM ONBOARDING EXPERIENCE MODAL */}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        currentUser={currentUser}
+        projects={visibleProjects}
+        onSavePreferences={handleUpdateUser}
       />
     </MainLayout>
   );
