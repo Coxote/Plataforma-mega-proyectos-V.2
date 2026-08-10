@@ -112,6 +112,12 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
   const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [assignedFilter, setAssignedFilter] = useState<string>('todos');
 
+  // Active view mode: 'list' | 'calendar' | 'cards' | 'kanban'
+  const [plannerViewMode, setPlannerViewMode] = useState<'list' | 'calendar' | 'cards' | 'kanban'>('list');
+  
+  // Configurable team limit per task (default 2)
+  const [maxMembersPerTask, setMaxMembersPerTask] = useState<number>(2);
+
   // Custom hook for KPI Side Panel interactive drill-down
   const kpiPanel = useKpiSidePanel();
 
@@ -133,8 +139,8 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
     if (formAssignedUsers.includes(userId)) {
       setFormAssignedUsers(formAssignedUsers.filter(id => id !== userId));
     } else {
-      if (formAssignedUsers.length >= 2) {
-        setFormAssignedUsers([formAssignedUsers[1], userId]);
+      if (formAssignedUsers.length >= maxMembersPerTask) {
+        setFormAssignedUsers([...formAssignedUsers.slice(1), userId]);
       } else {
         setFormAssignedUsers([...formAssignedUsers, userId]);
       }
@@ -161,15 +167,15 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTasks));
   };
 
-  // Assign user to a task (supports max 2 users)
+  // Assign user to a task (supports configurable max members)
   const handleAssignTask = (taskId: string, userId: string) => {
     const updated = tasks.map(t => {
       if (t.id === taskId) {
         const currentArr = t.assignedToUsers || (t.assignedTo ? [t.assignedTo] : []);
         if (!currentArr.includes(userId)) {
           let newArr = [...currentArr, userId];
-          if (newArr.length > 2) {
-            newArr = newArr.slice(newArr.length - 2); // strictly max 2 members
+          if (newArr.length > maxMembersPerTask) {
+            newArr = newArr.slice(newArr.length - maxMembersPerTask);
           }
           return { ...t, assignedToUsers: newArr, assignedTo: newArr[0] };
         }
@@ -742,20 +748,51 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
           
           {/* Tabs switchers (Calendar, List, Cards, Kanban) */}
           <div className="flex items-center gap-1 bg-slate-100/80 p-1 rounded-xl text-xs font-bold text-slate-600">
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white text-slate-900 shadow-2xs border border-slate-200/80 cursor-pointer">
+            <button 
+              onClick={() => setPlannerViewMode('list')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer transition-all ${
+                plannerViewMode === 'list' 
+                  ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/80 font-black' 
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
               <ListFilter className="w-3.5 h-3.5 text-pink-600" />
               <span>Lista</span>
             </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 cursor-pointer transition-colors">
-              <Calendar className="w-3.5 h-3.5" />
+
+            <button 
+              onClick={() => setPlannerViewMode('calendar')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer transition-all ${
+                plannerViewMode === 'calendar' 
+                  ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/80 font-black' 
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5 text-indigo-600" />
               <span>Calendario</span>
             </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 cursor-pointer transition-colors">
-              <Layers className="w-3.5 h-3.5" />
+
+            <button 
+              onClick={() => setPlannerViewMode('cards')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer transition-all ${
+                plannerViewMode === 'cards' 
+                  ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/80 font-black' 
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5 text-emerald-600" />
               <span>Tarjetas</span>
             </button>
-            <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-900 cursor-pointer transition-colors">
-              <BarChart3 className="w-3.5 h-3.5" />
+
+            <button 
+              onClick={() => setPlannerViewMode('kanban')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg cursor-pointer transition-all ${
+                plannerViewMode === 'kanban' 
+                  ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/80 font-black' 
+                  : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5 text-amber-600" />
               <span>Kanban</span>
             </button>
           </div>
@@ -774,6 +811,20 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                 className="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200/90 rounded-xl pl-9 pr-3 py-1.5 text-xs font-semibold text-slate-800 outline-none transition-all placeholder:text-slate-400"
               />
             </div>
+
+            {/* Configurable Max Members Selector */}
+            <select
+              value={maxMembersPerTask}
+              onChange={(e) => setMaxMembersPerTask(Number(e.target.value))}
+              title="Límite máximo de integrantes por tarea"
+              className="bg-amber-50/80 border border-amber-200 rounded-xl px-3 py-1.5 text-xs font-bold text-amber-900 outline-none cursor-pointer hover:bg-amber-100/80 transition-colors"
+            >
+              <option value={1}>Máx Equipo: 1</option>
+              <option value={2}>Máx Equipo: 2 (Default)</option>
+              <option value={3}>Máx Equipo: 3</option>
+              <option value={4}>Máx Equipo: 4</option>
+              <option value={5}>Máx Equipo: 5</option>
+            </select>
 
             {/* Status Filter */}
             <select
@@ -1077,157 +1128,378 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
           </div>
         )}
 
-        {/* Tabla Protask */}
-        <div className="overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs bg-white">
-          {filteredTasks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-12 text-center">
-              <HelpCircle className="w-10 h-10 text-slate-300 mb-2" />
-              <span className="font-bold text-sm text-slate-800 block">No hay pendientes que coincidan con los filtros</span>
-              <span className="text-xs text-slate-400 mt-1">Intenta cambiar la búsqueda o agrega una nueva tarea.</span>
-            </div>
-          ) : (
-            <table className="w-full text-left text-xs border-collapse font-sans">
-              <thead>
-                <tr className="bg-slate-50/80 text-slate-500 uppercase text-[10px] font-black tracking-wider border-b border-slate-200">
-                  <th className="p-3.5 w-10 text-center">
-                    <input type="checkbox" className="rounded border-slate-300 text-pink-600 focus:ring-pink-500 cursor-pointer" />
-                  </th>
-                  <th className="p-3.5">PROJECT NAME</th>
-                  <th className="p-3.5">START DATE</th>
-                  <th className="p-3.5">DEADLINE</th>
-                  <th className="p-3.5 text-center">HORAS</th>
-                  <th className="p-3.5 text-center">STATUS</th>
-                  <th className="p-3.5 text-center min-w-[120px]">EQUIPO (MÁX 2)</th>
-                  <th className="p-3.5 text-center">PRIORITY</th>
-                  <th className="p-3.5 text-right w-12">ACCIONES</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {filteredTasks.map(task => {
-                  const assignedUsersList = task.assignedToUsers || (task.assignedTo ? [task.assignedTo] : []);
+        {/* VISTAS DINÁMICAS: LISTA, KANBAN, CALENDARIO, TARJETAS */}
+        {plannerViewMode === 'list' && (
+          <div className="overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs bg-white">
+            {filteredTasks.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center">
+                <HelpCircle className="w-10 h-10 text-slate-300 mb-2" />
+                <span className="font-bold text-sm text-slate-800 block">No hay pendientes que coincidan con los filtros</span>
+                <span className="text-xs text-slate-400 mt-1">Intenta cambiar la búsqueda o agrega una nueva tarea.</span>
+              </div>
+            ) : (
+              <table className="w-full text-left text-xs border-collapse font-sans">
+                <thead>
+                  <tr className="bg-slate-50/80 text-slate-500 uppercase text-[10px] font-black tracking-wider border-b border-slate-200">
+                    <th className="p-3.5 w-10 text-center">
+                      <input type="checkbox" className="rounded border-slate-300 text-pink-600 focus:ring-pink-500 cursor-pointer" />
+                    </th>
+                    <th className="p-3.5">PROJECT NAME</th>
+                    <th className="p-3.5">START DATE</th>
+                    <th className="p-3.5">DEADLINE</th>
+                    <th className="p-3.5 text-center">HORAS</th>
+                    <th className="p-3.5 text-center">STATUS</th>
+                    <th className="p-3.5 text-center min-w-[120px]">EQUIPO (MÁX {maxMembersPerTask})</th>
+                    <th className="p-3.5 text-center">PRIORITY</th>
+                    <th className="p-3.5 text-right w-12">ACCIONES</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredTasks.map(task => {
+                    const assignedUsersList = task.assignedToUsers || (task.assignedTo ? [task.assignedTo] : []);
 
-                  // Format dates nicely like 16/07/2026
-                  const formatDateStr = (str: string) => {
-                    if (!str) return '16/07/2026';
-                    if (str.includes('-')) {
-                      const parts = str.split('-');
-                      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-                    }
-                    return str;
-                  };
+                    const formatDateStr = (str: string) => {
+                      if (!str) return '16/07/2026';
+                      if (str.includes('-')) {
+                        const parts = str.split('-');
+                        if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                      }
+                      return str;
+                    };
 
-                  return (
-                    <tr key={task.id} className="hover:bg-slate-50/70 transition-colors group">
-                      
-                      {/* Checkbox */}
-                      <td className="p-3.5 text-center">
-                        <input type="checkbox" className="rounded border-slate-300 text-pink-600 focus:ring-pink-500 cursor-pointer" />
-                      </td>
+                    return (
+                      <tr key={task.id} className="hover:bg-slate-50/70 transition-colors group">
+                        
+                        <td className="p-3.5 text-center">
+                          <input type="checkbox" className="rounded border-slate-300 text-pink-600 focus:ring-pink-500 cursor-pointer" />
+                        </td>
 
-                      {/* Project Name & Brand */}
-                      <td className="p-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 border border-pink-100 flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
-                            {task.brand.substring(0, 2).toUpperCase()}
+                        <td className="p-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 border border-pink-100 flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
+                              {task.brand.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                              <span className="font-bold text-slate-900 text-xs block leading-snug">
+                                {task.project}
+                              </span>
+                              <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+                                {task.brand}
+                              </span>
+                            </div>
                           </div>
-                          <div>
-                            <span className="font-bold text-slate-900 text-xs block leading-snug">
-                              {task.project}
-                            </span>
-                            <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
-                              {task.brand}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Start Date */}
-                      <td className="p-3.5 text-slate-600 font-semibold text-xs whitespace-nowrap">
-                        {formatDateStr(task.start)}
-                      </td>
+                        <td className="p-3.5 text-slate-600 font-semibold text-xs whitespace-nowrap">
+                          {formatDateStr(task.start)}
+                        </td>
 
-                      {/* Deadline */}
-                      <td className="p-3.5 text-slate-600 font-semibold text-xs whitespace-nowrap">
-                        {formatDateStr(task.deadline)}
-                      </td>
+                        <td className="p-3.5 text-slate-600 font-semibold text-xs whitespace-nowrap">
+                          {formatDateStr(task.deadline)}
+                        </td>
 
-                      {/* Horas */}
-                      <td className="p-3.5 text-center font-mono font-extrabold text-slate-700">
-                        {task.estimatedHours ? `${task.estimatedHours}h` : '---'}
-                      </td>
+                        <td className="p-3.5 text-center font-mono font-extrabold text-slate-700">
+                          {task.estimatedHours ? `${task.estimatedHours}h` : '---'}
+                        </td>
 
-                      {/* Status */}
-                      <td className="p-3.5 text-center">
-                        <select
-                          value={task.status}
-                          onChange={(e) => handleStatusChange(task.id, e.target.value as any)}
-                          className={`px-3 py-1 rounded-full text-[10px] font-extrabold outline-none cursor-pointer border transition-all ${
-                            task.status === 'completado'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : task.status === 'proceso'
-                              ? 'bg-sky-50 text-sky-700 border-sky-200'
-                              : 'bg-amber-50 text-amber-700 border-amber-200'
-                          }`}
-                        >
-                          <option value="pendiente">Brief / Pendiente</option>
-                          <option value="proceso">Diseño / En Proceso</option>
-                          <option value="completado">Completado</option>
-                        </select>
-                      </td>
-
-                      {/* Equipo (Solo Avatares Redondeados - Máx 2) */}
-                      <td className="p-3.5 text-center">
-                        <DroppableTaskCell
-                          taskId={task.id}
-                          assignedUserIds={assignedUsersList}
-                          users={operatorsList}
-                          onAssign={handleAssignTask}
-                          onUnassign={handleUnassignTask}
-                          getUserColor={getUserColor}
-                        />
-                      </td>
-
-                      {/* Priority */}
-                      <td className="p-3.5 text-center">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                          task.priority === 'alta' ? 'bg-rose-50 text-rose-700' :
-                          task.priority === 'baja' ? 'bg-sky-50 text-sky-700' :
-                          'bg-amber-50 text-amber-700'
-                        }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${
-                            task.priority === 'alta' ? 'bg-rose-500' :
-                            task.priority === 'baja' ? 'bg-sky-500' :
-                            'bg-amber-500'
-                          }`} />
-                          {task.priority === 'alta' ? 'High' : task.priority === 'baja' ? 'Low' : 'Medium'}
-                        </span>
-                      </td>
-
-                      {/* Acciones */}
-                      <td className="p-3.5 text-right">
-                        {currentUser.role === 'coordinador' && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (confirm('¿Eliminar este pendiente?')) {
-                                handleDeleteTask(task.id);
-                              }
-                            }}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
-                            title="Eliminar tarea"
+                        <td className="p-3.5 text-center">
+                          <select
+                            value={task.status}
+                            onChange={(e) => handleStatusChange(task.id, e.target.value as any)}
+                            className={`px-3 py-1 rounded-full text-[10px] font-extrabold outline-none cursor-pointer border transition-all ${
+                              task.status === 'completado'
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : task.status === 'proceso'
+                                ? 'bg-sky-50 text-sky-700 border-sky-200'
+                                : 'bg-amber-50 text-amber-700 border-amber-200'
+                            }`}
                           >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </td>
+                            <option value="pendiente">Brief / Pendiente</option>
+                            <option value="proceso">Diseño / En Proceso</option>
+                            <option value="completado">Completado</option>
+                          </select>
+                        </td>
 
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          )}
-        </div>
+                        <td className="p-3.5 text-center">
+                          <DroppableTaskCell
+                            taskId={task.id}
+                            assignedUserIds={assignedUsersList}
+                            users={operatorsList}
+                            onAssign={handleAssignTask}
+                            onUnassign={handleUnassignTask}
+                            getUserColor={getUserColor}
+                          />
+                        </td>
+
+                        <td className="p-3.5 text-center">
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            task.priority === 'alta' ? 'bg-rose-50 text-rose-700' :
+                            task.priority === 'baja' ? 'bg-sky-50 text-sky-700' :
+                            'bg-amber-50 text-amber-700'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${
+                              task.priority === 'alta' ? 'bg-rose-500' :
+                              task.priority === 'baja' ? 'bg-sky-500' :
+                              'bg-amber-500'
+                            }`} />
+                            {task.priority === 'alta' ? 'High' : task.priority === 'baja' ? 'Low' : 'Medium'}
+                          </span>
+                        </td>
+
+                        <td className="p-3.5 text-right">
+                          {currentUser.role === 'coordinador' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (confirm('¿Eliminar este pendiente?')) {
+                                  handleDeleteTask(task.id);
+                                }
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
+                              title="Eliminar tarea"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </td>
+
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+        )}
+
+        {/* KANBAN VIEW */}
+        {plannerViewMode === 'kanban' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="kanban-board-view">
+            {[
+              { id: 'pendiente', title: 'Pendientes / Brief', bg: 'bg-amber-50/50', border: 'border-amber-200', text: 'text-amber-800' },
+              { id: 'proceso', title: 'En Proceso / Producción', bg: 'bg-sky-50/50', border: 'border-sky-200', text: 'text-sky-800' },
+              { id: 'completado', title: 'Completados / Entregados', bg: 'bg-emerald-50/50', border: 'border-emerald-200', text: 'text-emerald-800' }
+            ].map(column => {
+              const columnTasks = filteredTasks.filter(t => t.status === column.id);
+              return (
+                <div key={column.id} className={`p-4 rounded-2xl border ${column.border} ${column.bg} flex flex-col space-y-3 min-h-[400px]`}>
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
+                    <h3 className={`font-black text-xs uppercase tracking-wider ${column.text}`}>
+                      {column.title}
+                    </h3>
+                    <span className="w-6 h-6 rounded-full bg-white font-extrabold text-xs text-slate-700 flex items-center justify-center border border-slate-200 shadow-2xs">
+                      {columnTasks.length}
+                    </span>
+                  </div>
+
+                  <div className="flex-1 space-y-3 overflow-y-auto">
+                    {columnTasks.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-slate-400 font-medium italic border border-dashed border-slate-200 rounded-xl">
+                        Sin tareas en esta columna
+                      </div>
+                    ) : (
+                      columnTasks.map(task => {
+                        const assignedUsersList = task.assignedToUsers || (task.assignedTo ? [task.assignedTo] : []);
+                        return (
+                          <div key={task.id} className="p-4 bg-white rounded-xl border border-slate-200/90 shadow-2xs space-y-3 hover:shadow-md transition-all">
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">
+                                  {task.brand}
+                                </span>
+                                <h4 className="font-bold text-xs text-slate-900 leading-snug">
+                                  {task.project}
+                                </h4>
+                              </div>
+                              <span className={`text-[9px] font-black px-2 py-0.5 rounded-full uppercase ${
+                                task.priority === 'alta' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-700'
+                              }`}>
+                                {task.priority}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center justify-between text-[11px] text-slate-500 font-semibold border-t border-b border-slate-100 py-1.5">
+                              <span>Horas: <strong className="text-slate-800 font-mono">{task.estimatedHours || 0}h</strong></span>
+                              <span>Plazo: <strong className="text-slate-800">{task.deadline || '---'}</strong></span>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-1">
+                              <DroppableTaskCell
+                                taskId={task.id}
+                                assignedUserIds={assignedUsersList}
+                                users={operatorsList}
+                                onAssign={handleAssignTask}
+                                onUnassign={handleUnassignTask}
+                                getUserColor={getUserColor}
+                              />
+
+                              <div className="flex items-center gap-1">
+                                {column.id !== 'pendiente' && (
+                                  <button
+                                    onClick={() => handleStatusChange(task.id, column.id === 'completado' ? 'proceso' : 'pendiente')}
+                                    className="px-2 py-1 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg cursor-pointer"
+                                    title="Mover a columna previa"
+                                  >
+                                    ←
+                                  </button>
+                                )}
+                                {column.id !== 'completado' && (
+                                  <button
+                                    onClick={() => handleStatusChange(task.id, column.id === 'pendiente' ? 'proceso' : 'completado')}
+                                    className="px-2 py-1 text-[10px] font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg cursor-pointer"
+                                    title="Avanzar a siguiente columna"
+                                  >
+                                    →
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* CALENDAR VIEW */}
+        {plannerViewMode === 'calendar' && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-4 shadow-2xs" id="calendar-grid-view">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-indigo-600" />
+                <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+                  Calendario de Entregas & Fechas Clave
+                </h3>
+              </div>
+              <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-xl">
+                {filteredTasks.length} Tareas Programadas
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filteredTasks.map(task => {
+                const assignedUsersList = task.assignedToUsers || (task.assignedTo ? [task.assignedTo] : []);
+                return (
+                  <div key={task.id} className="p-4 bg-slate-50/70 border border-slate-200 rounded-2xl space-y-2 hover:bg-white hover:shadow-md transition-all">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-100">
+                        {task.brand}
+                      </span>
+                      <span className="text-xs font-bold text-slate-500 font-mono">
+                        📅 {task.deadline || 'Sin fecha'}
+                      </span>
+                    </div>
+
+                    <h4 className="font-extrabold text-xs text-slate-900">
+                      {task.project}
+                    </h4>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 text-xs">
+                      <select
+                        value={task.status}
+                        onChange={(e) => handleStatusChange(task.id, e.target.value as any)}
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-lg border border-slate-200 bg-white"
+                      >
+                        <option value="pendiente">Pendiente</option>
+                        <option value="proceso">En Proceso</option>
+                        <option value="completado">Completado</option>
+                      </select>
+
+                      <DroppableTaskCell
+                        taskId={task.id}
+                        assignedUserIds={assignedUsersList}
+                        users={operatorsList}
+                        onAssign={handleAssignTask}
+                        onUnassign={handleUnassignTask}
+                        getUserColor={getUserColor}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* CARDS / BENTO VIEW */}
+        {plannerViewMode === 'cards' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="cards-bento-view">
+            {filteredTasks.map(task => {
+              const assignedUsersList = task.assignedToUsers || (task.assignedTo ? [task.assignedTo] : []);
+              return (
+                <div key={task.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-4 hover:shadow-lg hover:border-emerald-300 transition-all">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-pink-100 text-pink-700 font-black flex items-center justify-center text-sm shadow-2xs">
+                        {task.brand.substring(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">
+                          {task.brand}
+                        </span>
+                        <h3 className="font-extrabold text-sm text-slate-900 leading-tight">
+                          {task.project}
+                        </h3>
+                      </div>
+                    </div>
+
+                    <select
+                      value={task.status}
+                      onChange={(e) => handleStatusChange(task.id, e.target.value as any)}
+                      className={`text-[10px] font-black px-2.5 py-1 rounded-full border outline-none cursor-pointer ${
+                        task.status === 'completado' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
+                        task.status === 'proceso' ? 'bg-sky-50 text-sky-800 border-sky-200' :
+                        'bg-amber-50 text-amber-800 border-amber-200'
+                      }`}
+                    >
+                      <option value="pendiente">Pendiente</option>
+                      <option value="proceso">En Proceso</option>
+                      <option value="completado">Completado</option>
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <div>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase block">Inicio:</span>
+                      <strong className="text-slate-800 font-medium">{task.start || '---'}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase block">Deadline:</span>
+                      <strong className="text-slate-800 font-medium">{task.deadline || '---'}</strong>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <div>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">
+                        Equipo (Máx {maxMembersPerTask}):
+                      </span>
+                      <DroppableTaskCell
+                        taskId={task.id}
+                        assignedUserIds={assignedUsersList}
+                        users={operatorsList}
+                        onAssign={handleAssignTask}
+                        onUnassign={handleUnassignTask}
+                        getUserColor={getUserColor}
+                      />
+                    </div>
+
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase block">Horas:</span>
+                      <span className="font-mono font-extrabold text-sm text-slate-900">
+                        {task.estimatedHours || 0} hrs
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Protask Pagination Footer */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 text-xs text-slate-500 font-semibold">

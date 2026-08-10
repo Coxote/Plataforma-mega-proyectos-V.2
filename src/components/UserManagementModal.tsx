@@ -26,7 +26,7 @@ export default function UserManagementModal({
 }: UserManagementModalProps) {
   // New user state
   const [newUsername, setNewUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('123');
+  const [newPassword, setNewPassword] = useState('');
   const [newPuesto, setNewPuesto] = useState('ContentS');
   const [assignedProjectId, setAssignedProjectId] = useState('');
   const [tarifaProveedor, setTarifaProveedor] = useState<number | ''>('');
@@ -114,7 +114,7 @@ export default function UserManagementModal({
 
     onAddUser(newUser);
     setNewUsername('');
-    setNewPassword('123');
+    setNewPassword('');
     setTarifaProveedor('');
     setEmpresaProveedor('');
     setProyectosAsignados([]);
@@ -229,10 +229,10 @@ export default function UserManagementModal({
                     <Key className="w-3.5 h-3.5" />
                   </span>
                   <input
-                    type="text"
+                    type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Ej: 123"
+                    placeholder="••••••••"
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all font-medium"
                   />
                 </div>
@@ -446,9 +446,9 @@ export default function UserManagementModal({
                             <select
                               value={user.role}
                               onChange={(e) => handleRoleChange(user.id, e.target.value as any)}
-                              disabled={isSelf}
+                              disabled={isSelf || !(currentUser.role === 'coordinador' || currentUser.role === 'supervisor' || currentUser.role === 'director_financiero')}
                               className={`bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 outline-none transition-all cursor-pointer ${
-                                isSelf ? 'opacity-60 cursor-not-allowed' : ''
+                                isSelf || !(currentUser.role === 'coordinador' || currentUser.role === 'supervisor' || currentUser.role === 'director_financiero') ? 'opacity-60 cursor-not-allowed' : ''
                               }`}
                             >
                               <option value="coordinador">Coordinador</option>

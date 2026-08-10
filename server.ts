@@ -11,6 +11,19 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
+// Middleware de seguridad para proteger los endpoints de la API de IA
+const API_AUTH_TOKEN = process.env.API_AUTH_TOKEN || 'mega-proyectos-secure-token-2026';
+
+app.use('/api', (req, res, next) => {
+  const token = req.headers['x-app-auth-token'];
+  if (!token || token !== API_AUTH_TOKEN) {
+    return res.status(401).json({ 
+      error: 'Acceso no autorizado a la API de IA. Se requiere token de autenticación de la plataforma.' 
+    });
+  }
+  next();
+});
+
 // Initializing the server-side Google GenAI client
 const apiKey = process.env.GEMINI_API_KEY;
 const ai = new GoogleGenAI({

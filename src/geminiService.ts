@@ -1,5 +1,10 @@
 import { BrandBibleData } from './types';
 
+const AUTH_HEADERS = {
+  'Content-Type': 'application/json',
+  'x-app-auth-token': 'mega-proyectos-secure-token-2026',
+};
+
 /**
  * Analiza un texto de brief o documento subido y extrae la Brand Bible automáticamente.
  * Envía la petición a nuestro servidor seguro Express para procesarla con Gemini 3.6-Flash.
@@ -8,9 +13,7 @@ export async function analyzeBriefWithGemini(briefText: string): Promise<BrandBi
   try {
     const response = await fetch('/api/analyze-brief', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: AUTH_HEADERS,
       body: JSON.stringify({ briefText }),
     });
 
@@ -45,9 +48,7 @@ export async function generateProjectDescriptionWithGemini(projectParams: any): 
   try {
     const response = await fetch('/api/generate-project-description', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: AUTH_HEADERS,
       body: JSON.stringify(projectParams),
     });
 
@@ -71,9 +72,7 @@ export async function generateRiskMitigationWithGemini(projectParams: any): Prom
   try {
     const response = await fetch('/api/generate-risk-mitigation', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: AUTH_HEADERS,
       body: JSON.stringify(projectParams),
     });
 

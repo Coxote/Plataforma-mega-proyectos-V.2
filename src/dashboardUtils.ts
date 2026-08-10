@@ -9,6 +9,7 @@ export const EFFECTIVE_MONTHLY_CAPACITY = GROSS_MONTHLY_CAPACITY - IDLE_TIME_HOU
 export const ROLE_CAPACITIES: Record<Role, number> = {
   supervisor: 192,
   coordinador: 192,
+  director_financiero: 192,
   sac: 192,
   contents: 192,
   contentd: 192,

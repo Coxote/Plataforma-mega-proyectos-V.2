@@ -133,7 +133,10 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
         try {
           const res = await fetch('/api/parse-ov-document', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              'x-app-auth-token': 'mega-proyectos-secure-token-2026',
+            },
             body: JSON.stringify({
               fileData: base64Data,
               mimeType: file.type || 'application/pdf',
