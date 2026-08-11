@@ -106,10 +106,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
 
   return (
     <div 
-      className="min-h-screen w-screen flex items-center justify-center p-4 sm:p-6 md:p-10 font-sans relative overflow-hidden"
-      style={{
-        background: 'radial-gradient(ellipse 140% 100% at 50% -15%, #e0f2fe 0%, #f0f5fa 40%, #f8fafc 70%, #ffffff 100%)'
-      }}
+      className="min-h-screen w-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-sky-100/80 via-slate-50 to-slate-100/90 p-4 sm:p-6 md:p-10 font-sans"
       id="login-page-container"
     >
       {/* Tarjeta Principal (Modal con 20px border radius, p-[13px] para separaciones exactas) */}
