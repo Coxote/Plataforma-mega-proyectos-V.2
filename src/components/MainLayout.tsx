@@ -127,7 +127,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           {/* GRUPO: OPERACIÓN */}
           <div className="space-y-1">
             {!isCollapsed ? (
-              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wide">
                 Operación
               </div>
             ) : (
@@ -138,10 +138,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <button 
                 onClick={() => handleNavClick('dashboard')}
                 title="Torre de Control"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'dashboard' 
-                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
                 <LayoutDashboard className="w-4 h-4 shrink-0" />
@@ -153,10 +153,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <button 
                 onClick={() => handleNavClick('planner')}
                 title="Planner Diario"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'planner' 
-                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
                 <CalendarDays className="w-4 h-4 shrink-0" />
@@ -168,10 +168,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <button 
                 onClick={() => handleNavClick('gantt')}
                 title="Línea de Tiempo"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'gantt' 
-                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
                 <Layers className="w-4 h-4 shrink-0" />
@@ -183,7 +183,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           {/* GRUPO: PROYECTO */}
           <div className="space-y-1">
             {!isCollapsed ? (
-              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wide">
                 Proyecto
               </div>
             ) : (
@@ -192,10 +192,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <button 
               onClick={() => handleNavClick('project')}
               title="Expediente del Proyecto"
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'project' 
-                  ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                  : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                  ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                  : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
               }`}
             >
               <Activity className="w-4 h-4 shrink-0" />
@@ -206,7 +206,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           {/* GRUPO: ADMINISTRACIÓN & PERFIL */}
           <div className="space-y-1">
             {!isCollapsed ? (
-              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wide">
                 Mi Espacio
               </div>
             ) : (
@@ -215,10 +215,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <button 
               onClick={() => handleNavClick('profile')}
               title="Mi Perfil y Horas"
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'profile' 
-                  ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                  : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                  ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                  : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
               }`}
             >
               <User className="w-4 h-4 shrink-0" />
@@ -229,10 +229,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <button 
                 onClick={() => handleNavClick('team')}
                 title="Equipo"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'team' 
-                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
                 <Users className="w-4 h-4 shrink-0" />
@@ -244,10 +244,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <button 
                 onClick={() => handleNavClick('clients')}
                 title="Clientes y Marca IA"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'clients' 
-                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
                 <Building2 className="w-4 h-4 shrink-0" />
@@ -259,10 +259,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <button 
                 onClick={() => handleNavClick('financial')}
                 title="Salud Financiera"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'financial' 
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-600/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20 font-bold scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
                 <DollarSign className="w-4 h-4 shrink-0 text-emerald-400" />
@@ -274,10 +274,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <button 
                 onClick={() => handleNavClick('integrations')}
                 title="Integraciones"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'integrations' 
-                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
                 <Plug className="w-4 h-4 shrink-0 text-amber-400" />
@@ -289,10 +289,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <button 
                 onClick={() => handleNavClick('predictive')}
                 title="Simulador IA"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer min-h-[40px] ${
+                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'predictive' 
-                    ? 'bg-gradient-to-r from-[#FF5500]/90 to-[#E04B00]/90 text-white shadow-lg shadow-orange-500/25 border border-white/30 backdrop-blur-xl font-black scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-white/10 hover:text-white border border-transparent'
+                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
                 <BrainCircuit className="w-4 h-4 shrink-0 text-amber-400" />
@@ -441,14 +441,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         {renderSidebarContent(isSidebarCollapsed)}
       </aside>
 
-      {/* ⬜ ZONA 2: CONTENEDOR PRINCIPAL DINÁMICO (Versa Glassmorphic Background) */}
-      <main className="flex-1 flex flex-col min-w-0 versa-bg-gradient relative overflow-hidden" id="main-content-area">
-        {/* Soft Ambient Radial Glass Orbs matching Versa UI Reference */}
-        <div className="absolute -top-24 -left-24 w-[600px] h-[600px] bg-purple-400/25 rounded-full blur-[100px] pointer-events-none -z-0 animate-pulse" />
-        <div className="absolute top-1/4 -right-24 w-[700px] h-[700px] bg-blue-400/25 rounded-full blur-[120px] pointer-events-none -z-0" />
-        <div className="absolute -bottom-32 left-1/3 w-[650px] h-[650px] bg-orange-400/20 rounded-full blur-[110px] pointer-events-none -z-0" />
-        <div className="absolute top-2/3 left-10 w-[450px] h-[450px] bg-lime-300/20 rounded-full blur-[90px] pointer-events-none -z-0" />
-        
+      {/* ⬜ ZONA 2: CONTENEDOR PRINCIPAL DINÁMICO (Smooth Ice-Blue Radial Background) */}
+      <main 
+        className="flex-1 flex flex-col min-w-0 relative overflow-hidden" 
+        style={{
+          background: 'radial-gradient(ellipse 140% 100% at 50% -15%, #e0f2fe 0%, #f0f5fa 40%, #f8fafc 70%, #ffffff 100%)'
+        }}
+        id="main-content-area"
+      >
         <div className="relative z-10 flex-1 flex flex-col h-full min-w-0 overflow-hidden">
           {children}
         </div>

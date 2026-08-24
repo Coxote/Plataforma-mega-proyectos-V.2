@@ -290,14 +290,14 @@ export const GlobalLogTimeModal: React.FC<GlobalLogTimeModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 text-slate-600 hover:bg-slate-100 text-xs font-bold rounded-2xl transition-colors cursor-pointer"
+              className="px-4 py-2 text-slate-600 hover:bg-slate-100 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={!hours || Number(hours) <= 0 || (!description.trim() && !retrabajoMotivo.trim())}
-              className="px-6 py-2.5 bg-[#FF5500] hover:bg-[#E04B00] text-white text-xs font-black rounded-2xl transition-all cursor-pointer shadow-md shadow-orange-500/20 disabled:opacity-40 hover:scale-[1.02] active:scale-[0.98]"
+              className="px-5 py-2 bg-[#FF4500] hover:bg-[#e03d00] text-white text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-40"
             >
               Guardar Horas
             </button>
