@@ -44,6 +44,9 @@ import {
 import { TeamCard, VitaminizedMember } from './TeamCard';
 import { UserInspectorPanel } from './UserInspectorPanel';
 import { ExecutiveDashboard } from './ExecutiveDashboard';
+import { StatBar, StatItem } from './StatBar';
+import { EmptyState } from './EmptyState';
+import { ui } from '../theme';
 
 interface Props {
   projects: Project[];
@@ -251,102 +254,56 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
         </div>
       ) : (
       /* Contenido scrolleable del Dashboard Operativo */
-      <div className="flex-1 p-8 overflow-y-auto space-y-8">
+      <div className="flex-1 p-6 md:p-8 overflow-y-auto space-y-6">
         
-        {/* ZONA DE KPIS FINANCIEROS Y OPERATIVOS (Banda Ejecutiva Compacta) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          
-          {/* Horas de Operación */}
-          <div className="bg-white/70 backdrop-blur-xl p-5 rounded-2xl border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between" id="metric-global-hours">
-            <div className="flex justify-between items-start mb-3">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Horas de Operación</span>
-              <Clock className="w-4 h-4 text-slate-400" />
-            </div>
-            <div>
-              <div className="text-3xl font-black tabular-nums text-slate-950 mb-1">{financials.totalConsumedHours} h</div>
-              <p className="text-xs font-medium text-slate-500 mb-2">Consumidas de {financials.totalSoldHours} h vendidas</p>
-              
-              {/* Dynamic progress bar */}
-              <div className="w-full bg-slate-100/80 h-1.5 rounded-full overflow-hidden border border-slate-200/50">
-                <div 
-                  className="h-full bg-slate-800 rounded-full transition-all duration-500" 
-                  style={{ width: `${Math.min(globalHoursProgress, 100)}%` }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Costo Operativo Real */}
-          <div className="bg-white/70 backdrop-blur-xl p-5 rounded-2xl border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between" id="metric-real-cost">
-            <div className="flex justify-between items-start mb-3">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Costo Operativo Real</span>
-              <DollarSign className="w-4 h-4 text-slate-400" />
-            </div>
-            <div>
-              <div className="text-3xl font-black tabular-nums text-slate-950 mb-1">
-                ${financials.totalRealCost.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
-              <p className="text-xs font-medium text-slate-500">
-                Presupuesto ideal: <span className="text-slate-900 font-bold">${financials.totalEstimatedCost.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Desviación de Costo */}
-          <div 
-            className={`p-5 rounded-2xl border backdrop-blur-xl flex flex-col justify-between transition-all duration-300 shadow-md ${
-              financials.costDeviation > 10 
-                ? 'border-rose-200/80 bg-rose-50/60 shadow-rose-200/20' 
-                : 'border-white/80 bg-white/70 shadow-slate-200/30'
-            }`}
-            id="metric-profitability-deviation"
-            title="Cálculo: ((Costo Real - Costo Estimado) / Costo Estimado) * 100"
-          >
-            <div className="flex justify-between items-start mb-3">
-              <span className={`text-[11px] font-bold uppercase tracking-wide ${financials.costDeviation > 10 ? 'text-rose-700' : 'text-slate-500'}`}>
-                Desviación de Costo
-              </span>
-              {financials.costDeviation > 10 ? (
-                <AlertTriangle className="w-4 h-4 text-rose-500" />
-              ) : (
-                <TrendingUp className="w-4 h-4 text-emerald-600" />
-              )}
-            </div>
-            <div>
-              <div className={`text-3xl font-black tabular-nums mb-1 ${financials.costDeviation > 10 ? 'text-rose-700' : 'text-emerald-700'}`}>
-                {financials.costDeviation > 0 ? '▲ +' : '▼ '}{financials.costDeviation.toFixed(1)}%
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className={`w-1.5 h-1.5 rounded-full ${financials.costDeviation > 10 ? 'bg-rose-500' : 'bg-emerald-500'}`}></span>
-                <span className={`text-[11px] font-bold uppercase tracking-wide ${financials.costDeviation > 10 ? 'text-rose-700' : 'text-emerald-700'}`}>
-                  {financials.costDeviation > 10 ? 'Alerta de Desviación' : 'Eficiencia Óptima'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Retrabajo Global (Fase 1) - Métricas desde utils/metrics.ts */}
-          <div 
-            className={`p-5 rounded-xl border flex flex-col justify-between transition-all duration-300 ${globalRework.badgeStyle.bg} ${globalRework.badgeStyle.border}`}
-            id="metric-global-retrabajo"
-          >
-            <div className="flex justify-between items-start mb-3">
-              <span className={`text-[11px] font-bold uppercase tracking-wide ${globalRework.badgeStyle.text}`}>
-                Retrabajo Global
-              </span>
-              <RotateCcw className={`w-4 h-4 ${globalRework.badgeStyle.text}`} />
-            </div>
-            <div>
-              <div className={`text-3xl font-black tabular-nums mb-1 ${globalRework.badgeStyle.text}`}>
-                {globalRework.porcentajeGlobal.toFixed(1)}%
-              </div>
-              <p className="text-xs font-medium text-slate-600">
-                <strong className="font-bold">{globalRework.totalRetrabajoGlobal}h</strong> de {globalRework.totalHorasGlobal}h registradas
-              </p>
-            </div>
-          </div>
-
-        </div>
+        {/* NIVEL 1: BANDA DE ESTADO HORIZONTAL COMPACTA (StatBar) */}
+        <StatBar 
+          stats={[
+            {
+              id: 'stat-hours',
+              label: 'Horas Consumidas',
+              value: `${financials.totalConsumedHours}h`,
+              subValue: `de ${financials.totalSoldHours}h vendidas`,
+              icon: Clock,
+              status: 'brand'
+            },
+            {
+              id: 'stat-cost',
+              label: 'Costo Operativo Real',
+              value: `$${financials.totalRealCost.toLocaleString('es-CL')}`,
+              subValue: `Presupuesto: $${financials.totalEstimatedCost.toLocaleString('es-CL')}`,
+              icon: DollarSign,
+              status: 'neutral'
+            },
+            {
+              id: 'stat-deviation',
+              label: 'Desviación de Costo',
+              value: `${financials.costDeviation > 0 ? '+' : ''}${financials.costDeviation.toFixed(1)}%`,
+              trend: {
+                value: financials.costDeviation > 10 ? 'Alerta' : 'En Rango',
+                isPositive: financials.costDeviation <= 10,
+              },
+              icon: TrendingUp,
+              status: financials.costDeviation > 10 ? 'danger' : 'success'
+            },
+            {
+              id: 'stat-rework',
+              label: 'Tasa de Retrabajo',
+              value: `${globalRework.porcentajeGlobal.toFixed(1)}%`,
+              subValue: `${globalRework.totalRetrabajoGlobal}h acumuladas`,
+              icon: RotateCcw,
+              status: globalRework.porcentajeGlobal > 15 ? 'warning' : 'info'
+            },
+            {
+              id: 'stat-projects',
+              label: 'Proyectos Activos',
+              value: `${projects.length}`,
+              subValue: `${slaAlerts.length} alertas SLA`,
+              icon: Briefcase,
+              status: slaAlerts.length > 0 ? 'warning' : 'success'
+            }
+          ]}
+        />
 
         {/* MOTOR DE REGLAS: ALERTAS DE VENCIMIENTOS Y CUMPLIMIENTO DE SLA */}
         <div className="space-y-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs" id="sla-rule-engine-section">

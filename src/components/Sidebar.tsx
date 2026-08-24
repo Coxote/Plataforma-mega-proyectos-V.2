@@ -116,7 +116,7 @@ export default function Sidebar({
         {(userRole === 'coordinador' || userRole === 'sac') && (
           <button
             onClick={onAddProject}
-            className={`w-full flex items-center justify-center gap-2 bg-[#FF4500] hover:bg-[#e03d00] text-white rounded-xl py-2.5 px-3 transition-all cursor-pointer font-bold text-xs shadow-sm active:scale-[0.99] ${
+            className={`w-full flex items-center justify-center gap-2 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl py-2.5 px-3 transition-all cursor-pointer font-bold text-xs shadow-sm active:scale-[0.99] ${
               isCollapsed ? 'p-2.5' : ''
             }`}
             title="Nuevo Proyecto"
@@ -138,7 +138,7 @@ export default function Sidebar({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar proyectos..."
-              className="w-full bg-slate-50 border border-slate-200/90 rounded-xl pl-9 pr-8 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#FF4500] focus:border-[#FF4500] focus:bg-white transition-all"
+              className="w-full bg-slate-50 border border-slate-200/90 rounded-xl pl-9 pr-8 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#FF5500] focus:border-[#FF5500] focus:bg-white transition-all"
             />
             {searchTerm && (
               <button
@@ -207,7 +207,7 @@ export default function Sidebar({
                 isCollapsed ? 'p-2 justify-center' : 'px-3 py-2'
               } ${
                 isActive
-                  ? 'bg-orange-50/90 text-[#FF4500] font-bold shadow-2xs border border-orange-200/60'
+                  ? 'bg-orange-50/90 text-[#FF5500] font-bold shadow-2xs border border-orange-200/60'
                   : 'text-slate-700 bg-transparent hover:bg-slate-100/70 hover:text-slate-900 border border-transparent'
               }`}
             >

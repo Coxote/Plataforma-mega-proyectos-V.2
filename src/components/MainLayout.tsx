@@ -140,7 +140,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 title="Torre de Control"
                 className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'dashboard' 
-                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
                     : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
@@ -155,7 +155,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 title="Planner Diario"
                 className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'planner' 
-                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
                     : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
@@ -170,7 +170,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 title="Línea de Tiempo"
                 className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'gantt' 
-                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
                     : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
@@ -194,7 +194,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               title="Expediente del Proyecto"
               className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'project' 
-                  ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                  ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
                   : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
               }`}
             >
@@ -217,7 +217,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               title="Mi Perfil y Horas"
               className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                 currentView === 'profile' 
-                  ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                  ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
                   : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
               }`}
             >
@@ -231,7 +231,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 title="Equipo"
                 className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'team' 
-                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
                     : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
@@ -246,7 +246,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 title="Clientes y Marca IA"
                 className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'clients' 
-                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
                     : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
@@ -276,7 +276,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 title="Integraciones"
                 className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'integrations' 
-                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
                     : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >
@@ -291,7 +291,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 title="Simulador IA"
                 className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
                   currentView === 'predictive' 
-                    ? 'bg-[#FF4500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
+                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
                     : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
                 }`}
               >

@@ -4,6 +4,8 @@ import { DroppableTaskCell } from './DroppableTaskCell';
 import { KpiSidePanel } from './KpiSidePanel';
 import { useKpiSidePanel } from '../hooks/useKpiSidePanel';
 import { Project, UserSession, getUserAvatarUrl } from '../types';
+import { StatBar, StatItem } from './StatBar';
+import { tokens, ui } from '../theme';
 import { 
   Plus, 
   Trash2, 
@@ -504,197 +506,78 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
     <div className="p-3 sm:p-6 bg-slate-50/50 min-h-full overflow-y-auto overflow-x-hidden space-y-4 sm:space-y-6 flex flex-col max-w-full" id="planner-daily-grid">
       
       {/* HEADER & TOP CONTROLS */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/60 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 pb-3">
         <div>
-          <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">
-            <Calendar className="w-3.5 h-3.5 text-lime-600" />
+          <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest mb-0.5">
+            <Calendar className="w-3.5 h-3.5 text-[#FF5500]" />
             Planificación Diaria & Dailys
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Planner Dailys & Status del Proyecto</h1>
+          <h1 className="text-xl font-black text-slate-900 tracking-tight">Planner Dailys & Status del Proyecto</h1>
           <p className="text-xs text-slate-500 font-medium">Asigna operadores al escuadrón arrastrando fichas de usuario y monitorea la salud del proyecto en tiempo real.</p>
         </div>
       </div>
 
-      {/* 🚀 TOP HEADER ROW: HIGH-LEVEL PROJECT KPI WIDGETS (PILL-SHAPED DESIGN WITH MODAL DRILL-DOWN) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-full" id="planner-top-kpi-row">
-        
-        {/* KPI 1: Total Active Projects */}
-        <div 
-          onClick={() => kpiPanel.openPanel('active_projects')}
-          className="p-3.5 sm:p-4 bg-white/70 backdrop-blur-xl rounded-2xl border border-white/80 shadow-md shadow-slate-200/30 hover:shadow-lg hover:-translate-y-1 hover:scale-[1.01] hover:bg-white/85 transition-all duration-300 flex items-center justify-between gap-3 cursor-pointer group"
-          title="Haz clic para ver el desglose de proyectos activos en el panel lateral"
-        >
-          <div className="flex items-center gap-3 w-full">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-indigo-50/80 border border-indigo-100 flex items-center justify-center shrink-0 text-indigo-600 shadow-2xs group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-              <Briefcase className="w-5 h-5" />
-            </div>
-            <div className="w-full space-y-1 min-w-0">
-              <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Proyectos Activos
-                </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-indigo-100/80 text-indigo-800 border border-indigo-200 shadow-2xs flex items-center gap-1 shrink-0">
-                  {topHeaderKpis.totalActiveProjectsCount} / {topHeaderKpis.totalProjects} Portafolio
-                  <ChevronRight className="w-3 h-3 text-indigo-500" />
-                </span>
-              </div>
-
-              <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                {topHeaderKpis.totalActiveProjectsCount} <span className="text-xs sm:text-sm font-extrabold text-slate-500">Activos</span>
-              </div>
-
-              <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-medium text-slate-500 pt-0.5">
-                <span className="inline-flex items-center gap-1 text-emerald-800 bg-emerald-50/80 px-2 py-0.5 rounded-full border border-emerald-200 text-[10px] font-bold">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                  {topHeaderKpis.optimalHealthProjects} óptima
-                </span>
-                {topHeaderKpis.criticalHealthProjects > 0 && (
-                  <span className="inline-flex items-center gap-1 text-rose-800 bg-rose-50/80 px-2 py-0.5 rounded-full border border-rose-200 text-[10px] font-bold">
-                    <AlertCircle className="w-3 h-3 text-rose-600" />
-                    {topHeaderKpis.criticalHealthProjects} atención
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 2: Overall Agency Utilization % */}
-        <div 
-          onClick={() => kpiPanel.openPanel('agency_utilization')}
-          className="p-3.5 sm:p-4 bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:-translate-y-1 hover:scale-[1.01] hover:border-emerald-300 transition-all duration-300 flex items-center justify-between gap-3 cursor-pointer group"
-          title="Haz clic para ver la utilización por miembro de equipo en el panel lateral"
-        >
-          <div className="flex items-center gap-3 w-full">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 text-emerald-600 shadow-2xs group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-              <Activity className="w-5 h-5" />
-            </div>
-            <div className="w-full space-y-1 min-w-0">
-              <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Utilización General Agencia
-                </span>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border shadow-2xs flex items-center gap-1 shrink-0 ${
-                  topHeaderKpis.agencyUtilizationPercent >= 85
-                    ? 'bg-amber-100 text-amber-900 border-amber-300'
-                    : 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                }`}>
-                  {topHeaderKpis.agencyUtilizationPercent >= 85 ? 'Alta Carga' : 'Saludable'}
-                  <ChevronRight className="w-3 h-3 opacity-60" />
-                </span>
-              </div>
-
-              <div className="flex items-baseline justify-between flex-wrap gap-1">
-                <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                  {topHeaderKpis.agencyUtilizationPercent}% <span className="text-xs sm:text-sm font-extrabold text-slate-500">Utilización</span>
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-500">
-                  {topHeaderKpis.agencyConsumedHours}h / {topHeaderKpis.totalAgencyMonthlyCapacity}h cap.
-                </span>
-              </div>
-
-              {/* Pill Progress Bar */}
-              <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/80 p-0.5">
-                <div
-                  className={`h-full rounded-full transition-all duration-500 ${
-                    topHeaderKpis.agencyUtilizationPercent >= 85 ? 'bg-amber-500' : 'bg-emerald-500'
-                  }`}
-                  style={{ width: `${topHeaderKpis.agencyUtilizationPercent}%` }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 3: Consumo de Horas & Retrabajo (SUBIDO A LA PRIMERA LINEA) */}
-        <div 
-          onClick={() => kpiPanel.openPanel('time_entry_log')}
-          className="p-3.5 sm:p-4 bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:-translate-y-1 hover:scale-[1.01] hover:border-blue-300 transition-all duration-300 flex items-center justify-between gap-3 cursor-pointer group"
-          title="Haz clic para ver el registro detallado de horas consumidas"
-        >
-          <div className="flex items-center gap-3 w-full">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 text-blue-600 shadow-2xs group-hover:bg-blue-600 group-hover:text-white transition-colors">
-              <Clock className="w-5 h-5" />
-            </div>
-            <div className="w-full space-y-1 min-w-0">
-              <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Consumo de Horas
-                </span>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border shadow-2xs flex items-center gap-1 shrink-0 ${
-                  projectDashboardMetrics.reworkPercent > 15 
-                    ? 'bg-rose-100 text-rose-900 border-rose-300' 
-                    : 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                }`}>
-                  {projectDashboardMetrics.reworkPercent}% Retrabajo
-                  <ChevronRight className="w-3 h-3 opacity-60" />
-                </span>
-              </div>
-
-              <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                {projectDashboardMetrics.totalConsumedHours}h <span className="text-xs sm:text-sm font-extrabold text-slate-400">/ {projectDashboardMetrics.totalBudgetHours}h Presup.</span>
-              </div>
-
-              <div className="text-[11px] font-medium text-slate-500">
-                <strong className="font-bold text-slate-700">{projectDashboardMetrics.totalReworkHours}h</strong> en ajustes y correcciones
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* KPI 4: Total Pending Approvals */}
-        <div 
-          onClick={() => kpiPanel.openPanel('pending_approvals')}
-          className="p-3.5 sm:p-4 bg-white rounded-2xl border border-slate-200/90 shadow-xs hover:shadow-md hover:-translate-y-1 hover:scale-[1.01] hover:border-amber-300 transition-all duration-300 flex items-center justify-between gap-3 cursor-pointer group"
-          title="Haz clic para ver los entregables pendientes de aprobación en el panel lateral"
-        >
-          <div className="flex items-center gap-3 w-full">
-            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full border flex items-center justify-center shrink-0 shadow-2xs transition-colors ${
-              topHeaderKpis.totalPendingApprovalsCount > 0
-                ? 'bg-amber-50 border-amber-200 text-amber-700 group-hover:bg-amber-500 group-hover:text-white'
-                : 'bg-emerald-50 border-emerald-200 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white'
-            }`}>
-              <FileCheck className="w-5 h-5" />
-            </div>
-            <div className="w-full space-y-1 min-w-0">
-              <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
-                  Aprobaciones Pendientes
-                </span>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black border shadow-2xs flex items-center gap-1 shrink-0 ${
-                  topHeaderKpis.totalPendingApprovalsCount > 0
-                    ? 'bg-amber-100 text-amber-900 border-amber-300'
-                    : 'bg-emerald-100 text-emerald-900 border-emerald-300'
-                }`}>
-                  {topHeaderKpis.totalPendingApprovalsCount > 0 ? 'Pendiente Cliente' : 'Al Día'}
-                  <ChevronRight className="w-3 h-3 opacity-60" />
-                </span>
-              </div>
-
-              <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                {topHeaderKpis.totalPendingApprovalsCount} <span className="text-xs sm:text-sm font-extrabold text-slate-500">Entregable(s)</span>
-              </div>
-
-              <div className="text-[11px] font-medium text-slate-500">
-                {topHeaderKpis.totalPendingApprovalsCount === 0 ? (
-                  <span className="text-emerald-700 font-bold">Sin entregables estancados en revisión</span>
-                ) : (
-                  <span className="text-amber-800 font-bold">Entregables aguardando validación</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
+      {/* 🚀 BANDA DE ESTADO HORIZONTAL COMPACTA (StatBar) */}
+      <StatBar
+        stats={[
+          {
+            id: 'planner-active-projects',
+            label: 'Proyectos Activos',
+            value: `${topHeaderKpis.totalActiveProjectsCount}`,
+            trend: {
+              value: `${topHeaderKpis.optimalHealthProjects} óptima`,
+              isPositive: true
+            },
+            icon: Briefcase,
+            status: 'info',
+            onClick: () => kpiPanel.openPanel('active_projects')
+          },
+          {
+            id: 'planner-utilization',
+            label: 'Utilización Agencia',
+            value: `${topHeaderKpis.agencyUtilizationPercent}%`,
+            trend: {
+              value: `${topHeaderKpis.agencyConsumedHours}h / ${topHeaderKpis.totalAgencyMonthlyCapacity}h`,
+              isPositive: topHeaderKpis.agencyUtilizationPercent < 85
+            },
+            icon: Activity,
+            status: topHeaderKpis.agencyUtilizationPercent >= 85 ? 'warning' : 'success',
+            onClick: () => kpiPanel.openPanel('agency_utilization')
+          },
+          {
+            id: 'planner-hours-consumed',
+            label: 'Consumo de Horas',
+            value: `${projectDashboardMetrics.totalConsumedHours}h`,
+            trend: {
+              value: `${projectDashboardMetrics.reworkPercent}% Retrabajo`,
+              isPositive: projectDashboardMetrics.reworkPercent <= 15
+            },
+            icon: Clock,
+            status: projectDashboardMetrics.reworkPercent > 15 ? 'danger' : 'info',
+            onClick: () => kpiPanel.openPanel('time_entry_log')
+          },
+          {
+            id: 'planner-approvals',
+            label: 'Aprobaciones Pendientes',
+            value: `${topHeaderKpis.totalPendingApprovalsCount}`,
+            trend: {
+              value: topHeaderKpis.totalPendingApprovalsCount > 0 ? 'Pendiente cliente' : 'Al día',
+              isPositive: topHeaderKpis.totalPendingApprovalsCount === 0
+            },
+            icon: FileCheck,
+            status: topHeaderKpis.totalPendingApprovalsCount > 0 ? 'warning' : 'success',
+            onClick: () => kpiPanel.openPanel('pending_approvals')
+          }
+        ]}
+      />
 
       {/* PROTASK TABLA DE PENDIENTES & CONTROLES */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs p-4 sm:p-6 space-y-4 font-sans text-slate-900" id="planner-protask-table-container">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs p-4 sm:p-5 space-y-4 font-sans text-slate-900" id="planner-protask-table-container">
         
-        {/* Header Bar inspired by Protask */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2">
+        {/* Header Bar */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-2 border-b border-slate-100">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            <h2 className="text-base font-black text-slate-900 tracking-tight">
               Pendientes & Tareas del Día
             </h2>
             <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -711,10 +594,10 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                   setWizardStep(1);
                   setFormError(null);
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 bg-pink-600 hover:bg-pink-700 text-white rounded-xl text-xs font-black transition-all cursor-pointer shadow-xs"
+                className="flex items-center gap-2 px-3.5 py-2 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-[0.99]"
               >
-                <Plus className="w-4 h-4" />
-                <span>+ Nueva Tarea</span>
+                <Plus className="w-3.5 h-3.5" />
+                <span>Nueva Tarea</span>
               </button>
             )}
           </div>
@@ -867,21 +750,21 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
 
         {/* Floating Wizard Modal para Añadir Tarea */}
         {showAddForm && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fadeIn">
-            <div className="bg-slate-900 text-white w-full max-w-2xl rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fadeIn">
+            <div className="bg-white text-slate-900 w-full max-w-2xl rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
               
               {/* Wizard Header */}
-              <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
+              <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-pink-500/10 border border-pink-500/20 text-pink-400 flex items-center justify-center font-black text-sm">
+                  <div className="w-8 h-8 rounded-xl bg-orange-50 border border-orange-200 text-[#FF5500] flex items-center justify-center font-bold text-xs">
                     {wizardStep}
                   </div>
                   <div>
-                    <h3 className="font-black text-sm text-white uppercase tracking-wider flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-pink-400" />
-                      Wizard: Nueva Tarea / Pendiente
+                    <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#FF5500]" />
+                      Nueva Tarea / Pendiente
                     </h3>
-                    <p className="text-xs text-slate-400 font-medium">
+                    <p className="text-xs text-slate-500 font-medium">
                       {wizardStep === 1 ? 'Paso 1: Información del Proyecto y Tarea' : 'Paso 2: Asignar Miembros del Equipo (máx 2)'}
                     </p>
                   </div>
@@ -890,22 +773,22 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                 <button 
                   type="button"
                   onClick={() => setShowAddForm(false)} 
-                  className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center font-black cursor-pointer transition-colors"
+                  className="w-7 h-7 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900 flex items-center justify-center font-bold cursor-pointer transition-colors text-xs"
                 >
                   ✕
                 </button>
               </div>
 
               {/* Wizard Stepper Tabs */}
-              <div className="flex border-b border-slate-800/80 bg-slate-900/80 px-6 py-3 gap-4">
+              <div className="flex border-b border-slate-100 bg-white px-5 py-2.5 gap-3">
                 <button
                   type="button"
                   onClick={() => setWizardStep(1)}
                   className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                    wizardStep === 1 ? 'bg-pink-600 text-white shadow-xs' : 'text-slate-400 hover:text-slate-200'
+                    wizardStep === 1 ? 'bg-orange-50 text-[#FF5500] border border-orange-200 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  <span className="w-5 h-5 rounded-full bg-black/20 flex items-center justify-center text-[10px]">1</span>
+                  <span className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-700">1</span>
                   <span>1. Detalles Tarea</span>
                 </button>
 
@@ -920,32 +803,32 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                     setWizardStep(2);
                   }}
                   className={`flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                    wizardStep === 2 ? 'bg-pink-600 text-white shadow-xs' : 'text-slate-400 hover:text-slate-200'
+                    wizardStep === 2 ? 'bg-orange-50 text-[#FF5500] border border-orange-200 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
-                  <span className="w-5 h-5 rounded-full bg-black/20 flex items-center justify-center text-[10px]">2</span>
+                  <span className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-700">2</span>
                   <span>2. Asignar Equipo ({formAssignedUsers.length}/2)</span>
                 </button>
               </div>
 
               {/* Wizard Body */}
-              <div className="p-6 overflow-y-auto space-y-4">
+              <div className="p-5 overflow-y-auto space-y-4">
                 {formError && (
-                  <div className="bg-rose-950/50 border border-rose-800/80 text-rose-300 text-xs rounded-xl p-3 font-semibold flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <div className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl p-3 font-semibold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
                     <span>{formError}</span>
                   </div>
                 )}
 
                 <form onSubmit={handleAddTaskSubmit} className="space-y-4">
                   {wizardStep === 1 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fadeIn">
-                      <div className="space-y-1.5 md:col-span-2">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Asociar a Proyecto Existente (Opcional)</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 animate-fadeIn">
+                      <div className="space-y-1 md:col-span-2">
+                        <label className="block text-[11px] font-bold text-slate-700">Asociar a Proyecto Existente (Opcional)</label>
                         <select
                           value={formSelectedProjectId}
                           onChange={(e) => handleSelectProjectInForm(e.target.value)}
-                          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:ring-2 focus:ring-pink-400/40 outline-none transition-all font-semibold cursor-pointer"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-[#FF5500] focus:border-[#FF5500] outline-none transition-all font-medium cursor-pointer"
                         >
                           <option value="">-- No asociar / Tarea Independiente --</option>
                           {projects.map(p => (
@@ -954,43 +837,43 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                         </select>
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Cliente / Marca *</label>
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-bold text-slate-700">Cliente / Marca *</label>
                         <input
                           type="text"
                           value={formBrand}
                           onChange={(e) => setFormBrand(e.target.value)}
                           placeholder="Ej: Arrocha, Banco General"
-                          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:ring-2 focus:ring-pink-400/40 outline-none transition-all font-semibold"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-[#FF5500] focus:border-[#FF5500] outline-none transition-all font-medium"
                         />
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Prioridad</label>
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-bold text-slate-700">Prioridad</label>
                         <select
                           value={formPriority}
                           onChange={(e) => setFormPriority(e.target.value as any)}
-                          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:ring-2 focus:ring-pink-400/40 outline-none transition-all font-semibold cursor-pointer"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-[#FF5500] focus:border-[#FF5500] outline-none transition-all font-medium cursor-pointer"
                         >
-                          <option value="alta">🔴 Alta (High)</option>
-                          <option value="media">🟠 Media (Medium)</option>
-                          <option value="baja">🔵 Baja (Low)</option>
+                          <option value="alta">🔴 Alta</option>
+                          <option value="media">🟠 Media</option>
+                          <option value="baja">🔵 Baja</option>
                         </select>
                       </div>
 
-                      <div className="space-y-1.5 md:col-span-2">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Descripción del Pendiente / Tarea *</label>
+                      <div className="space-y-1 md:col-span-2">
+                        <label className="block text-[11px] font-bold text-slate-700">Descripción de la Tarea *</label>
                         <input
                           type="text"
                           value={formProjectName}
                           onChange={(e) => setFormProjectName(e.target.value)}
-                          placeholder="Ej: Producción de Video Reels para Redes Social"
-                          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:ring-2 focus:ring-pink-400/40 outline-none transition-all font-semibold"
+                          placeholder="Ej: Producción de Video Reels para Redes Sociales"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-[#FF5500] focus:border-[#FF5500] outline-none transition-all font-medium"
                         />
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Horas Estimadas</label>
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-bold text-slate-700">Horas Estimadas</label>
                         <input
                           type="number"
                           min="1"
@@ -998,48 +881,48 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                           value={formHours}
                           onChange={(e) => setFormHours(e.target.value ? Number(e.target.value) : '')}
                           placeholder="Ej: 8"
-                          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:ring-2 focus:ring-pink-400/40 outline-none transition-all font-semibold"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-[#FF5500] focus:border-[#FF5500] outline-none transition-all font-medium"
                         />
                       </div>
 
-                      <div className="space-y-1.5">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fecha de Inicio *</label>
+                      <div className="space-y-1">
+                        <label className="block text-[11px] font-bold text-slate-700">Fecha de Inicio *</label>
                         <input
                           type="date"
                           value={formStart}
                           onChange={(e) => setFormStart(e.target.value)}
-                          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:ring-2 focus:ring-pink-400/40 outline-none transition-all font-semibold"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-[#FF5500] focus:border-[#FF5500] outline-none transition-all font-medium"
                         />
                       </div>
 
-                      <div className="space-y-1.5 md:col-span-2">
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Deadline / Entrega *</label>
+                      <div className="space-y-1 md:col-span-2">
+                        <label className="block text-[11px] font-bold text-slate-700">Fecha de Entrega / Deadline *</label>
                         <input
                           type="date"
                           value={formDeadline}
                           onChange={(e) => setFormDeadline(e.target.value)}
-                          className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-slate-100 focus:ring-2 focus:ring-pink-400/40 outline-none transition-all font-semibold"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-[#FF5500] focus:border-[#FF5500] outline-none transition-all font-medium"
                         />
                       </div>
                     </div>
                   )}
 
                   {wizardStep === 2 && (
-                    <div className="space-y-4 animate-fadeIn">
-                      <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700 space-y-2">
+                    <div className="space-y-3 animate-fadeIn">
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-[11px] font-black uppercase tracking-wider text-pink-400">
+                          <label className="text-xs font-bold text-slate-800">
                             Asignar Responsables del Escuadrón
                           </label>
-                          <span className="text-xs font-mono font-bold text-slate-300">
+                          <span className="text-xs font-mono font-bold text-slate-500">
                             {formAssignedUsers.length}/2 Seleccionados
                           </span>
                         </div>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-500 font-medium">
                           Selecciona hasta un máximo de 2 operadores para responsabilizarse de esta tarea.
                         </p>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
                           {operatorsList.map(u => {
                             const isSelected = formAssignedUsers.includes(u.id);
                             return (
@@ -1058,24 +941,24 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                                     setFormAssignedUsers(prev => [...prev, u.id]);
                                   }
                                 }}
-                                className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                                className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                                   isSelected
-                                    ? 'bg-pink-600/20 border-pink-500 text-white shadow-xs'
-                                    : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-750'
+                                    ? 'bg-orange-50 border-orange-300 text-slate-900 shadow-2xs'
+                                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
                                 }`}
                               >
                                 <img
                                   src={getUserAvatarUrl(u.username)}
                                   alt={u.username}
-                                  className="w-9 h-9 rounded-full object-cover border-2 border-slate-700 shrink-0"
+                                  className="w-8 h-8 rounded-full object-cover border border-slate-200 shrink-0"
                                   referrerPolicy="no-referrer"
                                 />
                                 <div className="min-w-0 flex-1">
                                   <div className="text-xs font-bold truncate capitalize">{u.username}</div>
-                                  <div className="text-[10px] text-slate-400 uppercase tracking-wider">{u.puesto || u.role}</div>
+                                  <div className="text-[10px] text-slate-400 font-medium">{u.puesto || u.role}</div>
                                 </div>
-                                <div className={`w-5 h-5 rounded-full border flex items-center justify-center text-xs font-bold ${
-                                  isSelected ? 'bg-pink-500 border-pink-400 text-white' : 'border-slate-600 text-transparent'
+                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center text-[10px] font-bold ${
+                                  isSelected ? 'bg-[#FF5500] border-[#FF5500] text-white' : 'border-slate-300 text-transparent'
                                 }`}>
                                   ✓
                                 </div>
@@ -1088,7 +971,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                   )}
 
                   {/* Wizard Footer Controls */}
-                  <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
                     <button
                       type="button"
                       onClick={() => {
@@ -1098,7 +981,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                           setShowAddForm(false);
                         }
                       }}
-                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                      className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
                     >
                       {wizardStep === 2 ? '← Volver al Paso 1' : 'Cancelar'}
                     </button>
@@ -1114,17 +997,17 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                           setFormError(null);
                           setWizardStep(2);
                         }}
-                        className="bg-pink-600 hover:bg-pink-500 text-white font-black px-6 py-2.5 rounded-xl text-xs transition-colors cursor-pointer shadow-md flex items-center gap-2"
+                        className="bg-[#FF5500] hover:bg-[#E04B00] text-white font-bold px-4 py-2 rounded-xl text-xs transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-[0.99]"
                       >
                         <span>Siguiente: Asignar Equipo</span>
-                        <ChevronRight className="w-4 h-4" />
+                        <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     ) : (
                       <button
                         type="submit"
-                        className="bg-pink-600 hover:bg-pink-500 text-white font-black px-6 py-2.5 rounded-xl text-xs transition-colors cursor-pointer shadow-md flex items-center gap-2"
+                        className="bg-[#FF5500] hover:bg-[#E04B00] text-white font-bold px-4 py-2 rounded-xl text-xs transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-[0.99]"
                       >
-                        <Sparkles className="w-4 h-4" />
+                        <Sparkles className="w-3.5 h-3.5" />
                         <span>Crear Tarea</span>
                       </button>
                     )}
@@ -1139,7 +1022,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
 
         {/* VISTAS DINÁMICAS: LISTA, KANBAN, CALENDARIO, TARJETAS */}
         {plannerViewMode === 'list' && (
-          <div className="overflow-x-auto rounded-2xl border border-slate-200/90 shadow-2xs bg-white">
+          <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-2xs bg-white">
             {filteredTasks.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-12 text-center">
                 <HelpCircle className="w-10 h-10 text-slate-300 mb-2" />
@@ -1149,18 +1032,18 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
             ) : (
               <table className="w-full text-left text-xs border-collapse font-sans">
                 <thead>
-                  <tr className="bg-slate-50/80 text-slate-500 uppercase text-[10px] font-black tracking-wider border-b border-slate-200">
-                    <th className="p-3.5 w-10 text-center">
-                      <input type="checkbox" className="rounded border-slate-300 text-pink-600 focus:ring-pink-500 cursor-pointer" />
+                  <tr className="bg-slate-50 text-slate-500 uppercase text-[10px] font-bold tracking-wider border-b border-slate-200">
+                    <th className="p-3 w-10 text-center">
+                      <input type="checkbox" className="rounded border-slate-300 text-[#FF5500] focus:ring-[#FF5500] cursor-pointer" />
                     </th>
-                    <th className="p-3.5">PROJECT NAME</th>
-                    <th className="p-3.5">START DATE</th>
-                    <th className="p-3.5">DEADLINE</th>
-                    <th className="p-3.5 text-center">HORAS</th>
-                    <th className="p-3.5 text-center">STATUS</th>
-                    <th className="p-3.5 text-center min-w-[120px]">EQUIPO (MÁX {maxMembersPerTask})</th>
-                    <th className="p-3.5 text-center">PRIORITY</th>
-                    <th className="p-3.5 text-right w-12">ACCIONES</th>
+                    <th className="p-3">PROYECTO & MARCA</th>
+                    <th className="p-3">INICIO</th>
+                    <th className="p-3">DEADLINE</th>
+                    <th className="p-3 text-center">HORAS</th>
+                    <th className="p-3 text-center">ESTADO</th>
+                    <th className="p-3 text-center min-w-[120px]">EQUIPO (MÁX {maxMembersPerTask})</th>
+                    <th className="p-3 text-center">PRIORIDAD</th>
+                    <th className="p-3 text-right w-12">ACCIONES</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -1179,20 +1062,20 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                     return (
                       <tr key={task.id} className="hover:bg-slate-50/70 transition-colors group">
                         
-                        <td className="p-3.5 text-center">
-                          <input type="checkbox" className="rounded border-slate-300 text-pink-600 focus:ring-pink-500 cursor-pointer" />
+                        <td className="p-3 text-center">
+                          <input type="checkbox" className="rounded border-slate-300 text-[#FF5500] focus:ring-[#FF5500] cursor-pointer" />
                         </td>
 
-                        <td className="p-3.5">
+                        <td className="p-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-xl bg-pink-50 text-pink-600 border border-pink-100 flex items-center justify-center font-black text-xs shrink-0 shadow-2xs">
+                            <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#FF5500] border border-orange-100 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                               {task.brand.substring(0, 2).toUpperCase()}
                             </div>
                             <div>
                               <span className="font-bold text-slate-900 text-xs block leading-snug">
                                 {task.project}
                               </span>
-                              <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">
+                              <span className="text-[10px] font-semibold text-slate-400 block uppercase tracking-wider">
                                 {task.brand}
                               </span>
                             </div>
@@ -1443,7 +1326,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                 <div key={task.id} className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-4 hover:shadow-lg hover:border-emerald-300 transition-all">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-pink-100 text-pink-700 font-black flex items-center justify-center text-sm shadow-2xs">
+                      <div className="w-9 h-9 rounded-xl bg-orange-50 text-[#FF5500] border border-orange-200 font-bold flex items-center justify-center text-sm shadow-2xs">
                         {task.brand.substring(0, 2).toUpperCase()}
                       </div>
                       <div>

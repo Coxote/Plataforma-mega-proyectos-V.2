@@ -807,11 +807,11 @@ export default function PhaseContent({
               </button>
               <button
                 onClick={handleCompletePhaseClick}
-                className={`font-bold rounded-xl px-4 py-2 text-xs transition-all flex items-center gap-1.5 shadow-md cursor-pointer ${
+                className={`font-bold rounded-xl px-4 py-2 text-xs transition-all flex items-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer ${
                   activePhase.status === 'completed'
                     ? 'bg-emerald-600 text-white'
                     : (checklistTotal === 0 || checklistPercent === 100)
-                    ? 'bg-pink-700 hover:bg-pink-800 text-white'
+                    ? 'bg-[#FF5500] hover:bg-[#E04B00] text-white'
                     : 'bg-amber-600 hover:bg-amber-700 text-white'
                 }`}
                 id="btn-complete-phase"

@@ -297,7 +297,7 @@ export const GlobalLogTimeModal: React.FC<GlobalLogTimeModalProps> = ({
             <button
               type="submit"
               disabled={!hours || Number(hours) <= 0 || (!description.trim() && !retrabajoMotivo.trim())}
-              className="px-5 py-2 bg-[#FF4500] hover:bg-[#e03d00] text-white text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-40"
+              className="px-5 py-2 bg-[#FF5500] hover:bg-[#E04B00] text-white text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-40"
             >
               Guardar Horas
             </button>

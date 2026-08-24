@@ -29,6 +29,9 @@ import {
   Layers,
   Zap
 } from 'lucide-react';
+import { StatBar } from './StatBar';
+import { EmptyState } from './EmptyState';
+import { ui } from '../theme';
 
 interface FinancialDashboardProps {
   projects: Project[];
@@ -304,82 +307,57 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
         </div>
       </div>
 
-      <div className="p-8 space-y-8 max-w-7xl mx-auto w-full">
+      <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
         
-        {/* KPI CARDS (RESUMEN EJECUTIVO) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          
-          {/* CARD 1: INGRESOS CONTRATADOS */}
-          <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-2 relative overflow-hidden group hover:border-slate-300 transition-all">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Ingresos Totales (OVs)</span>
-              <div className="w-9 h-9 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center font-bold">
-                <Receipt className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="text-2xl font-black text-slate-900 font-mono">
-              ${globalMetrics.totalIncome.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
-            </div>
-            <div className="text-[11px] font-semibold text-slate-500 flex items-center gap-1 pt-1">
-              <Clock className="w-3.5 h-3.5 text-cyan-600" />
-              <span>{globalMetrics.totalHoursSold} hrs vendidas en total</span>
-            </div>
-          </div>
-
-          {/* CARD 2: COSTO REAL INCURRIDO */}
-          <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-2 relative overflow-hidden group hover:border-slate-300 transition-all">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Costo Operativo Real</span>
-              <div className="w-9 h-9 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold">
-                <BarChart3 className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="text-2xl font-black text-slate-900 font-mono">
-              ${globalMetrics.totalCost.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
-            </div>
-            <div className="text-[11px] font-semibold text-slate-500 flex items-center gap-1 pt-1">
-              <Users className="w-3.5 h-3.5 text-slate-600" />
-              <span>{globalMetrics.totalHoursConsumed} hrs trabajadas ({globalMetrics.internalCost > 0 ? `$${globalMetrics.internalCost.toFixed(0)} interno` : ''})</span>
-            </div>
-          </div>
-
-          {/* CARD 3: MARGEN BRUTO OPERATIVO */}
-          <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-2 relative overflow-hidden group hover:border-slate-300 transition-all">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Margen Operativo Bruto</span>
-              <div className="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-                <TrendingUp className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="text-2xl font-black text-emerald-700 font-mono">
-              ${globalMetrics.marginAmount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
-            </div>
-            <div className="text-[11px] font-semibold text-emerald-700 flex items-center gap-1.5 pt-1">
-              <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-black text-[10px]">
-                {globalMetrics.marginPercent.toFixed(1)}% Margen
-              </span>
-              <span className="text-slate-400 text-[10px]">Meta &ge; 30%</span>
-            </div>
-          </div>
-
-          {/* CARD 4: IMPACTO DE RETRABAJO / RIESGO */}
-          <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-2xs space-y-2 relative overflow-hidden group hover:border-slate-300 transition-all">
-            <div className="flex items-center justify-between text-slate-400">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Costo Pérdida Retrabajo</span>
-              <div className="w-9 h-9 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
-                <ShieldAlert className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="text-2xl font-black text-amber-600 font-mono">
-              ${globalMetrics.reworkCost.toLocaleString('es-ES', { minimumFractionDigits: 2 })}
-            </div>
-            <div className="text-[11px] font-semibold text-slate-500 flex items-center justify-between pt-1">
-              <span className="text-amber-700 font-bold">{globalMetrics.totalReworkHours} hrs desperdiciadas</span>
-              <span className="text-red-600 font-black text-[10px]">{globalMetrics.criticalCount} Proy. Críticos</span>
-            </div>
-          </div>
-
-        </div>
+        {/* NIVEL 1: BANDA DE ESTADO FINANCIERA (StatBar) */}
+        <StatBar 
+          stats={[
+            {
+              id: 'fin-income',
+              label: 'Ingresos Totales (OVs)',
+              value: `$${globalMetrics.totalIncome.toLocaleString('es-ES')}`,
+              subValue: `${globalMetrics.totalHoursSold} hrs vendidas`,
+              icon: Receipt,
+              status: 'neutral'
+            },
+            {
+              id: 'fin-cost',
+              label: 'Costo Operativo Real',
+              value: `$${globalMetrics.totalCost.toLocaleString('es-ES')}`,
+              subValue: `${globalMetrics.totalHoursConsumed} hrs ejecutadas`,
+              icon: BarChart3,
+              status: 'neutral'
+            },
+            {
+              id: 'fin-margin',
+              label: 'Margen Operativo Bruto',
+              value: `$${globalMetrics.marginAmount.toLocaleString('es-ES')}`,
+              subValue: `Margen: ${globalMetrics.marginPercent.toFixed(1)}% (Meta ≥ 30%)`,
+              trend: {
+                value: `${globalMetrics.marginPercent.toFixed(1)}%`,
+                isPositive: globalMetrics.marginPercent >= 30
+              },
+              icon: TrendingUp,
+              status: globalMetrics.marginPercent >= 30 ? 'success' : 'warning'
+            },
+            {
+              id: 'fin-rework',
+              label: 'Pérdida por Retrabajo',
+              value: `$${globalMetrics.reworkCost.toLocaleString('es-ES')}`,
+              subValue: `${globalMetrics.totalReworkHours} hrs retrabajo`,
+              icon: ShieldAlert,
+              status: globalMetrics.reworkCost > 0 ? 'warning' : 'success'
+            },
+            {
+              id: 'fin-health',
+              label: 'Salud de Portafolio',
+              value: `${globalMetrics.optimoCount} Óptimos`,
+              subValue: `${globalMetrics.criticalCount} críticos · ${globalMetrics.observationCount} en obs.`,
+              icon: Briefcase,
+              status: globalMetrics.criticalCount > 0 ? 'danger' : 'success'
+            }
+          ]}
+        />
 
         {/* GRAFICOS VISUALES & ESTRUCTURA DE COSTOS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

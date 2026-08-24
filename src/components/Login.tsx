@@ -175,7 +175,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="ej. usuario@tpp.com"
-                className="w-full bg-white border border-[#D1D5DB] rounded-[7px] px-2.5 py-1.5 text-xs text-[#18181b] focus:border-[#FF4500] focus:ring-1 focus:ring-[#FF4500] outline-none transition-all placeholder:text-slate-300"
+                className="w-full bg-white border border-[#D1D5DB] rounded-[7px] px-2.5 py-1.5 text-xs text-[#18181b] focus:border-[#FF5500] focus:ring-1 focus:ring-[#FF5500] outline-none transition-all placeholder:text-slate-300"
                 id="login-username"
               />
             </div>
@@ -189,7 +189,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
                 <a 
                   href="#forgot" 
                   onClick={(e) => { e.preventDefault(); setError('Instrucciones de recuperación enviadas a administración.'); }}
-                  className="text-[10px] sm:text-[11px] font-medium text-[#FF4500] hover:underline"
+                  className="text-[10px] sm:text-[11px] font-medium text-[#FF5500] hover:underline"
                 >
                   ¿Olvidaste tu contraseña?
                 </a>
@@ -200,7 +200,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-white border-2 border-[#FF4500] rounded-[7px] px-2.5 py-1.5 text-xs text-[#18181b] outline-none transition-all pr-8"
+                  className="w-full bg-white border-2 border-[#FF5500] rounded-[7px] px-2.5 py-1.5 text-xs text-[#18181b] outline-none transition-all pr-8"
                   id="login-password"
                 />
                 <button
@@ -220,7 +220,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
                 id="rememberMe"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="w-3 h-3 rounded-[3px] border-[#D1D5DB] text-[#FF4500] focus:ring-[#FF4500] cursor-pointer"
+                className="w-3 h-3 rounded-[3px] border-[#D1D5DB] text-[#FF5500] focus:ring-[#FF5500] cursor-pointer"
               />
               <label htmlFor="rememberMe" className="text-[11px] sm:text-xs text-[#3f3f46] font-normal cursor-pointer select-none">
                 Mantener sesión
@@ -230,7 +230,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
             {/* Botón Principal CTA */}
             <button
               type="submit"
-              className="w-full bg-[#FF4500] hover:bg-[#e03d00] text-white font-medium py-2 rounded-[7px] text-xs transition-all shadow-sm cursor-pointer text-center active:scale-[0.99] mt-1"
+              className="w-full bg-[#FF5500] hover:bg-[#E04B00] text-white font-medium py-2 rounded-[7px] text-xs transition-all shadow-sm cursor-pointer text-center active:scale-[0.99] mt-1"
               id="login-submit-btn"
             >
               Iniciar Sesión

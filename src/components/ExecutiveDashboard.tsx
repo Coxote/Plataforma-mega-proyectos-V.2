@@ -40,6 +40,8 @@ import {
   CartesianGrid, 
   Legend 
 } from 'recharts';
+import { StatBar } from './StatBar';
+import { ui } from '../theme';
 
 interface Props {
   projects: Project[];
@@ -270,150 +272,71 @@ export const ExecutiveDashboard: React.FC<Props> = ({
 
       </div>
 
-      {/* 6 KPI CARDS EN FILA */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        
-        {/* 1. ESTADO GENERAL */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-            ESTADO GENERAL
-          </span>
-          <div className="my-2 flex flex-col items-center text-center">
-            <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md mb-2">
-              <CheckCircle2 className="w-7 h-7" />
-            </div>
-            <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300">
-              EN CONTROL
-            </span>
-          </div>
-          <p className="text-[10px] text-slate-500 text-center font-medium">
-            El proyecto avanza según lo planificado
-          </p>
-        </div>
-
-        {/* 2. % AVANCE */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-            % AVANCE
-          </span>
-          <div className="relative my-1 flex items-center justify-center h-20">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: 'Completado', value: progressPercent, fill: '#059669' },
-                    { name: 'Restante', value: 100 - progressPercent, fill: '#e2e8f0' },
-                  ]}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={24}
-                  outerRadius={36}
-                  startAngle={90}
-                  endAngle={-270}
-                  dataKey="value"
-                  stroke="none"
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-base font-black text-slate-900">{progressPercent}%</span>
-            </div>
-          </div>
-          <p className="text-[10px] text-slate-500 text-center font-semibold">
-            Planificado: <strong className="text-slate-800">{plannedProgressPercent}%</strong>
-          </p>
-        </div>
-
-        {/* 3. SPI (Schedule Performance Index) */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-              SPI
-            </span>
-            <span className="text-[9px] font-bold text-slate-400">Cronograma</span>
-          </div>
-          <div className="my-1">
-            <div className="text-2xl font-black text-emerald-600">
-              {spi.toString().replace('.', ',')}
-            </div>
-            <p className="text-[9px] text-slate-400 leading-tight mt-1">
-              &gt; 1 = Adelantado<br/>
-              = 1 = En plan<br/>
-              &lt; 1 = Atrasado
-            </p>
-          </div>
-          <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50/80 border border-emerald-200/80 px-2 py-0.5 rounded-lg text-center">
-            Levemente en plan
-          </div>
-        </div>
-
-        {/* 4. CPI (Cost Performance Index) */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
-          <div className="flex justify-between items-start">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-              CPI
-            </span>
-            <span className="text-[9px] font-bold text-slate-400">Costo</span>
-          </div>
-          <div className="my-1">
-            <div className="text-2xl font-black text-emerald-600">
-              {cpi.toString().replace('.', ',')}
-            </div>
-            <p className="text-[9px] text-slate-400 leading-tight mt-1">
-              &gt; 1 = Bajo presupuesto<br/>
-              = 1 = En plan<br/>
-              &lt; 1 = Sobre presupuesto
-            </p>
-          </div>
-          <div className="text-[10px] font-bold text-emerald-700 bg-emerald-50/80 border border-emerald-200/80 px-2 py-0.5 rounded-lg text-center">
-            Eficiencia positiva
-          </div>
-        </div>
-
-        {/* 5. PRESUPUESTO */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-            PRESUPUESTO
-          </span>
-          <div className="my-1">
-            <div className="text-sm font-black text-slate-900 truncate">
-              USD ${(totalIncome / 1000).toFixed(0)}k
-            </div>
-            <div className="text-[10px] text-slate-500 font-semibold my-1">
-              Ejecutado: {progressPercent}%
-            </div>
-            <div className="w-full bg-slate-100/80 rounded-full h-2 overflow-hidden border border-slate-200/80">
-              <div 
-                className="bg-emerald-500 h-full rounded-full" 
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-          </div>
-          <div className="text-[9px] text-slate-500 font-semibold flex justify-between pt-1 border-t border-slate-100">
-            <span>Gastado: ${(spentAmount / 1000).toFixed(0)}k</span>
-            <span>Rest.: ${(remainingAmount / 1000).toFixed(0)}k</span>
-          </div>
-        </div>
-
-        {/* 6. FECHA ESTIMADA DE SALIDA */}
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex flex-col justify-between">
-          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-            ESTIMADA GO LIVE
-          </span>
-          <div className="my-1 flex flex-col items-center text-center">
-            <div className="w-8 h-8 rounded-lg bg-blue-50/80 text-blue-600 flex items-center justify-center mb-1">
-              <Calendar className="w-4 h-4" />
-            </div>
-            <div className="text-xs font-black text-slate-900 uppercase">
-              30 SEP 2026
-            </div>
-          </div>
-          <div className="text-[10px] font-bold text-emerald-800 bg-emerald-100/80 border border-emerald-200/80 px-2 py-0.5 rounded-lg text-center">
-            En riesgo bajo
-          </div>
-        </div>
-
-      </div>
+      {/* NIVEL 1: BANDA DE ESTADO EJECUTIVA (StatBar) */}
+      <StatBar 
+        stats={[
+          {
+            id: 'exec-status',
+            label: 'Estado General',
+            value: 'En Control',
+            subValue: 'Avanza según lo planificado',
+            icon: CheckCircle2,
+            status: 'success'
+          },
+          {
+            id: 'exec-progress',
+            label: '% Avance del Proyecto',
+            value: `${progressPercent}%`,
+            subValue: `Planificado: ${plannedProgressPercent}%`,
+            trend: {
+              value: 'A tiempo',
+              isPositive: true
+            },
+            icon: Target,
+            status: 'brand'
+          },
+          {
+            id: 'exec-spi',
+            label: 'SPI (Cronograma)',
+            value: `${spi.toString().replace('.', ',')}`,
+            subValue: 'Índice de desempeño temporal',
+            trend: {
+              value: 'En plan',
+              isPositive: true
+            },
+            icon: Clock,
+            status: 'info'
+          },
+          {
+            id: 'exec-cpi',
+            label: 'CPI (Costo)',
+            value: `${cpi.toString().replace('.', ',')}`,
+            subValue: 'Bajo presupuesto',
+            trend: {
+              value: '+5% Eficiencia',
+              isPositive: true
+            },
+            icon: DollarSign,
+            status: 'success'
+          },
+          {
+            id: 'exec-budget',
+            label: 'Presupuesto Total',
+            value: `$${(totalIncome / 1000).toFixed(0)}k`,
+            subValue: `Gastado: $${(spentAmount / 1000).toFixed(0)}k (${progressPercent}%)`,
+            icon: DollarSign,
+            status: 'neutral'
+          },
+          {
+            id: 'exec-golive',
+            label: 'Fecha Go-Live',
+            value: '30 SEP 2026',
+            subValue: 'Riesgo bajo de entrega',
+            icon: Calendar,
+            status: 'info'
+          }
+        ]}
+      />
 
       {/* FILA SEGUNDA: LÍNEA DE TIEMPO + DISTRIBUCIÓN DEL AVANCE POR ÁREA */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

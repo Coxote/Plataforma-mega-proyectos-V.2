@@ -178,7 +178,7 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
             setEditingClient(null);
             setIsWizardOpen(true);
           }}
-          className="px-4 py-2.5 bg-[#FF4500] hover:bg-[#e03d00] text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center gap-2 cursor-pointer self-start sm:self-center active:scale-[0.99]"
+          className="px-4 py-2.5 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl font-bold text-xs shadow-sm transition-all flex items-center gap-2 cursor-pointer self-start sm:self-center active:scale-[0.99]"
         >
           <Plus className="w-4 h-4" /> Nuevo Cliente
         </button>
