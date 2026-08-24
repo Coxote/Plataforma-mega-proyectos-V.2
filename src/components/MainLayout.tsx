@@ -276,7 +276,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             setIsMobileMenuOpen(false);
           }}
           title="Salir del Sistema"
-          className={`flex items-center text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-full transition-colors cursor-pointer text-xs font-semibold ${
+          className={`flex items-center text-rose-200/80 hover:text-white hover:bg-rose-500/20 rounded-full transition-colors cursor-pointer text-xs font-semibold ${
             isCollapsed ? 'w-10 h-10 justify-center mx-auto p-0' : 'w-full px-3 py-2 gap-3 min-h-[38px]'
           }`}
         >

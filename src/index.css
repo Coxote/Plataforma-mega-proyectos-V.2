@@ -14,12 +14,9 @@
 /* Operations Atelier: restrained product surfaces inspired by the TPP login */
 .oa-app-surface {
   background:
-    linear-gradient(90deg, rgba(132, 204, 22, 0.045) 1px, transparent 1px),
-    linear-gradient(rgba(132, 204, 22, 0.035) 1px, transparent 1px),
     radial-gradient(circle at 0% 0%, rgba(132, 204, 22, 0.16), transparent 23rem),
     radial-gradient(circle at 100% 100%, rgba(255, 85, 0, 0.14), transparent 26rem),
     radial-gradient(ellipse 140% 100% at 50% -15%, #e0f2fe 0%, #f0f5fa 40%, #f8fafc 70%, #ffffff 100%);
-  background-size: 28px 28px, 28px 28px, auto, auto, auto;
 }
 
 .oa-sidebar {
@@ -111,20 +108,14 @@
 /* Pixel Grid utilities matching the design system */
 .oa-pixel-grid-orange {
   background:
-    linear-gradient(90deg, rgba(255, 59, 10, 0.04) 1px, transparent 1px),
-    linear-gradient(rgba(255, 59, 10, 0.04) 1px, transparent 1px),
     radial-gradient(circle at 85% 85%, rgba(255, 59, 10, 0.08), transparent 50%),
     #ffffff;
-  background-size: 32px 32px, 32px 32px, auto, auto;
 }
 
 .oa-pixel-grid-lime {
   background:
-    linear-gradient(90deg, rgba(154, 216, 15, 0.05) 1px, transparent 1px),
-    linear-gradient(rgba(154, 216, 15, 0.05) 1px, transparent 1px),
     radial-gradient(circle at 0% 0%, rgba(154, 216, 15, 0.1), transparent 50%),
     #ffffff;
-  background-size: 32px 32px, 32px 32px, auto, auto;
 }
 
 /* Custom scrollbar matching design requirements */
