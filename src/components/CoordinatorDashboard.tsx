@@ -3,7 +3,6 @@ import {
   AlertTriangle,
   BarChart3,
   Briefcase,
-  CalendarDays,
   CheckCircle2,
   Clock,
   DollarSign,
@@ -21,10 +20,11 @@ import {
   getGlobalReworkIndicator,
 } from '../utils/metrics';
 import { ExecutiveDashboard } from './ExecutiveDashboard';
-import { StatBar } from './StatBar';
 import {
   ActionButton,
+  DashboardFrame,
   EmptyBlock,
+  MetricStrip,
   PageHeader,
   PageShell,
   ProgressBar,
@@ -48,13 +48,6 @@ const formatMoney = (value: number) =>
     currency: 'USD',
     maximumFractionDigits: 0,
   }).format(value || 0);
-
-const formatDate = (value?: string) => {
-  if (!value) return 'Sin fecha';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Sin fecha';
-  return new Intl.DateTimeFormat('es-GT', { day: '2-digit', month: 'short' }).format(date);
-};
 
 const getUsageTone = (value: number): Tone => {
   if (value >= 100) return 'danger';
@@ -163,74 +156,64 @@ export const CoordinatorDashboard: React.FC<Props> = ({
 
   return (
     <PageShell className="text-slate-900" id="coordinator-control-tower">
-      <PageHeader
-        title="Torre de Control"
-        meta="Operacion diaria"
-        description="Lectura compacta del portafolio: proyectos que requieren decision, carga del equipo, consumo de horas y alertas SLA."
-        actions={
-          <>
-            <ActionButton tone="secondary" icon={BarChart3} onClick={() => setViewMode('executive')}>
-              Vista ejecutiva
-            </ActionButton>
-            <ActionButton tone="primary" icon={Download}>
-              Exportar resumen
-            </ActionButton>
-          </>
-        }
-      />
+      <DashboardFrame>
+        <PageHeader
+          title="Torre de Control"
+          meta="Operacion diaria"
+          description="Lectura compacta del portafolio: proyectos que requieren decision, carga del equipo, consumo de horas y alertas SLA."
+          actions={
+            <>
+              <ActionButton tone="secondary" icon={BarChart3} onClick={() => setViewMode('executive')}>
+                Vista ejecutiva
+              </ActionButton>
+              <ActionButton tone="primary" icon={Download}>
+                Exportar resumen
+              </ActionButton>
+            </>
+          }
+        />
 
-      <StatBar
-        stats={[
-          {
-            id: 'active-projects',
-            label: 'Proyectos activos',
-            value: activeProjects.length,
-            subValue: `${projects.length} en cartera`,
-            icon: Briefcase,
-            status: activeProjects.length > 0 ? 'brand' : 'neutral',
-          },
-          {
-            id: 'sla-alerts',
-            label: 'Alertas SLA',
-            value: slaAlerts.length,
-            trend: {
-              value: topAlerts.some((alert) => alert.severity === 'critical') ? 'Critico' : 'En vigilancia',
-              sentiment: topAlerts.some((alert) => alert.severity === 'critical') ? 'critical' : 'warning',
+        <MetricStrip
+          items={[
+            {
+              label: 'Proyectos activos',
+              value: activeProjects.length,
+              detail: `${projects.length} en cartera`,
+              icon: Briefcase,
+              tone: activeProjects.length > 0 ? 'brand' : 'neutral',
             },
-            icon: AlertTriangle,
-            status: topAlerts.some((alert) => alert.severity === 'critical') ? 'danger' : 'warning',
-          },
-          {
-            id: 'hours',
-            label: 'Horas consumidas',
-            value: `${financials.totalConsumedHours || 0}h`,
-            subValue: `${financials.totalSoldHours || 0}h vendidas`,
-            icon: Clock,
-            status: 'info',
-          },
-          {
-            id: 'cost',
-            label: 'Costo operativo',
-            value: formatMoney(financials.totalRealCost || 0),
-            trend: {
-              value: `${(financials.costDeviation || 0) > 0 ? '+' : ''}${(financials.costDeviation || 0).toFixed(1)}%`,
-              sentiment: (financials.costDeviation || 0) > 10 ? 'critical' : 'positive',
+            {
+              label: 'Alertas SLA',
+              value: slaAlerts.length,
+              detail: topAlerts.some((alert) => alert.severity === 'critical') ? 'Critico' : 'En vigilancia',
+              icon: AlertTriangle,
+              tone: topAlerts.some((alert) => alert.severity === 'critical') ? 'danger' : 'warning',
             },
-            icon: DollarSign,
-            status: (financials.costDeviation || 0) > 10 ? 'danger' : 'success',
-          },
-          {
-            id: 'rework',
-            label: 'Retrabajo',
-            value: `${(rework.porcentajeGlobal || 0).toFixed(1)}%`,
-            subValue: `${rework.totalRetrabajoGlobal || 0}h`,
-            icon: LineChart,
-            status: (rework.porcentajeGlobal || 0) > 15 ? 'warning' : 'success',
-          },
-        ]}
-      />
+            {
+              label: 'Horas consumidas',
+              value: `${financials.totalConsumedHours || 0}h`,
+              detail: `${financials.totalSoldHours || 0}h vendidas`,
+              icon: Clock,
+              tone: 'info',
+            },
+            {
+              label: 'Costo operativo',
+              value: formatMoney(financials.totalRealCost || 0),
+              detail: `${(financials.costDeviation || 0) > 0 ? '+' : ''}${(financials.costDeviation || 0).toFixed(1)}%`,
+              icon: DollarSign,
+              tone: (financials.costDeviation || 0) > 10 ? 'danger' : 'success',
+            },
+            {
+              label: 'Retrabajo',
+              value: `${(rework.porcentajeGlobal || 0).toFixed(1)}%`,
+              detail: `${rework.totalRetrabajoGlobal || 0}h`,
+              icon: LineChart,
+              tone: (rework.porcentajeGlobal || 0) > 15 ? 'warning' : 'success',
+            },
+          ]}
+        />
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="grid grid-cols-1 gap-4 p-4 sm:p-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <SectionPanel
           title="Portafolio operativo"
           description="Ordenado por consumo de horas y riesgo. Usa esta tabla para decidir donde intervenir hoy."
@@ -253,8 +236,8 @@ export const CoordinatorDashboard: React.FC<Props> = ({
               description="Ajusta la busqueda o revisa si todos los proyectos activos ya fueron completados."
             />
           ) : (
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-              <div className="grid grid-cols-[1.5fr_1fr_120px_130px_96px] gap-0 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 max-lg:hidden">
+            <div className="overflow-hidden rounded-[18px] border border-slate-200/70 bg-white/72">
+              <div className="grid grid-cols-[1.5fr_1fr_120px_130px_96px] gap-0 border-b border-slate-200/70 bg-slate-50/70 px-4 py-3 text-xs font-black uppercase tracking-wide text-slate-500 max-lg:hidden">
                 <span>Proyecto</span>
                 <span>Fase activa</span>
                 <span>Salud</span>
@@ -267,7 +250,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                   <button
                     key={project.id}
                     onClick={() => onSelectProject(project.id)}
-                    className="grid w-full grid-cols-1 gap-3 px-4 py-4 text-left transition-colors duration-150 ease-out hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500/20 lg:grid-cols-[1.5fr_1fr_120px_130px_96px] lg:items-center"
+                    className="grid w-full grid-cols-1 gap-3 px-4 py-4 text-left transition-[background-color,transform] duration-150 ease-out hover:bg-white active:scale-[0.998] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-orange-500/20 lg:grid-cols-[1.5fr_1fr_120px_130px_96px] lg:items-center"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -299,7 +282,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
           )}
         </SectionPanel>
 
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
           <SectionPanel
             title="Alertas de hoy"
             description="Solo las senales que necesitan decision."
@@ -312,12 +295,12 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                 description="No hay alertas SLA activas. Mantener revision diaria y carga de horas actualizada."
               />
             ) : (
-              <div className="space-y-3">
+              <div className="divide-y divide-slate-200/70">
                 {topAlerts.map((alert) => (
                   <button
                     key={alert.id}
                     onClick={() => onSelectProject(alert.projectId)}
-                    className="w-full rounded-2xl border border-slate-200 bg-white p-3 text-left transition-[background-color,border-color,transform] duration-150 ease-out hover:border-orange-200 hover:bg-orange-50/40 active:scale-[0.99]"
+                    className="w-full px-1 py-3 text-left transition-[background-color,transform] duration-150 ease-out hover:bg-orange-50/35 active:scale-[0.995]"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <StatusBadge tone={alert.severity === 'critical' ? 'danger' : 'warning'}>
@@ -341,12 +324,12 @@ export const CoordinatorDashboard: React.FC<Props> = ({
             description="Capacidad efectiva por colaborador."
             icon={Users}
           >
-            <div className="space-y-3">
+            <div className="divide-y divide-slate-200/70">
               {teamLoad.map((member) => {
                 const saturation = member.effectiveSaturation || 0;
                 const tone = saturation > 110 ? 'danger' : saturation > 90 ? 'warning' : 'success';
                 return (
-                  <div key={member.id} className="rounded-2xl border border-slate-200 bg-white p-3">
+                  <div key={member.id} className="py-3">
                     <div className="flex items-center gap-3">
                       <img
                         src={getUserAvatarUrl(member.username)}
@@ -375,33 +358,20 @@ export const CoordinatorDashboard: React.FC<Props> = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <SectionPanel title="Siguiente accion" icon={ShieldCheck}>
-          <div className="space-y-3 text-sm text-slate-600">
-            <p>
-              Prioriza los proyectos con alerta critica, redistribuye capacidad si alguien supera 110% y exige carga de horas antes de revisar margen.
-            </p>
-            <ActionButton tone="primary" icon={CheckCircle2}>
+        <div className="border-t border-slate-200/70 bg-slate-50/45 px-5 py-4">
+          <div className="flex flex-col gap-3 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#FF5500]" />
+              <p>
+                Prioriza proyectos con alerta critica, redistribuye capacidad sobre 110% y exige carga de horas antes de revisar margen.
+              </p>
+            </div>
+            <ActionButton tone="ghost" icon={CheckCircle2}>
               Revisar intervenciones
             </ActionButton>
           </div>
-        </SectionPanel>
-
-        <SectionPanel title="Ventana de planificacion" icon={CalendarDays}>
-          <div className="space-y-2 text-sm text-slate-600">
-            <p className="font-semibold text-slate-900">Esta semana</p>
-            <p>Usa Planner para mover entregables, no para duplicar informacion del expediente.</p>
-          </div>
-        </SectionPanel>
-
-        <SectionPanel title="Criterio de salud" icon={DollarSign}>
-          <div className="space-y-2 text-sm text-slate-600">
-            <p>
-              Salud combina SLA, consumo de horas y avance de fases. Finanzas debe confirmar margen cuando Odoo este conectado.
-            </p>
-          </div>
-        </SectionPanel>
-      </div>
+        </div>
+      </DashboardFrame>
     </PageShell>
   );
 };

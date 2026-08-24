@@ -16,10 +16,19 @@ export const PageShell: React.FC<{
   children: React.ReactNode;
   className?: string;
 }> = ({ children, className = '' }) => (
-  <div className={`flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8 lg:py-7 ${className}`}>
-    <div className="mx-auto flex max-w-[1480px] flex-col gap-5">
+  <div className={`flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-8 lg:py-6 ${className}`}>
+    <div className="mx-auto flex max-w-[1480px] flex-col gap-4">
       {children}
     </div>
+  </div>
+);
+
+export const DashboardFrame: React.FC<{
+  children: React.ReactNode;
+  className?: string;
+}> = ({ children, className = '' }) => (
+  <div className={`overflow-hidden rounded-[28px] border border-white/80 bg-white/72 shadow-[0_30px_90px_-55px_rgba(15,23,42,0.55)] backdrop-blur-xl ${className}`}>
+    {children}
   </div>
 );
 
@@ -29,7 +38,7 @@ export const PageHeader: React.FC<{
   meta?: string;
   actions?: React.ReactNode;
 }> = ({ title, description, meta, actions }) => (
-  <div className="oa-panel rounded-2xl px-5 py-4 sm:px-6">
+  <div className="px-5 py-5 sm:px-7 sm:py-6">
     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <div className="min-w-0">
         {meta && (
@@ -57,8 +66,8 @@ export const SectionPanel: React.FC<{
   children: React.ReactNode;
   className?: string;
 }> = ({ title, description, icon: Icon, action, children, className = '' }) => (
-  <section className={`oa-panel rounded-2xl ${className}`}>
-    <div className="flex flex-col gap-3 border-b border-slate-200/70 px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
+  <section className={`rounded-[22px] border border-slate-200/70 bg-white/58 ${className}`}>
+    <div className="flex flex-col gap-3 border-b border-slate-200/60 px-5 py-4 sm:flex-row sm:items-start sm:justify-between">
       <div className="flex min-w-0 items-start gap-3">
         {Icon && (
           <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700">
@@ -74,8 +83,43 @@ export const SectionPanel: React.FC<{
       </div>
       {action}
     </div>
-    <div className="p-5">{children}</div>
+    <div className="p-4 sm:p-5">{children}</div>
   </section>
+);
+
+export const MetricStrip: React.FC<{
+  items: Array<{
+    label: string;
+    value: string | number;
+    detail?: string;
+    tone?: Tone;
+    icon?: LucideIcon;
+  }>;
+}> = ({ items }) => (
+  <div className="border-y border-slate-200/70 bg-white/42">
+    <div className="grid grid-cols-1 divide-y divide-slate-200/70 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-5">
+      {items.map((item) => {
+        const Icon = item.icon;
+        const tone = item.tone || 'neutral';
+        return (
+          <div key={item.label} className="flex min-h-[92px] items-center gap-4 px-5 py-4">
+            {Icon && (
+              <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border ${toneMap[tone]}`}>
+                <Icon className="h-5 w-5" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-slate-500">{item.label}</p>
+              <div className="mt-1 flex flex-wrap items-baseline gap-2">
+                <span className="text-xl font-black tabular-nums tracking-tight text-slate-950">{item.value}</span>
+                {item.detail && <span className="text-xs font-semibold text-slate-400">{item.detail}</span>}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </div>
 );
 
 export const StatusBadge: React.FC<{
