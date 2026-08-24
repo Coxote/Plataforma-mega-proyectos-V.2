@@ -1,28 +1,28 @@
 import React, { useState, useMemo } from 'react';
 import { Project, Client, UserSession, ROLE_HOURLY_RATES, ROLE_LABELS, OrdenVenta, TimeEntry } from '../types';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertTriangle, 
-  CheckCircle2, 
-  Clock, 
-  Receipt, 
-  Users, 
-  PieChart, 
-  BarChart3, 
-  Filter, 
-  Search, 
-  Building2, 
-  Sparkles, 
-  ShieldAlert, 
-  ArrowUpRight, 
-  FileText, 
-  ChevronRight, 
-  X, 
-  Download, 
-  Calculator, 
-  Sliders, 
+import {
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Receipt,
+  Users,
+  PieChart,
+  BarChart3,
+  Filter,
+  Search,
+  Building2,
+  Sparkles,
+  ShieldAlert,
+  ArrowUpRight,
+  FileText,
+  ChevronRight,
+  X,
+  Download,
+  Calculator,
+  Sliders,
   Briefcase,
   AlertCircle,
   HelpCircle,
@@ -170,7 +170,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
       // 3. Health & Risk Assessment
       const riskFactors: string[] = [];
       if (marginPercent < 15) {
-        riskFactors.push('Margen operativo por debajo del umbral mínimo (15%)');
+        riskFactors.push('Margen operativo por debajo del umbral mÃ­nimo (15%)');
       }
       if (reworkHours > 0 && (reworkHours / (totalHoursConsumed || 1)) > 0.15) {
         riskFactors.push('Elevado porcentaje de horas perdidas en retrabajo (>15%)');
@@ -250,7 +250,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
     const reworkCost = analyzedProjects.reduce((sum, p) => sum + p.reworkCost, 0);
     const marginAmount = totalIncome - totalCost;
     const marginPercent = totalIncome > 0 ? (marginAmount / totalIncome) * 100 : 0;
-    
+
     const totalHoursSold = analyzedProjects.reduce((sum, p) => sum + p.totalHoursSold, 0);
     const totalHoursConsumed = analyzedProjects.reduce((sum, p) => sum + p.totalHoursConsumed, 0);
     const totalReworkHours = analyzedProjects.reduce((sum, p) => sum + p.reworkHours, 0);
@@ -278,17 +278,17 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50/50 overflow-y-auto" id="financial-health-dashboard">
-      
+
       {/* HEADER SUPERIOR */}
       <div className="px-8 py-6 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0 shadow-2xs">
         <div>
-          <div className="flex items-center gap-2 text-emerald-600 text-[10px] font-black uppercase tracking-widest mb-1">
+          <div className="flex items-center gap-2 text-emerald-600 text-xs font-black uppercase tracking-widest mb-1">
             <DollarSign className="w-4 h-4" />
-            Módulo de Control Financiero & Rentabilidad
+            MÃ³dulo de Control Financiero & Rentabilidad
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Salud Financiera de Proyectos</h1>
           <p className="text-xs text-slate-500 font-medium">
-            Supervisión ejecutiva de ingresos por OVs, costo real incurrido, margen de ganancia e impacto por retrabajo.
+            SupervisiÃ³n ejecutiva de ingresos por OVs, costo real incurrido, margen de ganancia e impacto por retrabajo.
           </p>
         </div>
 
@@ -298,7 +298,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
               <Calculator className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-[10px] font-extrabold text-emerald-800 uppercase tracking-wider">Margen Consolidado</div>
+              <div className="text-xs font-extrabold text-emerald-800 uppercase tracking-wider">Margen Consolidado</div>
               <div className="text-base font-black text-emerald-700">
                 {globalMetrics.marginPercent.toFixed(1)}% <span className="text-xs text-emerald-600 font-bold">(${globalMetrics.marginAmount.toLocaleString('es-ES', { minimumFractionDigits: 2 })})</span>
               </div>
@@ -308,9 +308,9 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
       </div>
 
       <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
-        
+
         {/* NIVEL 1: BANDA DE ESTADO FINANCIERA (StatBar) */}
-        <StatBar 
+        <StatBar
           stats={[
             {
               id: 'fin-income',
@@ -332,7 +332,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
               id: 'fin-margin',
               label: 'Margen Operativo Bruto',
               value: `$${globalMetrics.marginAmount.toLocaleString('es-ES')}`,
-              subValue: `Margen: ${globalMetrics.marginPercent.toFixed(1)}% (Meta ≥ 30%)`,
+              subValue: `Margen: ${globalMetrics.marginPercent.toFixed(1)}% (Meta â‰¥ 30%)`,
               trend: {
                 value: `${globalMetrics.marginPercent.toFixed(1)}%`,
                 isPositive: globalMetrics.marginPercent >= 30
@@ -342,7 +342,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
             },
             {
               id: 'fin-rework',
-              label: 'Pérdida por Retrabajo',
+              label: 'PÃ©rdida por Retrabajo',
               value: `$${globalMetrics.reworkCost.toLocaleString('es-ES')}`,
               subValue: `${globalMetrics.totalReworkHours} hrs retrabajo`,
               icon: ShieldAlert,
@@ -351,8 +351,8 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
             {
               id: 'fin-health',
               label: 'Salud de Portafolio',
-              value: `${globalMetrics.optimoCount} Óptimos`,
-              subValue: `${globalMetrics.criticalCount} críticos · ${globalMetrics.observationCount} en obs.`,
+              value: `${globalMetrics.optimoCount} Ã“ptimos`,
+              subValue: `${globalMetrics.criticalCount} crÃ­ticos Â· ${globalMetrics.observationCount} en obs.`,
               icon: Briefcase,
               status: globalMetrics.criticalCount > 0 ? 'danger' : 'success'
             }
@@ -361,19 +361,19 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
 
         {/* GRAFICOS VISUALES & ESTRUCTURA DE COSTOS */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* BARS: INGRESO VS COSTO POR PROYECTO */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5">
+          <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
                 <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                   <BarChart3 className="w-4 h-4 text-cyan-600" />
                   Comparativo Ingreso vs. Costo Incurrido por Proyecto
                 </h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">Visión rápida de facturación en OVs frente a costo total de horas trabajadas.</p>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">VisiÃ³n rÃ¡pida de facturaciÃ³n en OVs frente a costo total de horas trabajadas.</p>
               </div>
 
-              <div className="flex items-center gap-3 text-[10px] font-extrabold uppercase tracking-wider">
+              <div className="flex items-center gap-3 text-xs font-extrabold uppercase tracking-wider">
                 <span className="flex items-center gap-1.5 text-slate-700">
                   <span className="w-3 h-3 rounded-md bg-cyan-600 block"></span> Ingreso
                 </span>
@@ -395,9 +395,9 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
                     <div className="flex items-center justify-between text-xs font-bold">
                       <div className="flex items-center gap-2">
                         <span className="text-slate-900 truncate max-w-[200px] sm:max-w-[280px]">{pData.project.name}</span>
-                        <span className="text-[10px] text-slate-400 font-normal">({pData.clientName})</span>
+                        <span className="text-xs text-slate-400 font-normal">({pData.clientName})</span>
                       </div>
-                      <div className="font-mono text-[11px]">
+                      <div className="font-mono text-xs">
                         <span className="text-emerald-700 font-black">${pData.totalIncome.toLocaleString('es-ES')}</span>
                         <span className="text-slate-300 mx-1">/</span>
                         <span className="text-slate-600 font-bold">${pData.totalCost.toLocaleString('es-ES')}</span>
@@ -408,14 +408,14 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
                     <div className="space-y-1 bg-slate-50 p-1.5 rounded-xl border border-slate-100">
                       {/* BAR 1: INGRESO */}
                       <div className="h-2.5 bg-slate-200/60 rounded-lg overflow-hidden w-full relative">
-                        <div 
+                        <div
                           className="h-full bg-cyan-600 rounded-lg transition-all duration-500"
                           style={{ width: `${incomeWidth}%` }}
                         />
                       </div>
                       {/* BAR 2: COSTO */}
                       <div className="h-2.5 bg-slate-200/60 rounded-lg overflow-hidden w-full relative">
-                        <div 
+                        <div
                           className={`h-full rounded-lg transition-all duration-500 ${
                             pData.totalCost > pData.totalIncome ? 'bg-red-500' : 'bg-slate-500'
                           }`}
@@ -430,14 +430,14 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
           </div>
 
           {/* PIE / BREAKDOWN: DESG LASE DE COSTOS */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-2xs space-y-5 flex flex-col justify-between">
+          <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-2xs space-y-5 flex flex-col justify-between">
             <div>
               <div className="border-b border-slate-100 pb-4">
                 <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
                   <PieChart className="w-4 h-4 text-emerald-600" />
                   Estructura de Costos del Negocio
                 </h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">Distribución del gasto total acumulado en la operación.</p>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">DistribuciÃ³n del gasto total acumulado en la operaciÃ³n.</p>
               </div>
 
               <div className="space-y-4 pt-5">
@@ -449,7 +449,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
                     </span>
                     <span className="font-mono text-slate-900 font-black">${globalMetrics.internalCost.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="text-[10px] text-slate-400 font-medium">
+                  <div className="text-xs text-slate-400 font-medium">
                     {globalMetrics.totalCost > 0 ? ((globalMetrics.internalCost / globalMetrics.totalCost) * 100).toFixed(1) : 0}% del costo total
                   </div>
                 </div>
@@ -462,7 +462,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
                     </span>
                     <span className="font-mono text-slate-900 font-black">${globalMetrics.providerCost.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="text-[10px] text-slate-400 font-medium">
+                  <div className="text-xs text-slate-400 font-medium">
                     {globalMetrics.totalCost > 0 ? ((globalMetrics.providerCost / globalMetrics.totalCost) * 100).toFixed(1) : 0}% del costo total
                   </div>
                 </div>
@@ -471,41 +471,41 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
                 <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/70 space-y-1">
                   <div className="flex justify-between items-center text-xs font-bold">
                     <span className="text-amber-900 flex items-center gap-1.5">
-                      <ShieldAlert className="w-3.5 h-3.5 text-amber-600" /> Pérdida por Retrabajo
+                      <ShieldAlert className="w-3.5 h-3.5 text-amber-600" /> PÃ©rdida por Retrabajo
                     </span>
                     <span className="font-mono text-amber-700 font-black">${globalMetrics.reworkCost.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <div className="text-[10px] text-amber-700 font-medium">
+                  <div className="text-xs text-amber-700 font-medium">
                     {globalMetrics.totalCost > 0 ? ((globalMetrics.reworkCost / globalMetrics.totalCost) * 100).toFixed(1) : 0}% del costo total absorbido
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 text-[11px] text-slate-500 font-medium text-center">
-              💡 <strong className="text-slate-800">Recomendación:</strong> Reducir el retrabajo en 50% incrementaría la utilidad neta en <strong className="text-emerald-700">${(globalMetrics.reworkCost * 0.5).toLocaleString('es-ES')}</strong>.
+            <div className="pt-4 border-t border-slate-100 text-xs text-slate-500 font-medium text-center">
+              ðŸ’¡ <strong className="text-slate-800">RecomendaciÃ³n:</strong> Reducir el retrabajo en 50% incrementarÃ­a la utilidad neta en <strong className="text-emerald-700">${(globalMetrics.reworkCost * 0.5).toLocaleString('es-ES')}</strong>.
             </div>
           </div>
 
         </div>
 
         {/* TABLA PRINCIPAL DE SALUD FINANCIERA POR PROYECTO */}
-        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden space-y-0">
-          
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden space-y-0">
+
           {/* CONTROLES Y FILTROS TABLA */}
           <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/30">
             <div>
-              <h3 className="text-base font-black text-slate-900 tracking-tight">Tabla de Auditoría Financiera de Proyectos</h3>
+              <h3 className="text-base font-black text-slate-900 tracking-tight">Tabla de AuditorÃ­a Financiera de Proyectos</h3>
               <p className="text-xs text-slate-500 font-medium">Desglose individual de margen operativo, OVs vinculadas y alertas de salud financiera.</p>
             </div>
 
             {/* FILTROS */}
             <div className="flex flex-wrap items-center gap-3">
-              
+
               {/* SEARCH */}
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input 
+                <input
                   type="text"
                   placeholder="Buscar por proyecto, cliente u OV..."
                   value={searchQuery}
@@ -533,9 +533,9 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
                 className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:border-emerald-500 cursor-pointer"
               >
                 <option value="all">Cualquier Salud</option>
-                <option value="optimo">🟢 Salud Óptima</option>
-                <option value="observacion">🟡 En Observación</option>
-                <option value="critico">🔴 Crítico / Riesgo</option>
+                <option value="optimo">ðŸŸ¢ Salud Ã“ptima</option>
+                <option value="observacion">ðŸŸ¡ En ObservaciÃ³n</option>
+                <option value="critico">ðŸ”´ CrÃ­tico / Riesgo</option>
               </select>
             </div>
           </div>
@@ -543,7 +543,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
           {/* TABLA DATA */}
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-100/70 text-slate-600 font-extrabold uppercase tracking-wider text-[10px] border-b border-slate-200/80">
+              <thead className="bg-slate-100/70 text-slate-600 font-extrabold uppercase tracking-wider text-xs border-b border-slate-200/80">
                 <tr>
                   <th className="py-3.5 px-6">Proyecto & Cliente</th>
                   <th className="py-3.5 px-4 text-center">OVs Registradas</th>
@@ -553,42 +553,42 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
                   <th className="py-3.5 px-4 text-right">Margen Bruto ($)</th>
                   <th className="py-3.5 px-4 text-center">Margen %</th>
                   <th className="py-3.5 px-4 text-center">Salud Financiera</th>
-                  <th className="py-3.5 px-6 text-right">Acción</th>
+                  <th className="py-3.5 px-6 text-right">AcciÃ³n</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredProjects.length === 0 ? (
                   <tr>
                     <td colSpan={9} className="py-12 text-center text-slate-400 font-medium">
-                      No se encontraron proyectos con los criterios de búsqueda seleccionados.
+                      No se encontraron proyectos con los criterios de bÃºsqueda seleccionados.
                     </td>
                   </tr>
                 ) : (
                   filteredProjects.map(pData => {
                     const healthBadge = {
-                      optimo: { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: '🟢 Óptimo', dot: 'bg-emerald-500' },
-                      observacion: { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: '🟡 En Observación', dot: 'bg-amber-500' },
-                      critico: { bg: 'bg-red-50 text-red-700 border-red-200', label: '🔴 Crítico', dot: 'bg-red-500' }
+                      optimo: { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: 'ðŸŸ¢ Ã“ptimo', dot: 'bg-emerald-500' },
+                      observacion: { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: 'ðŸŸ¡ En ObservaciÃ³n', dot: 'bg-amber-500' },
+                      critico: { bg: 'bg-red-50 text-red-700 border-red-200', label: 'ðŸ”´ CrÃ­tico', dot: 'bg-red-500' }
                     }[pData.healthScore];
 
                     return (
                       <tr key={pData.project.id} className="hover:bg-slate-50/80 transition-colors">
-                        
+
                         {/* PROYECTO & CLIENTE */}
                         <td className="py-4 px-6 space-y-0.5">
                           <div className="font-bold text-slate-900 text-xs flex items-center gap-2">
                             <span>{pData.project.name}</span>
                           </div>
-                          <div className="text-[10px] text-slate-400 font-medium flex items-center gap-2">
+                          <div className="text-xs text-slate-400 font-medium flex items-center gap-2">
                             <span className="text-slate-600 font-bold">{pData.clientName}</span>
-                            <span>•</span>
+                            <span>â€¢</span>
                             <span className="font-mono">ID: {pData.project.id}</span>
                           </div>
                         </td>
 
                         {/* OVs REGISTRADAS */}
                         <td className="py-4 px-4 text-center">
-                          <span className="bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-xl text-[11px] inline-flex items-center gap-1 font-mono">
+                          <span className="bg-slate-100 text-slate-700 font-bold px-2.5 py-1 rounded-xl text-xs inline-flex items-center gap-1 font-mono">
                             <Receipt className="w-3 h-3 text-cyan-600" />
                             {pData.ovs.length} {pData.ovs.length === 1 ? 'OV' : 'OVs'}
                           </span>
@@ -600,14 +600,14 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
                         </td>
 
                         {/* HORAS VENDIDAS / INCURRIDAS */}
-                        <td className="py-4 px-4 text-center font-mono text-[11px]">
+                        <td className="py-4 px-4 text-center font-mono text-xs">
                           <span className="text-slate-800 font-bold">{pData.totalHoursSold}h</span>
                           <span className="text-slate-300 mx-1">/</span>
                           <span className={`font-black ${pData.totalHoursConsumed > pData.totalHoursSold && pData.totalHoursSold > 0 ? 'text-red-600' : 'text-slate-600'}`}>
                             {pData.totalHoursConsumed}h
                           </span>
                           {pData.reworkHours > 0 && (
-                            <div className="text-[9px] text-amber-600 font-extrabold mt-0.5">
+                            <div className="text-xs text-amber-600 font-extrabold mt-0.5">
                               ({pData.reworkHours}h retrabajo)
                             </div>
                           )}
@@ -627,8 +627,8 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
 
                         {/* MARGEN % */}
                         <td className="py-4 px-4 text-center">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black border font-mono ${
-                            pData.marginPercent >= 30 
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border font-mono ${
+                            pData.marginPercent >= 30
                               ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                               : pData.marginPercent >= 15
                               ? 'bg-amber-50 text-amber-700 border-amber-200'
@@ -640,7 +640,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
 
                         {/* SALUD FINANCIERA */}
                         <td className="py-4 px-4 text-center">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border uppercase tracking-wider ${healthBadge.bg}`}>
+                          <span className={`px-2.5 py-1 rounded-full text-xs font-bold border uppercase tracking-wider ${healthBadge.bg}`}>
                             {healthBadge.label}
                           </span>
                         </td>
@@ -649,9 +649,9 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
                         <td className="py-4 px-6 text-right">
                           <button
                             onClick={() => setSelectedProjectForAudit(pData)}
-                            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-[11px] transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs"
+                            className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold text-xs transition-all cursor-pointer inline-flex items-center gap-1 shadow-2xs"
                           >
-                            <span>Auditoría</span>
+                            <span>AuditorÃ­a</span>
                             <ChevronRight className="w-3.5 h-3.5" />
                           </button>
                         </td>
@@ -668,17 +668,17 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
 
       </div>
 
-      {/* MODAL DE AUDITORÍA FINANCIERA DETALLADA POR PROYECTO */}
+      {/* MODAL DE AUDITORÃA FINANCIERA DETALLADA POR PROYECTO */}
       {selectedProjectForAudit && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-          <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
-            
+          <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+
             {/* HEADER MODAL */}
             <div className="p-6 bg-slate-900 text-white flex justify-between items-start gap-4 shrink-0">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-widest">
                   <Calculator className="w-3.5 h-3.5" />
-                  Auditoría Financiera Extensiva
+                  AuditorÃ­a Financiera Extensiva
                 </div>
                 <h2 className="text-xl font-black">{selectedProjectForAudit.project.name}</h2>
                 <p className="text-xs text-slate-300 font-medium">Cliente: <strong className="text-white">{selectedProjectForAudit.clientName}</strong> | ID: {selectedProjectForAudit.project.id}</p>
@@ -694,7 +694,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
 
             {/* CONTENIDO MODAL EN SCROLL */}
             <div className="p-6 overflow-y-auto space-y-6">
-              
+
               {/* ALERTAS Y FACTORES DE RIESGO */}
               {selectedProjectForAudit.riskFactors.length > 0 ? (
                 <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl space-y-2">
@@ -711,44 +711,44 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
               ) : (
                 <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-center gap-3 text-emerald-800 font-bold text-xs">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                  <span>Este proyecto presenta parámetros financieros totalmente saludables sin factores de riesgo activos.</span>
+                  <span>Este proyecto presenta parÃ¡metros financieros totalmente saludables sin factores de riesgo activos.</span>
                 </div>
               )}
 
               {/* GRID DE METRICAS PRINCIPALES DEL PROYECTO */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Ingreso por OVs</div>
+                  <div className="text-xs font-bold text-slate-400 uppercase">Ingreso por OVs</div>
                   <div className="text-lg font-black text-slate-900 font-mono">${selectedProjectForAudit.totalIncome.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</div>
-                  <div className="text-[10px] text-slate-500">{selectedProjectForAudit.ovs.length} Orden(es) de Venta</div>
+                  <div className="text-xs text-slate-500">{selectedProjectForAudit.ovs.length} Orden(es) de Venta</div>
                 </div>
 
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Costo Incurrido</div>
+                  <div className="text-xs font-bold text-slate-400 uppercase">Costo Incurrido</div>
                   <div className="text-lg font-black text-slate-900 font-mono">${selectedProjectForAudit.totalCost.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</div>
-                  <div className="text-[10px] text-slate-500">{selectedProjectForAudit.totalHoursConsumed} hrs ejecutadas</div>
+                  <div className="text-xs text-slate-500">{selectedProjectForAudit.totalHoursConsumed} hrs ejecutadas</div>
                 </div>
 
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Margen de Utilidad</div>
+                  <div className="text-xs font-bold text-slate-400 uppercase">Margen de Utilidad</div>
                   <div className="text-lg font-black text-emerald-700 font-mono">${selectedProjectForAudit.marginAmount.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</div>
-                  <div className="text-[10px] font-extrabold text-emerald-700">{selectedProjectForAudit.marginPercent.toFixed(1)}% de margen</div>
+                  <div className="text-xs font-extrabold text-emerald-700">{selectedProjectForAudit.marginPercent.toFixed(1)}% de margen</div>
                 </div>
 
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase">Tarifa Real Obtenida</div>
+                  <div className="text-xs font-bold text-slate-400 uppercase">Tarifa Real Obtenida</div>
                   <div className="text-lg font-black text-cyan-700 font-mono">${selectedProjectForAudit.hourlyRateReal.toFixed(2)}/h</div>
-                  <div className="text-[10px] text-slate-500">Ingreso total / horas trabajadas</div>
+                  <div className="text-xs text-slate-500">Ingreso total / horas trabajadas</div>
                 </div>
               </div>
 
-              {/* LISTA DE ÓRDENES DE VENTA (OVS) */}
+              {/* LISTA DE Ã“RDENES DE VENTA (OVS) */}
               <div className="space-y-3">
                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2 border-b border-slate-100 pb-2">
                   <Receipt className="w-4 h-4 text-cyan-600" />
-                  Órdenes de Venta & Adendas Vinculadas
+                  Ã“rdenes de Venta & Adendas Vinculadas
                 </h3>
-                
+
                 <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white">
                   {selectedProjectForAudit.ovs.map(ov => (
                     <div key={ov.id} className="p-3.5 flex items-center justify-between text-xs hover:bg-slate-50">
@@ -757,14 +757,14 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
                           {ov.numero}
                         </span>
                         <div>
-                          <div className="font-bold text-slate-800">Emisión: {ov.fechaEmision || 'N/A'}</div>
-                          <div className="text-[10px] text-slate-400 font-medium">Horas Contratadas: {ov.horasAsociadas} hrs</div>
+                          <div className="font-bold text-slate-800">EmisiÃ³n: {ov.fechaEmision || 'N/A'}</div>
+                          <div className="text-xs text-slate-400 font-medium">Horas Contratadas: {ov.horasAsociadas} hrs</div>
                         </div>
                       </div>
 
                       <div className="text-right font-mono">
                         <div className="font-black text-emerald-700 text-sm">${(ov.monto || 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })} {ov.moneda || 'USD'}</div>
-                        <span className="text-[10px] uppercase font-bold text-slate-400">{ov.estado}</span>
+                        <span className="text-xs uppercase font-bold text-slate-400">{ov.estado}</span>
                       </div>
                     </div>
                   ))}
@@ -780,7 +780,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
 
                 <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 space-y-2 text-xs">
                   <div className="flex justify-between items-center">
-                    <span className="font-semibold text-slate-700">Horas Normales Producción:</span>
+                    <span className="font-semibold text-slate-700">Horas Normales ProducciÃ³n:</span>
                     <span className="font-bold font-mono text-slate-900">{selectedProjectForAudit.normalHours} hrs</span>
                   </div>
                   <div className="flex justify-between items-center">
@@ -798,12 +798,12 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
 
             {/* FOOTER MODAL */}
             <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center shrink-0">
-              <span className="text-[11px] text-slate-500 font-medium">Auditoría generada para {currentUser.username} ({currentUser.puesto})</span>
+              <span className="text-xs text-slate-500 font-medium">AuditorÃ­a generada para {currentUser.username} ({currentUser.puesto})</span>
               <button
                 onClick={() => setSelectedProjectForAudit(null)}
                 className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl cursor-pointer transition-all"
               >
-                Cerrar Auditoría
+                Cerrar AuditorÃ­a
               </button>
             </div>
 

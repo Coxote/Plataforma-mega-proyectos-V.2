@@ -1,26 +1,26 @@
 import React, { useState, useMemo } from 'react';
 import { Project, OrdenVenta, EstadoOV } from '../types';
-import { 
-  User, 
-  Hash, 
-  Clock, 
-  Briefcase, 
-  Target, 
-  ShieldAlert, 
-  TrendingUp, 
-  FileText, 
-  Activity, 
-  Plus, 
-  PlusCircle, 
-  Trash2, 
-  DollarSign, 
-  CheckCircle2, 
-  X, 
-  Building2, 
-  Phone, 
-  Calendar, 
-  PieChart, 
-  Sparkles, 
+import {
+  User,
+  Hash,
+  Clock,
+  Briefcase,
+  Target,
+  ShieldAlert,
+  TrendingUp,
+  FileText,
+  Activity,
+  Plus,
+  PlusCircle,
+  Trash2,
+  DollarSign,
+  CheckCircle2,
+  X,
+  Building2,
+  Phone,
+  Calendar,
+  PieChart,
+  Sparkles,
   ChevronRight,
   AlertCircle,
   FileCheck
@@ -162,10 +162,10 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
 
   const handleRoleHourChange = (role: string, val: number) => {
     const newRoleHours = { ...roleHours, [role]: val };
-    const newTotal = 
-      Number(newRoleHours.coordinador || 0) + 
-      Number(newRoleHours.sac || 0) + 
-      Number(newRoleHours.contents || 0) + 
+    const newTotal =
+      Number(newRoleHours.coordinador || 0) +
+      Number(newRoleHours.sac || 0) +
+      Number(newRoleHours.contents || 0) +
       Number(newRoleHours.contentd || 0);
 
     const updatedBudget = { ...project.budget };
@@ -186,19 +186,19 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6 my-2" id="project-expediente-wrapper">
-      
-      {/* 🚀 DOSSIER HERO BANNER */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-3xl p-6 shadow-md border border-slate-700/60 relative overflow-hidden">
+
+      {/* ðŸš€ DOSSIER HERO BANNER */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl p-6 shadow-md border border-slate-700/60 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          
+
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-orange-400 bg-orange-900/50 px-2.5 py-1 rounded-md border border-orange-500/30 flex items-center gap-1">
+              <span className="text-xs font-extrabold uppercase tracking-widest text-orange-400 bg-orange-900/50 px-2.5 py-1 rounded-md border border-orange-500/30 flex items-center gap-1">
                 <FileCheck className="w-3 h-3" /> Expediente del Proyecto
               </span>
-              <span className="text-slate-500">•</span>
+              <span className="text-slate-500">â€¢</span>
               <span className="text-xs font-bold text-slate-300">
                 Cliente: <strong className="text-white">{project.clientName || 'GLOBEX S.A.'}</strong>
               </span>
@@ -209,34 +209,34 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             </h1>
 
             <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed font-normal">
-              {project.description || 'Ficha oficial de control técnico, órdenes comerciales de venta y presupuesto presupuestado.'}
+              {project.description || 'Ficha oficial de control tÃ©cnico, Ã³rdenes comerciales de venta y presupuesto presupuestado.'}
             </p>
           </div>
 
           {/* Quick Metrics Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 shrink-0">
             <div className="bg-slate-800/80 border border-slate-700/80 p-3 rounded-2xl text-left">
-              <span className="text-[9px] font-bold uppercase text-slate-400 block mb-0.5">Monto Total OV</span>
+              <span className="text-xs font-bold uppercase text-slate-400 block mb-0.5">Monto Total OV</span>
               <span className="text-base font-black text-emerald-400 font-mono">
                 ${(project.totalIncome || 0).toLocaleString('es-CL')}
               </span>
-              <span className="text-[9px] text-slate-400 block">{activeOVs.length} OV Activa(s)</span>
+              <span className="text-xs text-slate-400 block">{activeOVs.length} OV Activa(s)</span>
             </div>
 
             <div className="bg-slate-800/80 border border-slate-700/80 p-3 rounded-2xl text-left">
-              <span className="text-[9px] font-bold uppercase text-slate-400 block mb-0.5">Presupuesto Horas</span>
+              <span className="text-xs font-bold uppercase text-slate-400 block mb-0.5">Presupuesto Horas</span>
               <span className="text-base font-black text-white">
                 {totalConsumedHours}h <span className="text-xs text-slate-400 font-normal">/ {totalHours}h</span>
               </span>
-              <span className="text-[9px] text-amber-300 block font-semibold">{availableHours}h disponibles</span>
+              <span className="text-xs text-amber-300 block font-semibold">{availableHours}h disponibles</span>
             </div>
 
             <div className="bg-slate-800/80 border border-slate-700/80 p-3 rounded-2xl text-left col-span-2 sm:col-span-1">
-              <span className="text-[9px] font-bold uppercase text-slate-400 block mb-0.5">Tasa Retrabajo</span>
+              <span className="text-xs font-bold uppercase text-slate-400 block mb-0.5">Tasa Retrabajo</span>
               <span className={`text-base font-black ${retrabajoStats.porcentajeRetrabajo > 5 ? 'text-amber-400' : 'text-emerald-400'}`}>
                 {retrabajoStats.porcentajeRetrabajo.toFixed(1)}%
               </span>
-              <span className="text-[9px] text-slate-400 block">{retrabajoStats.horasRetrabajo}h registradas</span>
+              <span className="text-xs text-slate-400 block">{retrabajoStats.horasRetrabajo}h registradas</span>
             </div>
           </div>
 
@@ -277,7 +277,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             }`}
           >
             <Target className="w-3.5 h-3.5 text-blue-400" />
-            <span>Ficha Técnica & Scope</span>
+            <span>Ficha TÃ©cnica & Scope</span>
           </button>
 
           <button
@@ -294,9 +294,9 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
         </div>
       </div>
 
-      {/* 🔴 SECCIÓN 1: DATOS COMERCIALES & ÓRDENES DE VENTA */}
+      {/* ðŸ”´ SECCIÃ“N 1: DATOS COMERCIALES & Ã“RDENES DE VENTA */}
       {(activeSection === 'all' || activeSection === 'comercial') && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-6" id="section-comercial">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6" id="section-comercial">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
@@ -304,10 +304,10 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
               </div>
               <div>
                 <h2 className="text-sm font-black text-slate-900 tracking-tight uppercase">
-                  Información Comercial & Órdenes de Venta
+                  InformaciÃ³n Comercial & Ã“rdenes de Venta
                 </h2>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Datos del cliente, contactos autorizados y vinculación de OVs facturables.
+                <p className="text-xs text-slate-500 font-medium">
+                  Datos del cliente, contactos autorizados y vinculaciÃ³n de OVs facturables.
                 </p>
               </div>
             </div>
@@ -316,7 +316,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Nombre Cliente */}
             <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1">
-              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+              <label className="block text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
                 <User className="w-3 h-3 text-slate-600" /> Nombre de la Empresa / Cliente
               </label>
               <input
@@ -331,8 +331,8 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
 
             {/* Contacto Principal */}
             <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1">
-              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <Phone className="w-3 h-3 text-slate-600" /> Contacto Principal / Teléfono / Mail
+              <label className="block text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
+                <Phone className="w-3 h-3 text-slate-600" /> Contacto Principal / TelÃ©fono / Mail
               </label>
               <input
                 type="text"
@@ -345,20 +345,20 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             </div>
           </div>
 
-          {/* CONTENEDOR MULTI-OV CON DISEÑO DE ALTO IMPACTO */}
+          {/* CONTENEDOR MULTI-OV CON DISEÃ‘O DE ALTO IMPACTO */}
           <div className="p-5 bg-slate-900 text-white rounded-2xl space-y-4 shadow-md" id="multi-ov-container">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
               <div>
                 <div className="flex items-center gap-2">
                   <Hash className="w-4 h-4 text-emerald-400" />
                   <h3 className="text-xs font-black text-emerald-400 uppercase tracking-wider">
-                    Órdenes de Venta Vinculadas ({ordenesVentaList.length})
+                    Ã“rdenes de Venta Vinculadas ({ordenesVentaList.length})
                   </h3>
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  <span className="text-xs bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
                     {activeOVs.length} Activa(s)
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-400 mt-0.5">
                   Consolidado total: <strong className="text-white font-mono font-bold">${(project.totalIncome || 0).toLocaleString('es-CL')} {project.currency || 'CLP'}</strong>
                 </p>
               </div>
@@ -385,7 +385,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                 const isFacturada = ov.estado === 'facturada';
 
                 return (
-                  <div 
+                  <div
                     key={ov.id || index}
                     className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                       isBloqueada ? 'bg-amber-500/10 border-amber-500/30 text-amber-200' :
@@ -403,20 +403,20 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                             ${(ov.monto || 0).toLocaleString('es-CL')} {ov.moneda || 'CLP'}
                           </span>
                           {ov.horasAsociadas ? (
-                            <span className="text-[10px] bg-slate-900 text-slate-300 font-bold px-2.5 py-0.5 rounded-full border border-slate-700">
+                            <span className="text-xs bg-slate-900 text-slate-300 font-bold px-2.5 py-0.5 rounded-full border border-slate-700">
                               {ov.horasAsociadas} hrs asociadas
                             </span>
                           ) : null}
                         </div>
                         {(ov.subtotal !== undefined || ov.impuestos !== undefined || ov.comisiones !== undefined) && (
-                          <div className="text-[10px] text-slate-400 font-mono mt-0.5 space-x-1.5 flex flex-wrap">
+                          <div className="text-xs text-slate-400 font-mono mt-0.5 space-x-1.5 flex flex-wrap">
                             {typeof ov.subtotal === 'number' && <span>Subtotal: ${ov.subtotal.toLocaleString('es-CL')}</span>}
                             {typeof ov.impuestos === 'number' && ov.impuestos > 0 && <span className="text-amber-400">IVA: ${ov.impuestos.toLocaleString('es-CL')}</span>}
                             {typeof ov.comisiones === 'number' && ov.comisiones > 0 && <span className="text-cyan-400">Com/T.P.: ${ov.comisiones.toLocaleString('es-CL')}</span>}
                           </div>
                         )}
                         {ov.descripcion && (
-                          <p className="text-[11px] text-slate-400 line-clamp-1 mt-0.5">{ov.descripcion}</p>
+                          <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{ov.descripcion}</p>
                         )}
                       </div>
                     </div>
@@ -426,7 +426,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                         <select
                           value={ov.estado}
                           onChange={(e) => handleQuickStatusChange(ov.id, e.target.value as EstadoOV)}
-                          className={`text-[10px] font-bold px-3 py-1 rounded-xl border focus:outline-none cursor-pointer bg-slate-900 ${
+                          className={`text-xs font-bold px-3 py-1 rounded-xl border focus:outline-none cursor-pointer bg-slate-900 ${
                             ov.estado === 'creada' ? 'text-slate-300 border-slate-700' :
                             ov.estado === 'enviada' ? 'text-cyan-400 border-cyan-500/40' :
                             ov.estado === 'bloqueada' ? 'text-amber-400 border-amber-500/40' :
@@ -439,7 +439,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                           <option value="facturada">Facturada</option>
                         </select>
                       ) : (
-                        <span className={`text-[10px] font-bold px-3 py-1 rounded-xl border ${
+                        <span className={`text-xs font-bold px-3 py-1 rounded-xl border ${
                           ov.estado === 'creada' ? 'bg-slate-800 text-slate-300 border-slate-700' :
                           ov.estado === 'enviada' ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' :
                           ov.estado === 'bloqueada' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' :
@@ -469,7 +469,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             {isAddingOv && isCoordinador && (
               <form onSubmit={handleAddOV} className="p-4 bg-slate-950/90 rounded-2xl border border-emerald-500/40 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
                     <PlusCircle className="w-3.5 h-3.5" /> Registrar Nueva Orden de Venta
                   </span>
                   <button
@@ -483,7 +483,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Nº de OV *</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">NÂº de OV *</label>
                     <input
                       type="text"
                       required
@@ -495,7 +495,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Monto ($) *</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Monto ($) *</label>
                     <input
                       type="number"
                       required
@@ -508,7 +508,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Horas Asignadas</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Horas Asignadas</label>
                     <input
                       type="number"
                       min="0"
@@ -521,12 +521,12 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Descripción / Detalle</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">DescripciÃ³n / Detalle</label>
                   <input
                     type="text"
                     value={newOvDesc}
                     onChange={(e) => setNewOvDesc(e.target.value)}
-                    placeholder="Ej: Ampliación de alcance para fase de pruebas QA"
+                    placeholder="Ej: AmpliaciÃ³n de alcance para fase de pruebas QA"
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -552,9 +552,9 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
         </div>
       )}
 
-      {/* 🟢 SECCIÓN 2: FICHA TÉCNICA, OBJETIVO Y ALCANCE */}
+      {/* ðŸŸ¢ SECCIÃ“N 2: FICHA TÃ‰CNICA, OBJETIVO Y ALCANCE */}
       {(activeSection === 'all' || activeSection === 'tecnica') && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-6" id="section-tecnica">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6" id="section-tecnica">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
@@ -562,10 +562,10 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
               </div>
               <div>
                 <h2 className="text-sm font-black text-slate-900 tracking-tight uppercase">
-                  Ficha Técnica, Objetivo y Scope Lock
+                  Ficha TÃ©cnica, Objetivo y Scope Lock
                 </h2>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Definición formal del proyecto, metas de negocio y restricciones de alcance.
+                <p className="text-xs text-slate-500 font-medium">
+                  DefiniciÃ³n formal del proyecto, metas de negocio y restricciones de alcance.
                 </p>
               </div>
             </div>
@@ -574,7 +574,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
           <div className="space-y-4">
             {/* Nombre del Proyecto */}
             <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1">
-              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+              <label className="block text-xs font-extrabold text-slate-400 uppercase tracking-wider">
                 Nombre del Proyecto
               </label>
               <input
@@ -586,10 +586,10 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
               />
             </div>
 
-            {/* Descripción General */}
+            {/* DescripciÃ³n General */}
             <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1">
-              <label className="block text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-                Resumen Ejecutivo / Descripción del Servicio
+              <label className="block text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+                Resumen Ejecutivo / DescripciÃ³n del Servicio
               </label>
               <textarea
                 rows={2}
@@ -619,7 +619,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
               {/* Scope Lock (Alcance) */}
               <div className="p-4 bg-amber-50/40 rounded-2xl border border-amber-200/60 space-y-2">
                 <label className="text-xs font-bold text-amber-900 uppercase flex items-center gap-1.5">
-                  <ShieldAlert className="w-4 h-4 text-amber-600" /> Alcance Lock (Límites Contractuales)
+                  <ShieldAlert className="w-4 h-4 text-amber-600" /> Alcance Lock (LÃ­mites Contractuales)
                 </label>
                 <textarea
                   rows={3}
@@ -627,7 +627,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                   value={project.alcance || ''}
                   onChange={(e) => handleInputChange('alcance', e.target.value)}
                   className="w-full bg-white border border-amber-200/80 rounded-xl p-3 text-xs text-slate-800 focus:ring-2 focus:ring-amber-500/20 outline-none resize-none disabled:bg-slate-100 disabled:text-slate-600 leading-relaxed font-medium"
-                  placeholder="Define claramente los límites para prevenir solicitudes fuera de alcance..."
+                  placeholder="Define claramente los lÃ­mites para prevenir solicitudes fuera de alcance..."
                 />
               </div>
             </div>
@@ -635,9 +635,9 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
         </div>
       )}
 
-      {/* 🟡 SECCIÓN 3: PRESUPUESTO & HORAS POR ROL */}
+      {/* ðŸŸ¡ SECCIÃ“N 3: PRESUPUESTO & HORAS POR ROL */}
       {(activeSection === 'all' || activeSection === 'horas') && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-xs space-y-6" id="section-horas">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6" id="section-horas">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
@@ -647,8 +647,8 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                 <h2 className="text-sm font-black text-slate-900 tracking-tight uppercase">
                   Desglose de Horas Presupuestadas vs. Ejecutadas
                 </h2>
-                <p className="text-[11px] text-slate-500 font-medium">
-                  Control de asignación por rol y monitoreo de consumo en tiempo real.
+                <p className="text-xs text-slate-500 font-medium">
+                  Control de asignaciÃ³n por rol y monitoreo de consumo en tiempo real.
                 </p>
               </div>
             </div>
@@ -660,7 +660,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
 
           {/* TARJETAS DE ROLES CON COMPARADOR EN TIEMPO REAL */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            
+
             {/* Supervisor */}
             <RoleCard
               roleKey="supervisor"
@@ -704,7 +704,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             {/* ContentD */}
             <RoleCard
               roleKey="contentd"
-              label="ContentD (Diseño)"
+              label="ContentD (DiseÃ±o)"
               allocated={roleHours.contentd}
               consumed={consumedByRole.contentd}
               isCoordinador={isCoordinador}
@@ -754,9 +754,9 @@ const RoleCard: React.FC<RoleCardProps> = ({ label, allocated, consumed, isCoord
       isOver ? 'bg-rose-50/50 border-rose-200/80' : 'bg-slate-50/80 border-slate-200/80'
     }`}>
       <div className="flex justify-between items-center">
-        <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">{label}</span>
         {isOver && (
-          <span className="text-[9px] font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded border border-rose-200">
+          <span className="text-xs font-bold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded border border-rose-200">
             Excedido
           </span>
         )}
@@ -775,7 +775,7 @@ const RoleCard: React.FC<RoleCardProps> = ({ label, allocated, consumed, isCoord
       </div>
 
       <div className="space-y-1 pt-1 border-t border-slate-200/60">
-        <div className="flex justify-between text-[10px] font-semibold text-slate-500">
+        <div className="flex justify-between text-xs font-semibold text-slate-500">
           <span>Ejecutadas: <strong className="text-slate-800">{consumed}h</strong></span>
           <span>{percent}%</span>
         </div>

@@ -32,8 +32,8 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
   };
 
   const handleToggleRoleInArray = (
-    taskId: string, 
-    field: 'responsible' | 'consulted' | 'informed', 
+    taskId: string,
+    field: 'responsible' | 'consulted' | 'informed',
     role: Role
   ) => {
     if (!canEdit) return;
@@ -72,7 +72,7 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4" id="raci-matrix-component">
-      
+
       {/* Component Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <div>
@@ -80,17 +80,17 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
             <Users className="w-4 h-4 text-slate-500" />
             Matriz de Responsabilidad RACI
           </h3>
-          <p className="text-slate-500 text-[11px] mt-0.5">
-            Mapeo interactivo de roles. 
+          <p className="text-slate-500 text-xs mt-0.5">
+            Mapeo interactivo de roles.
             {canEdit ? (
-              <span className="text-lime-700 font-medium"> Tienes permisos de edición.</span>
+              <span className="text-lime-700 font-medium"> Tienes permisos de ediciÃ³n.</span>
             ) : (
               <span className="text-slate-400"> Solo lectura para tu rol actual.</span>
             )}
           </p>
         </div>
-        
-        <div className="flex items-center gap-1.5 text-[10px] self-start sm:self-center">
+
+        <div className="flex items-center gap-1.5 text-xs self-start sm:self-center">
           {canEdit ? (
             <span className="flex items-center gap-1 px-2.5 py-1 bg-lime-50 text-lime-700 border border-lime-200 rounded-full font-bold">
               <ShieldCheck className="w-3 h-3 text-lime-500" /> Editor
@@ -104,7 +104,7 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
       </div>
 
       {/* RACI Guide Legend */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50/60 p-3 rounded-xl text-[10px] text-slate-500 font-medium border border-slate-150">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-50/60 p-3 rounded-xl text-xs text-slate-500 font-medium border border-slate-150">
         <div><strong className="text-slate-800">R (Responsible):</strong> Quien realiza el trabajo directamente.</div>
         <div><strong className="text-slate-800">A (Accountable):</strong> Quien aprueba y rinde cuentas.</div>
         <div><strong className="text-slate-800">C (Consulted):</strong> Quien asesora y brinda feedback.</div>
@@ -134,7 +134,7 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
             ) : (
               project.raciMatrix.map((task) => (
                 <tr key={task.id} className="hover:bg-slate-50/60 transition-colors">
-                  
+
                   {/* Task Name Column */}
                   <td className="py-3 px-3 font-medium text-slate-800 text-xs">
                     {canEdit ? (
@@ -160,9 +160,9 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
                             disabled={!canEdit}
                             onClick={() => handleToggleRoleInArray(task.id, 'responsible', opt.value)}
                             title={`Alternar ${opt.label} en Responsible`}
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
-                              active 
-                                ? `${opt.bg} ${opt.text} border border-slate-300` 
+                            className={`px-1.5 py-0.5 rounded text-xs font-bold transition-all ${
+                              active
+                                ? `${opt.bg} ${opt.text} border border-slate-300`
                                 : 'bg-slate-100 hover:bg-slate-200 text-slate-400 border border-transparent'
                             }`}
                           >
@@ -178,7 +178,7 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
                     <div className="flex justify-center">
                       {canEdit ? (
                         <select
-                          className="bg-transparent border border-slate-200 rounded px-1.5 py-0.5 text-[11px] font-medium outline-none focus:ring-1 focus:ring-lime-400"
+                          className="bg-transparent border border-slate-200 rounded px-1.5 py-0.5 text-xs font-medium outline-none focus:ring-1 focus:ring-lime-400"
                           value={task.accountable}
                           onChange={(e) => updateCell(task.id, 'accountable', e.target.value as Role)}
                         >
@@ -189,7 +189,7 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
                           ))}
                         </select>
                       ) : (
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${
                           ROLES_OPTIONS.find(o => o.value === task.accountable)?.bg || 'bg-slate-100'
                         } ${
                           ROLES_OPTIONS.find(o => o.value === task.accountable)?.text || 'text-slate-700'
@@ -211,9 +211,9 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
                             disabled={!canEdit}
                             onClick={() => handleToggleRoleInArray(task.id, 'consulted', opt.value)}
                             title={`Alternar ${opt.label} en Consulted`}
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
-                              active 
-                                ? `${opt.bg} ${opt.text} border border-slate-300` 
+                            className={`px-1.5 py-0.5 rounded text-xs font-bold transition-all ${
+                              active
+                                ? `${opt.bg} ${opt.text} border border-slate-300`
                                 : 'bg-slate-100 hover:bg-slate-200 text-slate-400 border border-transparent'
                             }`}
                           >
@@ -235,9 +235,9 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
                             disabled={!canEdit}
                             onClick={() => handleToggleRoleInArray(task.id, 'informed', opt.value)}
                             title={`Alternar ${opt.label} en Informed`}
-                            className={`px-1.5 py-0.5 rounded text-[9px] font-bold transition-all ${
-                              active 
-                                ? `${opt.bg} ${opt.text} border border-slate-300` 
+                            className={`px-1.5 py-0.5 rounded text-xs font-bold transition-all ${
+                              active
+                                ? `${opt.bg} ${opt.text} border border-slate-300`
                                 : 'bg-slate-100 hover:bg-slate-200 text-slate-400 border border-transparent'
                             }`}
                           >
@@ -272,7 +272,7 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
         <div className="flex gap-2 bg-slate-50 p-3 rounded-xl border border-slate-150">
           <input
             type="text"
-            placeholder="Nueva tarea estratégica para la matriz..."
+            placeholder="Nueva tarea estratÃ©gica para la matriz..."
             className="flex-1 border border-slate-200 rounded-xl px-3 py-1.5 text-xs bg-white outline-none focus:ring-1 focus:ring-lime-400 focus:border-lime-400"
             value={newTaskName}
             onChange={(e) => setNewTaskName(e.target.value)}
@@ -286,7 +286,7 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
             className="bg-slate-900 hover:bg-slate-800 disabled:opacity-45 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1 transition-all cursor-pointer shrink-0 shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
-            Añadir Tarea
+            AÃ±adir Tarea
           </button>
         </div>
       )}

@@ -46,8 +46,8 @@ export default function UserManagementModal({
       case 'Social media':
       case 'ContentS':
         return 'contents';
-      case 'Diseñador':
-      case 'Diseño':
+      case 'DiseÃ±ador':
+      case 'DiseÃ±o':
       case 'ContentD':
         return 'contentd';
       case 'Director Financiero':
@@ -71,7 +71,7 @@ export default function UserManagementModal({
       case 'contents':
         return 'Social media';
       case 'contentd':
-        return 'Diseñador';
+        return 'DiseÃ±ador';
       case 'director_financiero':
         return 'Director Financiero';
       case 'proveedor':
@@ -92,7 +92,7 @@ export default function UserManagementModal({
     }
 
     if (usersList.some((u) => u.username.toLowerCase() === newUsername.trim().toLowerCase())) {
-      setFormError('Este nombre de usuario ya está registrado.');
+      setFormError('Este nombre de usuario ya estÃ¡ registrado.');
       return;
     }
 
@@ -177,8 +177,8 @@ export default function UserManagementModal({
           <div className="flex items-center gap-2">
             <Shield className="w-5 h-5 text-lime-400" />
             <div>
-              <h3 className="font-bold text-sm">Administración de Roles & Usuarios</h3>
-              <p className="text-[10px] text-slate-400">Gestiona accesos, puestos y roles para el sistema SaaS</p>
+              <h3 className="font-bold text-sm">AdministraciÃ³n de Roles & Usuarios</h3>
+              <p className="text-xs text-slate-400">Gestiona accesos, puestos y roles para el sistema SaaS</p>
             </div>
           </div>
           <button
@@ -191,7 +191,7 @@ export default function UserManagementModal({
 
         {/* Modal Content Grid */}
         <div className="p-6 overflow-y-auto bg-slate-50/50 flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Left Column: Create New User Form */}
           <div className="lg:col-span-1 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 self-start">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
@@ -201,13 +201,13 @@ export default function UserManagementModal({
 
             <form onSubmit={handleCreateUser} className="space-y-4">
               {formError && (
-                <div className="bg-rose-50 border border-rose-100 text-rose-700 text-[11px] rounded-lg p-2.5 font-semibold">
+                <div className="bg-rose-50 border border-rose-100 text-rose-700 text-xs rounded-lg p-2.5 font-semibold">
                   {formError}
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nombre de Usuario</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Nombre de Usuario</label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-400">
                     <UserCheck className="w-3.5 h-3.5" />
@@ -223,7 +223,7 @@ export default function UserManagementModal({
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contraseña</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">ContraseÃ±a</label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-400">
                     <Key className="w-3.5 h-3.5" />
@@ -232,14 +232,14 @@ export default function UserManagementModal({
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                     className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all font-medium"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Puesto de Trabajo</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Puesto de Trabajo</label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-400">
                     <Briefcase className="w-3.5 h-3.5" />
@@ -252,7 +252,7 @@ export default function UserManagementModal({
                     <option value="Supervisor">Supervisor</option>
                     <option value="PM">PM</option>
                     <option value="Social media">Social media</option>
-                    <option value="Diseñador">Diseñador</option>
+                    <option value="DiseÃ±ador">DiseÃ±ador</option>
                     <option value="Director Financiero">Director Financiero</option>
                     <option value="Proveedor Externo">Proveedor Externo</option>
                     <option value="Invitado">Invitado</option>
@@ -262,12 +262,12 @@ export default function UserManagementModal({
 
               {(newPuesto === 'Proveedor Externo' || newPuesto === 'Proveedor') && (
                 <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl space-y-2.5">
-                  <span className="text-[10px] font-black text-amber-900 uppercase tracking-wider block">
-                    Configuración de Proveedor / Contrata
+                  <span className="text-xs font-black text-amber-900 uppercase tracking-wider block">
+                    ConfiguraciÃ³n de Proveedor / Contrata
                   </span>
-                  
+
                   <div>
-                    <label className="block text-[9px] font-bold text-amber-900/80 uppercase mb-1">
+                    <label className="block text-xs font-bold text-amber-900/80 uppercase mb-1">
                       Empresa / Agencia Proveedora
                     </label>
                     <input
@@ -280,7 +280,7 @@ export default function UserManagementModal({
                   </div>
 
                   <div>
-                    <label className="block text-[9px] font-bold text-amber-900/80 uppercase mb-1">
+                    <label className="block text-xs font-bold text-amber-900/80 uppercase mb-1">
                       Tarifa por Hora Acordada ($/h)
                     </label>
                     <input
@@ -295,14 +295,14 @@ export default function UserManagementModal({
                   </div>
 
                   <div>
-                    <label className="block text-[9px] font-bold text-amber-900/80 uppercase mb-1">
+                    <label className="block text-xs font-bold text-amber-900/80 uppercase mb-1">
                       Proyectos Permitidos
                     </label>
                     <div className="max-h-24 overflow-y-auto space-y-1 bg-white p-2 border border-amber-200 rounded-lg text-xs">
                       {projects.map((p) => {
                         const isChecked = proyectosAsignados.includes(p.id);
                         return (
-                          <label key={p.id} className="flex items-center gap-2 cursor-pointer hover:bg-amber-50/50 p-1 rounded text-[11px] font-medium text-slate-700">
+                          <label key={p.id} className="flex items-center gap-2 cursor-pointer hover:bg-amber-50/50 p-1 rounded text-xs font-medium text-slate-700">
                             <input
                               type="checkbox"
                               checked={isChecked}
@@ -323,24 +323,24 @@ export default function UserManagementModal({
                   </div>
 
                   <div>
-                    <label className="block text-[9px] font-bold text-amber-900/80 uppercase mb-1">
+                    <label className="block text-xs font-bold text-amber-900/80 uppercase mb-1">
                       Fases Permitidas / Asignadas
                     </label>
                     <div className="max-h-24 overflow-y-auto space-y-1 bg-white p-2 border border-amber-200 rounded-lg text-xs">
                       {[
                         { id: 'A1', label: 'Fase 1: Kickoff' },
                         { id: 'A2', label: 'Fase 2: Cronograma' },
-                        { id: 'A3', label: 'Fase 3: Revisión' },
-                        { id: 'A4', label: 'Fase 4: Aprobación' },
+                        { id: 'A3', label: 'Fase 3: RevisiÃ³n' },
+                        { id: 'A4', label: 'Fase 4: AprobaciÃ³n' },
                         { id: 'A5', label: 'Fase 5: Sprint (Desarrollo)' },
                         { id: 'A6', label: 'Fase 6: QA (Pruebas)' },
                         { id: 'A7', label: 'Fase 7: Entrega' },
                         { id: 'A8', label: 'Fase 8: Cierre' },
-                        { id: 'A9', label: 'Fase 9: Garantía' },
+                        { id: 'A9', label: 'Fase 9: GarantÃ­a' },
                       ].map((f) => {
                         const isChecked = fasesAsignadas.includes(f.id);
                         return (
-                          <label key={f.id} className="flex items-center gap-2 cursor-pointer hover:bg-amber-50/50 p-1 rounded text-[11px] font-medium text-slate-700">
+                          <label key={f.id} className="flex items-center gap-2 cursor-pointer hover:bg-amber-50/50 p-1 rounded text-xs font-medium text-slate-700">
                             <input
                               type="checkbox"
                               checked={isChecked}
@@ -364,7 +364,7 @@ export default function UserManagementModal({
 
               {newPuesto === 'Cliente / Invitado' && (
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Proyecto Asignado</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Proyecto Asignado</label>
                   <select
                     value={assignedProjectId}
                     onChange={(e) => setAssignedProjectId(e.target.value)}
@@ -383,7 +383,7 @@ export default function UserManagementModal({
                 className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 mt-2"
               >
                 <UserPlus className="w-3.5 h-3.5" />
-                Añadir Usuario
+                AÃ±adir Usuario
               </button>
             </form>
           </div>
@@ -392,7 +392,7 @@ export default function UserManagementModal({
           <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 overflow-hidden flex flex-col">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h4 className="font-bold text-xs uppercase tracking-widest text-slate-500">Usuarios del Sistema</h4>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
                 {usersList.length} Registrados
               </span>
             </div>
@@ -400,7 +400,7 @@ export default function UserManagementModal({
             <div className="overflow-x-auto flex-1 min-h-[300px]">
               <table className="w-full text-left text-xs text-slate-600 border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-100 text-[10px] uppercase text-slate-400 font-bold tracking-wider">
+                  <tr className="border-b border-slate-100 text-xs uppercase text-slate-400 font-bold tracking-wider">
                     <th className="py-2.5 px-3">Usuario</th>
                     <th className="py-2.5 px-3">Puesto</th>
                     <th className="py-2.5 px-3">Estado</th>
@@ -419,7 +419,7 @@ export default function UserManagementModal({
                             <span>{user.username}</span>
                             {isSelf && (
                               <span className="text-[8.5px] text-lime-600 font-bold uppercase tracking-wider mt-0.5">
-                                (Tú actual)
+                                (TÃº actual)
                               </span>
                             )}
                           </div>
@@ -431,14 +431,14 @@ export default function UserManagementModal({
                           <button
                             onClick={() => handleToggleUserStatus(user.id)}
                             disabled={isSelf}
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border cursor-pointer transition-all ${
+                            className={`px-2 py-0.5 rounded-full text-xs font-bold border cursor-pointer transition-all ${
                               isActive
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                                 : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
                             } ${isSelf ? 'opacity-70 cursor-not-allowed' : ''}`}
                             title={isSelf ? 'No puedes desactivar tu propia cuenta' : 'Haz clic para cambiar estado'}
                           >
-                            {isActive ? '● Activo' : '○ Inactivo'}
+                            {isActive ? 'â— Activo' : 'â—‹ Inactivo'}
                           </button>
                         </td>
                         <td className="py-3 px-3">
@@ -460,7 +460,7 @@ export default function UserManagementModal({
                             </select>
 
                             {user.role === 'proveedor' && (
-                              <div className="space-y-1 bg-amber-50/50 p-2 rounded-lg border border-amber-200/60 text-[10px]">
+                              <div className="space-y-1 bg-amber-50/50 p-2 rounded-lg border border-amber-200/60 text-xs">
                                 <div className="flex items-center gap-1">
                                   <span className="text-amber-800 font-bold">Tarifa:</span>
                                   <input
@@ -485,7 +485,7 @@ export default function UserManagementModal({
                               <select
                                 value={user.projectId || ''}
                                 onChange={(e) => handleUserProjectChange(user.id, e.target.value)}
-                                className="bg-slate-50 border border-slate-200 rounded-md px-1.5 py-0.5 text-[10px] text-slate-700 focus:ring-1 focus:ring-lime-400 outline-none transition-all cursor-pointer"
+                                className="bg-slate-50 border border-slate-200 rounded-md px-1.5 py-0.5 text-xs text-slate-700 focus:ring-1 focus:ring-lime-400 outline-none transition-all cursor-pointer"
                               >
                                 <option value="">Sin proyecto</option>
                                 {projects.map((p) => (
@@ -498,7 +498,7 @@ export default function UserManagementModal({
                         <td className="py-3 px-3 text-right">
                           <button
                             onClick={() => {
-                              if (confirm(`¿Estás seguro de que deseas eliminar a "${user.username}"?`)) {
+                              if (confirm(`Â¿EstÃ¡s seguro de que deseas eliminar a "${user.username}"?`)) {
                                 onDeleteUser(user.id);
                               }
                             }}
@@ -522,14 +522,14 @@ export default function UserManagementModal({
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between bg-white">
-          <p className="text-[10px] text-slate-400 font-medium">
-            * Nota: Los cambios de roles se aplican instantáneamente a la sesión de cada usuario activo.
+          <p className="text-xs text-slate-400 font-medium">
+            * Nota: Los cambios de roles se aplican instantÃ¡neamente a la sesiÃ³n de cada usuario activo.
           </p>
           <button
             onClick={onClose}
             className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors cursor-pointer"
           >
-            Cerrar Gestión
+            Cerrar GestiÃ³n
           </button>
         </div>
       </motion.div>

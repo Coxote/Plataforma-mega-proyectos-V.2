@@ -1,14 +1,14 @@
 import React, { useState, useMemo } from 'react';
 import { UserSession, Project } from '../types';
-import { 
-  UserPlus, 
-  Trash2, 
-  Key, 
-  Briefcase, 
-  Users, 
-  UserCheck, 
-  Shield, 
-  TrendingUp, 
+import {
+  UserPlus,
+  Trash2,
+  Key,
+  Briefcase,
+  Users,
+  UserCheck,
+  Shield,
+  TrendingUp,
   Sliders,
   Grid,
   Sparkles
@@ -102,7 +102,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
       // Determine skills based on role
       let baseSkills: string[] = [];
       if (load.role === 'coordinador') {
-        baseSkills = ['Gestión', 'Finanzas', 'Liderazgo'];
+        baseSkills = ['GestiÃ³n', 'Finanzas', 'Liderazgo'];
       } else if (load.role === 'sac') {
         baseSkills = ['Cuentas', 'Figma Inspect', 'Copywriting'];
       } else if (load.role === 'contents') {
@@ -122,10 +122,10 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
         if (nameLower.includes('futbol') || nameLower.includes('game') || nameLower.includes('recreativo') || nameLower.includes('gaming')) {
           baseSkills.push('Game Dev');
         }
-        if (nameLower.includes('ui') || nameLower.includes('ux') || nameLower.includes('web') || nameLower.includes('diseño')) {
+        if (nameLower.includes('ui') || nameLower.includes('ux') || nameLower.includes('web') || nameLower.includes('diseÃ±o')) {
           baseSkills.push('UX/UI');
         }
-        if (nameLower.includes('redes') || nameLower.includes('campaña') || nameLower.includes('social')) {
+        if (nameLower.includes('redes') || nameLower.includes('campaÃ±a') || nameLower.includes('social')) {
           baseSkills.push('Marketing');
         }
       });
@@ -160,7 +160,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
     }
 
     if (usersList.some((u) => u.username.toLowerCase() === newUsername.trim().toLowerCase())) {
-      setFormError('Este nombre de usuario ya está registrado.');
+      setFormError('Este nombre de usuario ya estÃ¡ registrado.');
       return;
     }
 
@@ -210,7 +210,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
 
   return (
     <div className="p-6 bg-slate-50/50 min-h-full overflow-y-auto space-y-6 flex flex-col relative" id="team-management-panel">
-      
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200/60 pb-4">
         <div>
@@ -218,8 +218,8 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
             <Shield className="w-3.5 h-3.5 text-lime-600" />
             Control de Personal
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Gestión del Escuadrón</h1>
-          <p className="text-xs text-slate-500 font-medium">Asigna roles técnicos, controla cargas operativas y configura accesos de clientes.</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">GestiÃ³n del EscuadrÃ³n</h1>
+          <p className="text-xs text-slate-500 font-medium">Asigna roles tÃ©cnicos, controla cargas operativas y configura accesos de clientes.</p>
         </div>
 
         {/* Sub-tab view toggles */}
@@ -238,7 +238,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
             <Grid className="w-3.5 h-3.5" />
             Fichas Operativas
           </button>
-          
+
           <button
             onClick={() => {
               setSubView('admin');
@@ -251,7 +251,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
             }`}
           >
             <Sliders className="w-3.5 h-3.5" />
-            Administración y Accesos
+            AdministraciÃ³n y Accesos
           </button>
         </div>
       </div>
@@ -263,7 +263,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Escuadrón Interno</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">EscuadrÃ³n Interno</span>
             <span className="text-xl font-black text-slate-900">{totalMembers} Operadores</span>
           </div>
         </div>
@@ -273,7 +273,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
             <UserCheck className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Clientes Invitados</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Clientes Invitados</span>
             <span className="text-xl font-black text-slate-900">{totalClients} Clientes</span>
           </div>
         </div>
@@ -283,7 +283,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
             <TrendingUp className="w-5 h-5" />
           </div>
           <div>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Estado del Equipo</span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Estado del Equipo</span>
             <span className="text-xl font-black text-emerald-600">Sincronizado</span>
           </div>
         </div>
@@ -299,7 +299,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
               Tablero Operativo de Rendimiento (S30)
             </h2>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {teamMembers.map((member) => (
               <TeamCard
@@ -314,23 +314,23 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
       ) : (
         /* ADMINISTRATIVE & ACCESS TABLE VIEW */
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* Left: Create New User Form */}
           <div className="lg:col-span-1 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 self-start">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
               <UserPlus className="w-4 h-4 text-lime-600" />
-              <h4 className="font-bold text-xs uppercase tracking-widest text-slate-500">Añadir Nuevo Operador</h4>
+              <h4 className="font-bold text-xs uppercase tracking-widest text-slate-500">AÃ±adir Nuevo Operador</h4>
             </div>
 
             <form onSubmit={handleCreateUser} className="space-y-4">
               {formError && (
-                <div className="bg-rose-50 border border-rose-100 text-rose-700 text-[11px] rounded-lg p-2.5 font-semibold">
+                <div className="bg-rose-50 border border-rose-100 text-rose-700 text-xs rounded-lg p-2.5 font-semibold">
                   {formError}
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Nombre de Usuario</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Nombre de Usuario</label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-400">
                     <UserCheck className="w-3.5 h-3.5" />
@@ -346,7 +346,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Contraseña</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">ContraseÃ±a</label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-400">
                     <Key className="w-3.5 h-3.5" />
@@ -362,7 +362,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Puesto de Trabajo</label>
+                <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Puesto de Trabajo</label>
                 <div className="relative">
                   <span className="absolute left-3 top-3 text-slate-400">
                     <Briefcase className="w-3.5 h-3.5" />
@@ -383,7 +383,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
 
               {newPuesto === 'Cliente / Invitado' && (
                 <div className="space-y-1.5">
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Proyecto Asignado</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider">Proyecto Asignado</label>
                   <select
                     value={assignedProjectId}
                     onChange={(e) => setAssignedProjectId(e.target.value)}
@@ -402,7 +402,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
                 className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs transition-colors cursor-pointer flex items-center justify-center gap-1.5 mt-2 shadow-xs"
               >
                 <UserPlus className="w-3.5 h-3.5 text-lime-400" />
-                Añadir al Equipo
+                AÃ±adir al Equipo
               </button>
             </form>
           </div>
@@ -411,7 +411,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
           <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4 overflow-hidden flex flex-col">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h4 className="font-bold text-xs uppercase tracking-widest text-slate-500 font-sans">Miembros del Sistema</h4>
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
                 {usersList.length} Registrados
               </span>
             </div>
@@ -419,7 +419,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
             <div className="overflow-x-auto flex-1">
               <table className="w-full text-left text-xs text-slate-600 border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-100 text-[10px] uppercase text-slate-400 font-bold tracking-wider">
+                  <tr className="border-b border-slate-100 text-xs uppercase text-slate-400 font-bold tracking-wider">
                     <th className="py-2.5 px-3">Usuario</th>
                     <th className="py-2.5 px-3">Puesto</th>
                     <th className="py-2.5 px-3">Asignar Rol / Acceso</th>
@@ -433,14 +433,14 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
                       <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="py-3 px-3 font-semibold text-slate-800">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-[11px] text-slate-700 capitalize">
+                            <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-xs text-slate-700 capitalize">
                               {user.username.charAt(0)}
                             </div>
                             <div className="flex flex-col">
                               <span className="font-bold text-slate-900">{user.username}</span>
                               {isSelf && (
                                 <span className="text-[8.5px] text-lime-600 font-bold uppercase tracking-wider mt-0.5">
-                                  (Tú actual)
+                                  (TÃº actual)
                                 </span>
                               )}
                             </div>
@@ -470,7 +470,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
                               <select
                                 value={user.projectId || ''}
                                 onChange={(e) => handleUserProjectChange(user.id, e.target.value)}
-                                className="bg-slate-50 border border-slate-200 rounded-md px-1.5 py-1 text-[10px] text-slate-700 focus:ring-1 focus:ring-lime-400 outline-none transition-all cursor-pointer font-semibold"
+                                className="bg-slate-50 border border-slate-200 rounded-md px-1.5 py-1 text-xs text-slate-700 focus:ring-1 focus:ring-lime-400 outline-none transition-all cursor-pointer font-semibold"
                               >
                                 <option value="">Sin proyecto</option>
                                 {projects.map((p) => (
@@ -483,7 +483,7 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
                         <td className="py-3 px-3 text-right">
                           <button
                             onClick={() => {
-                              if (confirm(`¿Estás seguro de que deseas eliminar a "${user.username}"?`)) {
+                              if (confirm(`Â¿EstÃ¡s seguro de que deseas eliminar a "${user.username}"?`)) {
                                 onDeleteUser(user.id);
                               }
                             }}
@@ -510,8 +510,8 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
       {selectedMember && (
         <>
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 transition-opacity" 
+          <div
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 transition-opacity"
             onClick={() => setSelectedMember(null)}
           />
           <UserInspectorPanel

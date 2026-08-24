@@ -2,43 +2,43 @@ import React, { useState } from 'react';
 import { Project, UserSession } from '../types';
 import { TppLogo } from './TppLogo';
 import { ExportReportModal } from './ExportReportModal';
-import { 
-  CheckCircle2, 
-  AlertTriangle, 
-  Calendar, 
-  DollarSign, 
-  Briefcase, 
-  Users, 
-  User, 
-  Clock, 
-  TrendingUp, 
-  TrendingDown, 
-  AlertCircle, 
-  ExternalLink, 
-  Target, 
-  PieChart as PieChartIcon, 
-  BarChart3, 
-  Printer, 
+import {
+  CheckCircle2,
+  AlertTriangle,
+  Calendar,
+  DollarSign,
+  Briefcase,
+  Users,
+  User,
+  Clock,
+  TrendingUp,
+  TrendingDown,
+  AlertCircle,
+  ExternalLink,
+  Target,
+  PieChart as PieChartIcon,
+  BarChart3,
+  Printer,
   Download,
-  ChevronRight, 
+  ChevronRight,
   HelpCircle,
   ShieldAlert,
   Sparkles,
   Info,
   Quote
 } from 'lucide-react';
-import { 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
-  Cell, 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  CartesianGrid, 
-  Legend 
+import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend
 } from 'recharts';
 import { StatBar } from './StatBar';
 import { ui } from '../theme';
@@ -50,9 +50,9 @@ interface Props {
   users?: UserSession[];
 }
 
-export const ExecutiveDashboard: React.FC<Props> = ({ 
-  projects, 
-  activeProjectId, 
+export const ExecutiveDashboard: React.FC<Props> = ({
+  projects,
+  activeProjectId,
   onSelectProject,
   users = []
 }) => {
@@ -60,7 +60,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
 
   // Calculated metrics or fallback for presentation
   const totalIncome = selectedProject?.ordenesVenta?.reduce((acc, ov) => acc + (ov.monto || 0), 0) || selectedProject?.totalIncome || 504000;
-  
+
   // Calculate completed phases
   const completedPhasesCount = selectedProject?.phases?.filter(p => p.status === 'completed').length || 0;
   const totalPhasesCount = selectedProject?.phases?.length || 5;
@@ -78,10 +78,10 @@ export const ExecutiveDashboard: React.FC<Props> = ({
   // Department breakdown data for Donut Chart
   const areaProgressData = [
     { name: 'Negocio', value: 75, color: '#1e3a8a' },      // Dark blue
-    { name: 'Tecnología', value: 70, color: '#0284c7' },   // Light blue
+    { name: 'TecnologÃ­a', value: 70, color: '#0284c7' },   // Light blue
     { name: 'Datos', value: 65, color: '#0d9488' },        // Teal/Green
     { name: 'Integraciones', value: 75, color: '#f59e0b' },// Amber
-    { name: 'Cambio & Adopción', value: 60, color: '#7c3aed' }, // Purple
+    { name: 'Cambio & AdopciÃ³n', value: 60, color: '#7c3aed' }, // Purple
   ];
 
   // SPI vs CPI trend over months
@@ -97,32 +97,32 @@ export const ExecutiveDashboard: React.FC<Props> = ({
   const topRisks = [
     { risk: 'Dependencia de terceros para la API', impact: 'Alto', prob: 'Alta', trend: 'up' },
     { risk: 'Retraso en integraciones con Legacy System', impact: 'Alto', prob: 'Media', trend: 'up' },
-    { risk: 'Calidad de datos históricos en migración', impact: 'Medio', prob: 'Media', trend: 'stable' },
-    { risk: 'Adopción de usuarios en área operativa', impact: 'Alto', prob: 'Media', trend: 'up' },
+    { risk: 'Calidad de datos histÃ³ricos en migraciÃ³n', impact: 'Medio', prob: 'Media', trend: 'stable' },
+    { risk: 'AdopciÃ³n de usuarios en Ã¡rea operativa', impact: 'Alto', prob: 'Media', trend: 'up' },
     { risk: 'Cambios de alcance en entregables finales', impact: 'Medio', prob: 'Baja', trend: 'down' },
   ];
 
   // Upcoming milestones
   const upcomingMilestones = [
     { title: 'Entrega Sprint 5 - Funcionalidades Prioritarias', date: '30 MAY 2026', icon: 'flag', color: 'bg-blue-100 text-blue-700' },
-    { title: 'UAT Ciclo 1 - Módulos Core', date: '15 JUN 2026', icon: 'check', color: 'bg-emerald-100 text-emerald-700' },
-    { title: 'Pruebas de Performance Ambiente de Producción', date: '30 JUN 2026', icon: 'zap', color: 'bg-amber-100 text-amber-700' },
-    { title: 'Go / No Go Comité Ejecutivo', date: '15 JUL 2026', icon: 'target', color: 'bg-purple-100 text-purple-700' },
+    { title: 'UAT Ciclo 1 - MÃ³dulos Core', date: '15 JUN 2026', icon: 'check', color: 'bg-emerald-100 text-emerald-700' },
+    { title: 'Pruebas de Performance Ambiente de ProducciÃ³n', date: '30 JUN 2026', icon: 'zap', color: 'bg-amber-100 text-amber-700' },
+    { title: 'Go / No Go ComitÃ© Ejecutivo', date: '15 JUL 2026', icon: 'target', color: 'bg-purple-100 text-purple-700' },
   ];
 
   // Key decisions needed from steering committee
   const steeringDecisions = [
-    { id: 1, text: 'Aprobación de presupuesto adicional para integraciones (USD 25,000).' },
-    { id: 2, text: 'Definición sobre cambio de alcance en módulo de reportería ejecutiva.' },
-    { id: 3, text: 'Confirmación de fecha objetivo Go Live (30 SEP 2026).' }
+    { id: 1, text: 'AprobaciÃ³n de presupuesto adicional para integraciones (USD 25,000).' },
+    { id: 2, text: 'DefiniciÃ³n sobre cambio de alcance en mÃ³dulo de reporterÃ­a ejecutiva.' },
+    { id: 3, text: 'ConfirmaciÃ³n de fecha objetivo Go Live (30 SEP 2026).' }
   ];
 
   // Phase timeline milestones
   const phaseTimeline = [
-    { name: 'Análisis y Diseño', status: 'COMPLETADO', month: 'FEB', active: false, done: true },
+    { name: 'AnÃ¡lisis y DiseÃ±o', status: 'COMPLETADO', month: 'FEB', active: false, done: true },
     { name: 'Desarrollo', status: 'EN CURSO', month: 'MAY', active: true, done: false },
     { name: 'Pruebas (QA/UAT)', status: 'PENDIENTE', month: 'JUL', active: false, done: false },
-    { name: 'Implementación', status: 'PENDIENTE', month: 'AGO', active: false, done: false },
+    { name: 'ImplementaciÃ³n', status: 'PENDIENTE', month: 'AGO', active: false, done: false },
     { name: 'Go Live', status: 'PENDIENTE', month: 'SEP', active: false, done: false },
   ];
 
@@ -134,22 +134,22 @@ export const ExecutiveDashboard: React.FC<Props> = ({
 
   return (
     <div className="min-h-full bg-slate-100/50 p-4 sm:p-6 lg:p-8 space-y-6 text-slate-900 font-sans print:p-0 print:bg-white relative">
-      
-      {/* 🏷️ WATERMARK OFICIAL TPP HUB DIGITAL EN IMPRESIÓN (PRINT ONLY) */}
+
+      {/* ðŸ·ï¸ WATERMARK OFICIAL TPP HUB DIGITAL EN IMPRESIÃ“N (PRINT ONLY) */}
       <div className="hidden print:flex items-center justify-between border-b-2 border-slate-900 pb-4 mb-6">
         <TppLogo size="md" variant="full" />
         <div className="text-right">
           <p className="text-xs font-black uppercase tracking-widest text-[#FF5500]">INFORME EJECUTIVO OFICIAL DE OPERACIONES</p>
-          <p className="text-[10px] font-bold text-slate-500 uppercase">TPP HUB DIGITAL · CONFIDENCIAL Y EXCLUSIVO</p>
-          <p className="text-[9px] font-mono text-slate-400">FECHA DE GENERACIÓN: {new Date().toLocaleDateString('es-ES')} {new Date().toLocaleTimeString('es-ES')}</p>
+          <p className="text-xs font-bold text-slate-500 uppercase">TPP HUB DIGITAL Â· CONFIDENCIAL Y EXCLUSIVO</p>
+          <p className="text-xs font-mono text-slate-400">FECHA DE GENERACIÃ“N: {new Date().toLocaleDateString('es-ES')} {new Date().toLocaleTimeString('es-ES')}</p>
         </div>
       </div>
 
       {/* HEADER PRINCIPAL VISTA EJECUTIVA */}
-      <div className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 border border-white/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 print:border-none print:shadow-none print:p-0">
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl p-6 border border-white/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 print:border-none print:shadow-none print:p-0">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-[#FF5500] text-white shadow-xs">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider bg-[#FF5500] text-white shadow-xs">
               Executive View
             </span>
             <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Dashboard C-Level</span>
@@ -158,7 +158,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
             DASHBOARD EJECUTIVO DEL PROYECTO
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium">
-            Lo que la Dirección necesita saber, en una sola vista.
+            Lo que la DirecciÃ³n necesita saber, en una sola vista.
           </p>
         </div>
 
@@ -197,20 +197,20 @@ export const ExecutiveDashboard: React.FC<Props> = ({
 
       {/* METADATOS DEL PROYECTO - CARDS HEADER */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
+
         {/* PROYECTO */}
         <div className="bg-white/70 backdrop-blur-xl rounded-2xl p-4 border border-white/80 shadow-md shadow-slate-200/30 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-slate-100/80 border border-slate-200 flex items-center justify-center shrink-0 text-slate-700">
             <Briefcase className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block">
+            <label className="text-xs font-extrabold uppercase tracking-widest text-slate-400 block">
               PROYECTO
             </label>
             <h3 className="text-xs font-black text-slate-900 truncate">
-              {selectedProject?.name || 'Transformación Digital Plataforma Cliente'}
+              {selectedProject?.name || 'TransformaciÃ³n Digital Plataforma Cliente'}
             </h3>
-            <p className="text-[10px] text-slate-500 font-semibold truncate">
+            <p className="text-xs text-slate-500 font-semibold truncate">
               {selectedProject?.clientName || 'Gerencia de Operaciones'}
             </p>
           </div>
@@ -222,14 +222,14 @@ export const ExecutiveDashboard: React.FC<Props> = ({
             <Calendar className="w-5 h-5" />
           </div>
           <div>
-            <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block">
+            <label className="text-xs font-extrabold uppercase tracking-widest text-slate-400 block">
               FECHA DE CORTE
             </label>
             <h3 className="text-xs font-black text-slate-900">
               28 de julio de 2026
             </h3>
-            <p className="text-[10px] text-emerald-600 font-bold">
-              ● En tiempo real
+            <p className="text-xs text-emerald-600 font-bold">
+              â— En tiempo real
             </p>
           </div>
         </div>
@@ -240,13 +240,13 @@ export const ExecutiveDashboard: React.FC<Props> = ({
             <Users className="w-5 h-5" />
           </div>
           <div>
-            <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block">
+            <label className="text-xs font-extrabold uppercase tracking-widest text-slate-400 block">
               SPONSOR
             </label>
             <h3 className="text-xs font-black text-slate-900">
               Gerencia General
             </h3>
-            <p className="text-[10px] text-slate-500 font-semibold">
+            <p className="text-xs text-slate-500 font-semibold">
               {selectedProject?.clientName || 'Cliente Corporativo'}
             </p>
           </div>
@@ -258,13 +258,13 @@ export const ExecutiveDashboard: React.FC<Props> = ({
             <User className="w-5 h-5" />
           </div>
           <div>
-            <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block">
+            <label className="text-xs font-extrabold uppercase tracking-widest text-slate-400 block">
               PROJECT MANAGER
             </label>
             <h3 className="text-xs font-black text-slate-900">
               Karen Ojeda (Coordinadora)
             </h3>
-            <p className="text-[10px] text-slate-500 font-semibold">
+            <p className="text-xs text-slate-500 font-semibold">
               Operations Atelier
             </p>
           </div>
@@ -273,13 +273,13 @@ export const ExecutiveDashboard: React.FC<Props> = ({
       </div>
 
       {/* NIVEL 1: BANDA DE ESTADO EJECUTIVA (StatBar) */}
-      <StatBar 
+      <StatBar
         stats={[
           {
             id: 'exec-status',
             label: 'Estado General',
             value: 'En Control',
-            subValue: 'Avanza según lo planificado',
+            subValue: 'Avanza segÃºn lo planificado',
             icon: CheckCircle2,
             status: 'success'
           },
@@ -299,7 +299,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
             id: 'exec-spi',
             label: 'SPI (Cronograma)',
             value: `${spi.toString().replace('.', ',')}`,
-            subValue: 'Índice de desempeño temporal',
+            subValue: 'Ãndice de desempeÃ±o temporal',
             trend: {
               value: 'En plan',
               isPositive: true
@@ -338,24 +338,24 @@ export const ExecutiveDashboard: React.FC<Props> = ({
         ]}
       />
 
-      {/* FILA SEGUNDA: LÍNEA DE TIEMPO + DISTRIBUCIÓN DEL AVANCE POR ÁREA */}
+      {/* FILA SEGUNDA: LÃNEA DE TIEMPO + DISTRIBUCIÃ“N DEL AVANCE POR ÃREA */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* LÍNEA DE TIEMPO - HITOS PRINCIPALES (7 COLS) */}
-        <div className="lg:col-span-7 bg-white/70 backdrop-blur-xl rounded-3xl p-6 border border-white/80 shadow-lg shadow-slate-200/30 flex flex-col justify-between">
+
+        {/* LÃNEA DE TIEMPO - HITOS PRINCIPALES (7 COLS) */}
+        <div className="lg:col-span-7 bg-white/70 backdrop-blur-xl rounded-2xl p-6 border border-white/80 shadow-lg shadow-slate-200/30 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
                 <Clock className="w-4 h-4 text-blue-600" />
-                LÍNEA DE TIEMPO - HITOS PRINCIPALES
+                LÃNEA DE TIEMPO - HITOS PRINCIPALES
               </h3>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">
+              <span className="text-xs font-bold text-slate-400 uppercase">
                 ENE - SEP 2026
               </span>
             </div>
 
             {/* Meses Header Axis */}
-            <div className="grid grid-cols-9 text-[10px] font-extrabold text-slate-400 text-center mb-6 uppercase tracking-wider">
+            <div className="grid grid-cols-9 text-xs font-extrabold text-slate-400 text-center mb-6 uppercase tracking-wider">
               <span>ENE</span>
               <span>FEB</span>
               <span>MAR</span>
@@ -376,11 +376,11 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                     <span className="font-bold text-slate-800 block text-xs truncate">
                       {item.name}
                     </span>
-                    <span className={`text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded inline-block ${
-                      item.done 
-                        ? 'bg-emerald-100 text-emerald-700' 
-                        : item.active 
-                        ? 'bg-blue-100 text-blue-700' 
+                    <span className={`text-xs font-extrabold uppercase px-1.5 py-0.2 rounded inline-block ${
+                      item.done
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : item.active
+                        ? 'bg-blue-100 text-blue-700'
                         : 'bg-slate-100 text-slate-400'
                     }`}>
                       {item.status}
@@ -390,18 +390,18 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                   {/* Horizontal Bar with Milestone node */}
                   <div className="flex-1 relative flex items-center">
                     <div className="w-full bg-slate-100 h-1 rounded-full relative">
-                      <div 
+                      <div
                         className={`h-full rounded-full ${item.done ? 'bg-emerald-500' : item.active ? 'bg-blue-500' : 'bg-slate-200'}`}
                         style={{ width: `${(idx + 1) * 20}%` }}
                       />
                     </div>
                     {/* Node Dot */}
-                    <div 
+                    <div
                       className={`absolute w-4 h-4 rounded-full border-2 bg-white flex items-center justify-center shadow-xs ${
-                        item.done 
-                          ? 'border-emerald-500 text-emerald-600' 
-                          : item.active 
-                          ? 'border-blue-600 text-blue-600 ring-4 ring-blue-100 animate-pulse' 
+                        item.done
+                          ? 'border-emerald-500 text-emerald-600'
+                          : item.active
+                          ? 'border-blue-600 text-blue-600 ring-4 ring-blue-100 animate-pulse'
                           : 'border-slate-300 text-slate-300'
                       }`}
                       style={{ left: `${Math.min(95, (idx + 1) * 20)}%` }}
@@ -418,18 +418,18 @@ export const ExecutiveDashboard: React.FC<Props> = ({
             </div>
           </div>
 
-          <p className="text-[10px] text-slate-400 italic mt-6 pt-3 border-t border-slate-100">
-            * El avance general de la línea de tiempo se sincroniza con los entregables aprobados en la plataforma.
+          <p className="text-xs text-slate-400 italic mt-6 pt-3 border-t border-slate-100">
+            * El avance general de la lÃ­nea de tiempo se sincroniza con los entregables aprobados en la plataforma.
           </p>
         </div>
 
-        {/* DISTRIBUCIÓN DEL AVANCE POR ÁREA (5 COLS) */}
+        {/* DISTRIBUCIÃ“N DEL AVANCE POR ÃREA (5 COLS) */}
         <div className="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-2 pb-3 border-b border-slate-100">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
                 <PieChartIcon className="w-4 h-4 text-purple-600" />
-                DISTRIBUCIÓN DEL AVANCE POR ÁREA
+                DISTRIBUCIÃ“N DEL AVANCE POR ÃREA
               </h3>
             </div>
 
@@ -457,7 +457,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                 {/* Center Badge */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-2xl font-black text-slate-900">{progressPercent}%</span>
-                  <span className="text-[9px] font-extrabold uppercase text-slate-400 tracking-wider">
+                  <span className="text-xs font-extrabold uppercase text-slate-400 tracking-wider">
                     Avance Promedio
                   </span>
                 </div>
@@ -481,24 +481,24 @@ export const ExecutiveDashboard: React.FC<Props> = ({
 
       </div>
 
-      {/* FILA TERCERA: RIESGOS CRÍTICOS (Top 5) + RAID RESUMEN */}
+      {/* FILA TERCERA: RIESGOS CRÃTICOS (Top 5) + RAID RESUMEN */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* RIESGOS CRÍTICOS (Top 5) (7 COLS) */}
+
+        {/* RIESGOS CRÃTICOS (Top 5) (7 COLS) */}
         <div className="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <h3 className="text-xs font-black text-rose-700 uppercase tracking-widest flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-rose-600" />
-                RIESGOS CRÍTICOS (Top 5)
+                RIESGOS CRÃTICOS (Top 5)
               </h3>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Matriz de Impacto</span>
+              <span className="text-xs font-bold text-slate-400 uppercase">Matriz de Impacto</span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-wider">
+                  <tr className="border-b border-slate-100 text-xs font-black text-slate-400 uppercase tracking-wider">
                     <th className="py-2 px-2">RIESGO</th>
                     <th className="py-2 px-2 text-center">IMPACTO</th>
                     <th className="py-2 px-2 text-center">PROBABILIDAD</th>
@@ -512,14 +512,14 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                         {r.risk}
                       </td>
                       <td className="py-2.5 px-2 text-center">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                        <span className={`px-2 py-0.5 rounded text-xs font-extrabold uppercase ${
                           r.impact === 'Alto' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
                         }`}>
                           {r.impact}
                         </span>
                       </td>
                       <td className="py-2.5 px-2 text-center">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                        <span className={`px-2 py-0.5 rounded text-xs font-extrabold uppercase ${
                           r.prob === 'Alta' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
                         }`}>
                           {r.prob}
@@ -528,15 +528,15 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                       <td className="py-2.5 px-2 text-center">
                         {r.trend === 'up' ? (
                           <span className="text-rose-600 font-bold inline-flex items-center gap-0.5">
-                            ↗ Alza
+                            â†— Alza
                           </span>
                         ) : r.trend === 'down' ? (
                           <span className="text-emerald-600 font-bold inline-flex items-center gap-0.5">
-                            ↘ Baja
+                            â†˜ Baja
                           </span>
                         ) : (
                           <span className="text-amber-600 font-bold inline-flex items-center gap-0.5">
-                            ➔ Estab.
+                            âž” Estab.
                           </span>
                         )}
                       </td>
@@ -562,21 +562,21 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                 <ShieldAlert className="w-4 h-4 text-amber-600" />
                 RAID RESUMEN
               </h3>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Monitoreo de Gobierno</span>
+              <span className="text-xs font-bold text-slate-400 uppercase">Monitoreo de Gobierno</span>
             </div>
 
             <div className="grid grid-cols-2 gap-3 my-2">
-              
-              {/* Riesgos Críticos */}
+
+              {/* Riesgos CrÃ­ticos */}
               <div className="p-3 bg-rose-50/70 border border-rose-200 rounded-xl flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-rose-600 text-white flex items-center justify-center font-black text-lg shrink-0 shadow-xs">
                   5
                 </div>
                 <div>
                   <div className="text-xs font-black text-rose-950 leading-tight">
-                    Riesgos Críticos
+                    Riesgos CrÃ­ticos
                   </div>
-                  <span className="text-[10px] text-rose-700 font-semibold">Requiere mitigación</span>
+                  <span className="text-xs text-rose-700 font-semibold">Requiere mitigaciÃ³n</span>
                 </div>
               </div>
 
@@ -589,7 +589,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                   <div className="text-xs font-black text-amber-950 leading-tight">
                     Asuntos Pendientes
                   </div>
-                  <span className="text-[10px] text-amber-700 font-semibold">Issues activos</span>
+                  <span className="text-xs text-amber-700 font-semibold">Issues activos</span>
                 </div>
               </div>
 
@@ -602,7 +602,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                   <div className="text-xs font-black text-blue-950 leading-tight">
                     Decisiones Pendientes
                   </div>
-                  <span className="text-[10px] text-blue-700 font-semibold">Comité Ejecutivo</span>
+                  <span className="text-xs text-blue-700 font-semibold">ComitÃ© Ejecutivo</span>
                 </div>
               </div>
 
@@ -615,7 +615,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                   <div className="text-xs font-black text-emerald-950 leading-tight">
                     Oportunidades
                   </div>
-                  <span className="text-[10px] text-emerald-700 font-semibold">Mejoras identificadas</span>
+                  <span className="text-xs text-emerald-700 font-semibold">Mejoras identificadas</span>
                 </div>
               </div>
 
@@ -631,18 +631,18 @@ export const ExecutiveDashboard: React.FC<Props> = ({
 
       </div>
 
-      {/* FILA CUARTA: DESEMPEÑO DE COSTO Y CRONOGRAMA + PRÓXIMOS HITOS */}
+      {/* FILA CUARTA: DESEMPEÃ‘O DE COSTO Y CRONOGRAMA + PRÃ“XIMOS HITOS */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* DESEMPEÑO DE COSTO Y CRONOGRAMA (7 COLS) */}
+
+        {/* DESEMPEÃ‘O DE COSTO Y CRONOGRAMA (7 COLS) */}
         <div className="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-blue-600" />
-                DESEMPEÑO DE COSTO Y CRONOGRAMA (SPI vs CPI)
+                DESEMPEÃ‘O DE COSTO Y CRONOGRAMA (SPI vs CPI)
               </h3>
-              <div className="flex items-center gap-3 text-[10px] font-bold">
+              <div className="flex items-center gap-3 text-xs font-bold">
                 <span className="flex items-center gap-1 text-blue-600">
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-600" /> SPI (Cronograma)
                 </span>
@@ -658,44 +658,44 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                   <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                   <XAxis dataKey="month" tick={{ fontSize: 10, fontWeight: 700 }} stroke="#94a3b8" />
                   <YAxis domain={[0, 2]} ticks={[0, 0.5, 1.0, 1.5, 2.0]} tick={{ fontSize: 10, fontWeight: 700 }} stroke="#94a3b8" />
-                  <Tooltip 
-                    contentStyle={{ borderRadius: '12px', borderColor: '#e2e8f0', fontSize: '11px', fontWeight: 'bold' }} 
+                  <Tooltip
+                    contentStyle={{ borderRadius: '12px', borderColor: '#e2e8f0', fontSize: '11px', fontWeight: 'bold' }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="SPI" 
-                    stroke="#2563eb" 
-                    strokeWidth={3} 
-                    dot={{ r: 4, fill: '#2563eb' }} 
-                    activeDot={{ r: 6 }} 
+                  <Line
+                    type="monotone"
+                    dataKey="SPI"
+                    stroke="#2563eb"
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: '#2563eb' }}
+                    activeDot={{ r: 6 }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="CPI" 
-                    stroke="#059669" 
-                    strokeWidth={3} 
-                    dot={{ r: 4, fill: '#059669' }} 
-                    activeDot={{ r: 6 }} 
+                  <Line
+                    type="monotone"
+                    dataKey="CPI"
+                    stroke="#059669"
+                    strokeWidth={3}
+                    dot={{ r: 4, fill: '#059669' }}
+                    activeDot={{ r: 6 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <p className="text-[10px] text-slate-400 font-medium">
-            * Referencia: Un índice de 1.0 representa el cumplimiento ideal en costo y cronograma.
+          <p className="text-xs text-slate-400 font-medium">
+            * Referencia: Un Ã­ndice de 1.0 representa el cumplimiento ideal en costo y cronograma.
           </p>
         </div>
 
-        {/* PRÓXIMOS HITOS (PRÓXIMOS 60 DÍAS) (5 COLS) */}
+        {/* PRÃ“XIMOS HITOS (PRÃ“XIMOS 60 DÃAS) (5 COLS) */}
         <div className="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
                 <Target className="w-4 h-4 text-emerald-600" />
-                PRÓXIMOS HITOS (PRÓXIMOS 60 DÍAS)
+                PRÃ“XIMOS HITOS (PRÃ“XIMOS 60 DÃAS)
               </h3>
-              <span className="text-[10px] font-bold text-slate-400 uppercase">Calendario Clave</span>
+              <span className="text-xs font-bold text-slate-400 uppercase">Calendario Clave</span>
             </div>
 
             <div className="space-y-3 my-1">
@@ -709,13 +709,13 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                       <h4 className="text-xs font-bold text-slate-900 truncate">
                         {m.title}
                       </h4>
-                      <p className="text-[10px] text-slate-500 font-medium">
-                        Entregables vinculados en revisión
+                      <p className="text-xs text-slate-500 font-medium">
+                        Entregables vinculados en revisiÃ³n
                       </p>
                     </div>
                   </div>
 
-                  <span className="text-[10px] font-black text-slate-900 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 ml-2">
+                  <span className="text-xs font-black text-slate-900 bg-white border border-slate-200 px-2 py-1 rounded-lg shrink-0 ml-2">
                     {m.date}
                   </span>
                 </div>
@@ -726,14 +726,14 @@ export const ExecutiveDashboard: React.FC<Props> = ({
 
       </div>
 
-      {/* FILA QUINTA: DECISIONES QUE NECESITAMOS DE LA DIRECCIÓN + CITA EJECUTIVA */}
+      {/* FILA QUINTA: DECISIONES QUE NECESITAMOS DE LA DIRECCIÃ“N + CITA EJECUTIVA */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* DECISIONES QUE NECESITAMOS DE LA DIRECCIÓN (8 COLS) */}
+
+        {/* DECISIONES QUE NECESITAMOS DE LA DIRECCIÃ“N (8 COLS) */}
         <div className="lg:col-span-8 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs">
           <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest mb-4 pb-3 border-b border-slate-100 flex items-center gap-2">
             <Target className="w-4 h-4 text-blue-600" />
-            DECISIONES QUE NECESITAMOS DE LA DIRECCIÓN
+            DECISIONES QUE NECESITAMOS DE LA DIRECCIÃ“N
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -743,7 +743,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
                   <div className="w-7 h-7 rounded-full bg-slate-900 text-white font-black text-xs flex items-center justify-center shrink-0">
                     {d.id}
                   </div>
-                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
                     Requerimiento C-Level
                   </span>
                 </div>
@@ -762,7 +762,7 @@ export const ExecutiveDashboard: React.FC<Props> = ({
             "Lo que no se mide, no se puede mejorar."
           </blockquote>
           <div className="text-xs font-extrabold text-blue-300 uppercase tracking-wider">
-            — Peter Drucker
+            â€” Peter Drucker
           </div>
         </div>
 

@@ -41,28 +41,28 @@ const getRoleHexColor = (role: string): string => {
 const getSkillsData = (role: string, skills: string[]) => {
   const skillValues: Record<string, number> = {
     // Coordinador
-    'Gestión': 95,
+    'GestiÃ³n': 95,
     'Finanzas': 90,
     'Liderazgo': 92,
-    'Planificación': 88,
-    'Comunicación': 85,
+    'PlanificaciÃ³n': 88,
+    'ComunicaciÃ³n': 85,
     // SAC
     'Cuentas': 92,
     'Figma Inspect': 85,
     'Copywriting': 80,
     'Soporte': 95,
-    'Negociación': 88,
+    'NegociaciÃ³n': 88,
     // ContentS
     'Social Media': 94,
     'Estrategia': 90,
     'SEO': 85,
-    'Redacción': 88,
-    'Analítica': 80,
+    'RedacciÃ³n': 88,
+    'AnalÃ­tica': 80,
     // ContentD
     'UI/UX Refactor': 92,
     'Illustrator': 95,
     'Branding': 90,
-    'Animación': 80,
+    'AnimaciÃ³n': 80,
     'Prototipado': 85,
     // Other / Dynamic
     'Game Dev': 75,
@@ -72,18 +72,18 @@ const getSkillsData = (role: string, skills: string[]) => {
   };
 
   const baseSkills = [...skills];
-  
+
   let defaultRoleSkills: string[] = [];
   if (role === 'coordinador') {
-    defaultRoleSkills = ['Gestión', 'Finanzas', 'Liderazgo', 'Planificación', 'Comunicación'];
+    defaultRoleSkills = ['GestiÃ³n', 'Finanzas', 'Liderazgo', 'PlanificaciÃ³n', 'ComunicaciÃ³n'];
   } else if (role === 'sac') {
-    defaultRoleSkills = ['Cuentas', 'Figma Inspect', 'Copywriting', 'Soporte', 'Negociación'];
+    defaultRoleSkills = ['Cuentas', 'Figma Inspect', 'Copywriting', 'Soporte', 'NegociaciÃ³n'];
   } else if (role === 'contents') {
-    defaultRoleSkills = ['Social Media', 'Estrategia', 'SEO', 'Redacción', 'Analítica'];
+    defaultRoleSkills = ['Social Media', 'Estrategia', 'SEO', 'RedacciÃ³n', 'AnalÃ­tica'];
   } else if (role === 'contentd') {
-    defaultRoleSkills = ['UI/UX Refactor', 'Illustrator', 'Branding', 'Animación', 'Prototipado'];
+    defaultRoleSkills = ['UI/UX Refactor', 'Illustrator', 'Branding', 'AnimaciÃ³n', 'Prototipado'];
   } else {
-    defaultRoleSkills = ['Feedback', 'Revisión', 'Colaboración', 'Priorización', 'Validaciones'];
+    defaultRoleSkills = ['Feedback', 'RevisiÃ³n', 'ColaboraciÃ³n', 'PriorizaciÃ³n', 'Validaciones'];
   }
 
   const allSkillsSet = new Set([...baseSkills, ...defaultRoleSkills]);
@@ -96,11 +96,11 @@ const getSkillsData = (role: string, skills: string[]) => {
   }));
 };
 
-export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({ 
-  member, 
-  onClose, 
+export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
+  member,
+  onClose,
   getUserColor,
-  projects 
+  projects
 }) => {
   if (!member) return null;
 
@@ -133,17 +133,17 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
   const retrabajoBadge = getRetrabajoBadgeStyle(userRetrabajo.percent);
 
   return (
-    <div 
+    <div
       className="fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-slate-200/80 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300"
       id="team-inspector-panel"
     >
       {/* Header del Inspector - Estilo Centrado con Foto de Perfil Grande */}
       <div className="p-8 border-b border-slate-200 bg-slate-50 text-slate-900 flex flex-col items-center relative overflow-hidden text-center" id="team-inspector-header">
         <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-slate-100 to-transparent pointer-events-none" />
-        
+
         {/* Close button top-right */}
-        <button 
-          onClick={onClose} 
+        <button
+          onClick={onClose}
           className="absolute top-4 right-4 p-2 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-full transition-all cursor-pointer z-10 border border-slate-200 bg-white shadow-xs"
           title="Cerrar inspector"
         >
@@ -153,8 +153,8 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
         {/* Large Profile Photo - Circular with soft shadow and white border */}
         <div className="relative mt-2 z-10 flex flex-col items-center">
           <div className="w-24 h-24 rounded-full border-4 border-white bg-slate-100 shadow-md overflow-hidden relative">
-            <img 
-              src={getUserAvatarUrl(member.username)} 
+            <img
+              src={getUserAvatarUrl(member.username)}
               alt={member.username}
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
@@ -163,9 +163,9 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
           {/* Circular role dot badge */}
           <span className={`absolute bottom-0 right-1 w-5 h-5 rounded-full ${getUserColor(member.role)} border-2 border-white shadow-xs`} />
         </div>
-        
+
         <div className="z-10 mt-4">
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Ficha Inspector Operativo</p>
+          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Ficha Inspector Operativo</p>
           <h2 className="font-black text-2xl capitalize text-slate-900 tracking-tight leading-tight">{member.username}</h2>
           <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">{member.puesto || member.role}</p>
         </div>
@@ -173,67 +173,67 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
 
       {/* Contenido Desglosado */}
       <div className="flex-1 p-6 overflow-y-auto space-y-6">
-        
+
         {/* Bloque de Capacidad, Horas y Retrabajo */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Capacidad Mensual</span>
-              <span className="text-[9px] bg-indigo-50 text-indigo-700 font-extrabold px-1.5 py-0.5 rounded border border-indigo-100">
+              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Capacidad Mensual</span>
+              <span className="text-xs bg-indigo-50 text-indigo-700 font-extrabold px-1.5 py-0.5 rounded border border-indigo-100">
                 192h Brutas
               </span>
             </div>
             <div className="flex items-baseline gap-1">
               <span className="text-xl font-black text-slate-900">{member.effectiveCapacity || 153.6}</span>
-              <span className="text-[10px] text-slate-400 font-bold">h efectivas (80%)</span>
+              <span className="text-xs text-slate-400 font-bold">h efectivas (80%)</span>
             </div>
-            <span className="text-[9px] text-slate-400 block mt-1">
+            <span className="text-xs text-slate-400 block mt-1">
               Margen de ocio (20%): <strong className="text-slate-600">{member.idleBuffer || 38.4}h</strong>
             </span>
           </div>
 
           <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70">
-            <span className="text-[9px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">Horas Ejecutadas</span>
+            <span className="text-xs text-slate-400 font-bold block mb-1 uppercase tracking-wider">Horas Ejecutadas</span>
             <div className="flex items-baseline gap-1">
               <span className="text-xl font-black text-emerald-600">{member.loadedHours}</span>
-              <span className="text-[10px] text-emerald-500 font-bold">h / {member.assignedHours}h asig.</span>
+              <span className="text-xs text-emerald-500 font-bold">h / {member.assignedHours}h asig.</span>
             </div>
-            <span className="text-[9px] text-slate-400 block mt-1">
-              Saturación Objetivo: <strong className={member.loadedHours > (member.effectiveCapacity || 153.6) ? 'text-rose-600' : 'text-slate-700'}>
+            <span className="text-xs text-slate-400 block mt-1">
+              SaturaciÃ³n Objetivo: <strong className={member.loadedHours > (member.effectiveCapacity || 153.6) ? 'text-rose-600' : 'text-slate-700'}>
                 {(((member.loadedHours) / (member.effectiveCapacity || 153.6)) * 100).toFixed(0)}%
               </strong>
             </span>
           </div>
 
           <div className={`p-3.5 rounded-2xl border ${retrabajoBadge.bg} ${retrabajoBadge.border}`}>
-            <span className={`text-[9px] font-bold block mb-1 uppercase tracking-wider ${retrabajoBadge.text}`}>Retrabajo Reg.</span>
+            <span className={`text-xs font-bold block mb-1 uppercase tracking-wider ${retrabajoBadge.text}`}>Retrabajo Reg.</span>
             <div className="flex items-baseline gap-1">
               <span className={`text-xl font-black ${retrabajoBadge.text}`}>{userRetrabajo.retrabajo}</span>
-              <span className={`text-[10px] font-bold ${retrabajoBadge.text}`}>h ({userRetrabajo.percent.toFixed(0)}%)</span>
+              <span className={`text-xs font-bold ${retrabajoBadge.text}`}>h ({userRetrabajo.percent.toFixed(0)}%)</span>
             </div>
-            <span className="text-[9px] text-slate-500 block mt-1 truncate">
+            <span className="text-xs text-slate-500 block mt-1 truncate">
               {retrabajoBadge.label}
             </span>
           </div>
         </div>
 
-        {/* Especialidades Asignadas - Representadas en un Gráfico Radial */}
+        {/* Especialidades Asignadas - Representadas en un GrÃ¡fico Radial */}
         <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-200/60" id="specialties-radar-container">
-          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
             <Award className="w-4 h-4 text-slate-500" /> Especialidades y Perfil Radar
           </h3>
-          
+
           <div className="w-full h-[220px] flex items-center justify-center mb-3">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="70%" data={getSkillsData(member.role, member.skills)}>
                 <PolarGrid stroke="#e2e8f0" />
-                <PolarAngleAxis 
-                  dataKey="subject" 
+                <PolarAngleAxis
+                  dataKey="subject"
                   tick={{ fill: '#475569', fontSize: 9, fontWeight: 700 }}
                 />
-                <PolarRadiusAxis 
-                  angle={30} 
-                  domain={[0, 100]} 
+                <PolarRadiusAxis
+                  angle={30}
+                  domain={[0, 100]}
                   tick={false}
                   axisLine={false}
                 />
@@ -250,10 +250,10 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
 
           <div className="flex flex-wrap gap-1.5 justify-center pt-3 border-t border-slate-200/40">
             {member.skills.length === 0 ? (
-              <span className="text-xs text-slate-400 font-medium italic">Sin habilidades registradas en este período.</span>
+              <span className="text-xs text-slate-400 font-medium italic">Sin habilidades registradas en este perÃ­odo.</span>
             ) : (
               member.skills.map((skill) => (
-                <span key={skill} className="text-[10px] bg-white text-slate-700 px-2.5 py-1 rounded-full font-bold border border-slate-200 flex items-center gap-1 uppercase tracking-wider transition-all hover:bg-slate-50 shadow-2xs">
+                <span key={skill} className="text-xs bg-white text-slate-700 px-2.5 py-1 rounded-full font-bold border border-slate-200 flex items-center gap-1 uppercase tracking-wider transition-all hover:bg-slate-50 shadow-2xs">
                   <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
                   {skill}
                 </span>
@@ -264,10 +264,10 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
 
         {/* Desglose por Proyectos */}
         <div>
-          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
             <Briefcase className="w-4 h-4 text-emerald-600" /> Proyectos Activos e Historial
           </h3>
-          
+
           <div className="space-y-3">
             {assignedProjects.length === 0 ? (
               <div className="p-6 bg-slate-50/60 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400 font-medium">
@@ -285,13 +285,13 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
                     <div className="flex justify-between items-start text-xs">
                       <div>
                         <span className="font-extrabold text-slate-800 text-sm block">{p.name}</span>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mt-0.5">
                           Fase: {activePhase?.label || 'Sin Fase'}
                         </span>
                       </div>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md uppercase ${
-                        activePhase?.status === 'completed' 
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/50' 
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md uppercase ${
+                        activePhase?.status === 'completed'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/50'
                           : 'bg-amber-50 text-amber-700 border border-amber-100/50'
                       }`}>
                         {activePhase?.status === 'completed' ? 'Completado' : 'En Curso'}
@@ -299,14 +299,14 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
                     </div>
 
                     <div>
-                      <div className="flex justify-between text-[11px] text-slate-500 font-bold mb-1">
+                      <div className="flex justify-between text-xs text-slate-500 font-bold mb-1">
                         <span>Consumo: {consumed}h / {allocated}h</span>
                         <span className={progressPercent > 100 ? "text-rose-600 font-extrabold" : "text-slate-700"}>
                           {progressPercent.toFixed(0)}%
                         </span>
                       </div>
                       <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className={`h-full rounded-full transition-all duration-300 ${
                             progressPercent > 100 ? 'bg-rose-500' : progressPercent > 80 ? 'bg-amber-500' : 'bg-slate-900'
                           }`}
@@ -323,7 +323,7 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
 
         {/* Desglose Temporal (Semanal y Diario) */}
         <div>
-          <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-emerald-600" /> Desglose Temporal de Carga
           </h3>
           <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/60 space-y-3 text-xs">
@@ -351,7 +351,7 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
                 <span className="text-slate-600 font-bold">Promedio Diario</span>
               </div>
               <span className="font-extrabold text-slate-900 text-sm">
-                {(member.loadedHours > 0 ? (member.loadedHours / 20).toFixed(1) : '0.0')}h / día
+                {(member.loadedHours > 0 ? (member.loadedHours / 20).toFixed(1) : '0.0')}h / dÃ­a
               </span>
             </div>
           </div>

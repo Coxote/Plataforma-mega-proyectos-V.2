@@ -50,8 +50,8 @@ export default function ProjectSelector({
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-            isActiveOverdue 
-              ? 'bg-rose-100 text-rose-700 ring-2 ring-rose-500/30 animate-pulse' 
+            isActiveOverdue
+              ? 'bg-rose-100 text-rose-700 ring-2 ring-rose-500/30 animate-pulse'
               : isActiveApproaching
               ? 'bg-amber-100 text-amber-800'
               : 'bg-lime-400/20 text-lime-800'
@@ -66,12 +66,12 @@ export default function ProjectSelector({
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Proyecto Activo</label>
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Proyecto Activo</label>
               {isActiveOverdue && (
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.2 bg-rose-600 text-white rounded">Vencido</span>
+                <span className="text-xs font-black uppercase px-1.5 py-0.2 bg-rose-600 text-white rounded">Vencido</span>
               )}
               {activeProject && followedProjectIds.includes(activeProject.id) && (
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.2 bg-amber-100 text-amber-800 border border-amber-300 rounded flex items-center gap-0.5">
+                <span className="text-xs font-black uppercase px-1.5 py-0.2 bg-amber-100 text-amber-800 border border-amber-300 rounded flex items-center gap-0.5">
                   <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" /> Seguido
                 </span>
               )}
@@ -85,7 +85,7 @@ export default function ProjectSelector({
           {followedProjectIds.length > 0 && (
             <button
               onClick={() => setFilterFollowedOnly(!filterFollowedOnly)}
-              className={`p-1.5 rounded-lg text-[10px] font-extrabold flex items-center gap-1 transition-all cursor-pointer ${
+              className={`p-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1 transition-all cursor-pointer ${
                 filterFollowedOnly
                   ? 'bg-amber-100 text-amber-900 border border-amber-300'
                   : 'text-slate-400 hover:text-amber-600 hover:bg-amber-50'
@@ -118,7 +118,7 @@ export default function ProjectSelector({
           const isOverdue = overdueProjectIds.has(project.id);
           const isApproaching = approachingProjectIds.has(project.id);
           const isFollowed = followedProjectIds.includes(project.id);
-          
+
           return (
             <div
               key={project.id}
@@ -150,22 +150,22 @@ export default function ProjectSelector({
                       <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" title="Proyecto Seguido" />
                     )}
                     {isOverdue && (
-                      <span className="text-[9px] font-black px-1 py-0.2 bg-rose-600 text-white rounded shrink-0">SLA Vencido</span>
+                      <span className="text-xs font-black px-1 py-0.2 bg-rose-600 text-white rounded shrink-0">SLA Vencido</span>
                     )}
                   </div>
-                  <p className="text-[10px] text-slate-400 truncate font-medium">{project.clientName}</p>
+                  <p className="text-xs text-slate-400 truncate font-medium">{project.clientName}</p>
                 </div>
               </button>
-              
+
               <div className="flex items-center gap-2 shrink-0 ml-1">
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold border ${
-                  isOverdue 
-                    ? 'bg-rose-100 text-rose-800 border-rose-200' 
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold border ${
+                  isOverdue
+                    ? 'bg-rose-100 text-rose-800 border-rose-200'
                     : 'bg-white border-slate-200 text-slate-500'
                 }`}>
                   {completedPhases}/{project.phases.length}
                 </span>
-                
+
                 {projects.length > 1 && (userRole === 'coordinador' || userRole === 'sac') && (
                   <button
                     onClick={() => onDeleteProject(project.id)}

@@ -6,21 +6,21 @@ interface Props {
   project: Project;
   currentUser: UserSession;
   onLogTime: (
-    hours: number, 
-    description: string, 
-    type?: TimeEntryType, 
-    retrabajoOrigen?: 'cliente' | 'interno' | 'proveedor', 
-    retrabajoMotivo?: string, 
+    hours: number,
+    description: string,
+    type?: TimeEntryType,
+    retrabajoOrigen?: 'cliente' | 'interno' | 'proveedor',
+    retrabajoMotivo?: string,
     deliverableId?: string
   ) => void;
-  onUpdateBudget?: (newBudget: ProjectBudget) => void; 
+  onUpdateBudget?: (newBudget: ProjectBudget) => void;
 }
 
-export const RoleTimeTracker: React.FC<Props> = ({ 
-  project, 
-  currentUser, 
-  onLogTime, 
-  onUpdateBudget 
+export const RoleTimeTracker: React.FC<Props> = ({
+  project,
+  currentUser,
+  onLogTime,
+  onUpdateBudget
 }) => {
   const [hoursToLog, setHoursToLog] = useState<number | ''>('');
   const [description, setDescription] = useState('');
@@ -54,7 +54,7 @@ export const RoleTimeTracker: React.FC<Props> = ({
         <div className="flex items-start gap-2.5 text-xs bg-red-50 text-red-700 p-3 rounded-xl border border-red-200">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500 animate-bounce" />
           <div>
-            <strong className="font-bold">Consumo Crítico:</strong> Has gastado el {percentage.toFixed(0)}% de tu presupuesto ({userBudget.consumed} de {userBudget.allocated} horas).
+            <strong className="font-bold">Consumo CrÃ­tico:</strong> Has gastado el {percentage.toFixed(0)}% de tu presupuesto ({userBudget.consumed} de {userBudget.allocated} horas).
           </div>
         </div>
       );
@@ -110,25 +110,25 @@ export const RoleTimeTracker: React.FC<Props> = ({
         allocated: allocatedSupervisor,
         consumed: project.budget?.supervisor?.consumed || 0
       },
-      coordinador: { 
-        allocated: allocatedCoord, 
-        consumed: project.budget?.coordinador?.consumed || 0 
+      coordinador: {
+        allocated: allocatedCoord,
+        consumed: project.budget?.coordinador?.consumed || 0
       },
-      sac: { 
-        allocated: allocatedSac, 
-        consumed: project.budget?.sac?.consumed || 0 
+      sac: {
+        allocated: allocatedSac,
+        consumed: project.budget?.sac?.consumed || 0
       },
-      contents: { 
-        allocated: allocatedContentS, 
-        consumed: project.budget?.contents?.consumed || 0 
+      contents: {
+        allocated: allocatedContentS,
+        consumed: project.budget?.contents?.consumed || 0
       },
-      contentd: { 
-        allocated: allocatedContentD, 
-        consumed: project.budget?.contentd?.consumed || 0 
+      contentd: {
+        allocated: allocatedContentD,
+        consumed: project.budget?.contentd?.consumed || 0
       },
-      invitado: { 
-        allocated: 0, 
-        consumed: 0 
+      invitado: {
+        allocated: 0,
+        consumed: 0
       }
     };
     onUpdateBudget(newBudget);
@@ -136,28 +136,28 @@ export const RoleTimeTracker: React.FC<Props> = ({
   };
 
   // Calculate global budget status
-  const totalAllocated = 
-    (project.budget?.coordinador?.allocated || 0) + 
-    (project.budget?.sac?.allocated || 0) + 
+  const totalAllocated =
+    (project.budget?.coordinador?.allocated || 0) +
+    (project.budget?.sac?.allocated || 0) +
     (project.budget?.contents?.allocated || 0) +
     (project.budget?.contentd?.allocated || 0);
 
-  const totalConsumed = 
-    (project.budget?.coordinador?.consumed || 0) + 
-    (project.budget?.sac?.consumed || 0) + 
+  const totalConsumed =
+    (project.budget?.coordinador?.consumed || 0) +
+    (project.budget?.sac?.consumed || 0) +
     (project.budget?.contents?.consumed || 0) +
     (project.budget?.contentd?.consumed || 0);
 
   // Cost calculation
-  const totalCostAllocated = 
-    (project.budget?.coordinador?.allocated || 0) * 40.00 + 
-    (project.budget?.sac?.allocated || 0) * 35.50 + 
+  const totalCostAllocated =
+    (project.budget?.coordinador?.allocated || 0) * 40.00 +
+    (project.budget?.sac?.allocated || 0) * 35.50 +
     (project.budget?.contents?.allocated || 0) * 28.11 +
     (project.budget?.contentd?.allocated || 0) * 33.19;
 
-  const totalCostConsumed = 
-    (project.budget?.coordinador?.consumed || 0) * 40.00 + 
-    (project.budget?.sac?.consumed || 0) * 35.50 + 
+  const totalCostConsumed =
+    (project.budget?.coordinador?.consumed || 0) * 40.00 +
+    (project.budget?.sac?.consumed || 0) * 35.50 +
     (project.budget?.contents?.consumed || 0) * 28.11 +
     (project.budget?.contentd?.consumed || 0) * 33.19;
 
@@ -165,7 +165,7 @@ export const RoleTimeTracker: React.FC<Props> = ({
 
   return (
     <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-5" id="role-time-tracker">
-      
+
       {/* Tracker Header */}
       <div className="flex justify-between items-start gap-4">
         <div>
@@ -173,13 +173,13 @@ export const RoleTimeTracker: React.FC<Props> = ({
             <Clock className="w-4 h-4 text-slate-500" />
             Horas por rol
           </h3>
-          <p className="text-slate-500 text-[11px] mt-0.5">
-            {currentUser.role === 'invitado' 
-              ? 'Consumo global del equipo de proyecto' 
+          <p className="text-slate-500 text-xs mt-0.5">
+            {currentUser.role === 'invitado'
+              ? 'Consumo global del equipo de proyecto'
               : `Presupuesto asignado a tu rol: ${currentUser.role === 'contents' ? 'ContentS' : currentUser.role === 'contentd' ? 'ContentD' : currentUser.role}`}
           </p>
         </div>
-        
+
         {userBudget && (
           <span className="text-xs font-mono font-bold bg-slate-100 text-slate-800 px-2.5 py-1 rounded-lg">
             {userBudget.consumed}h / {userBudget.allocated}h
@@ -190,12 +190,12 @@ export const RoleTimeTracker: React.FC<Props> = ({
       {/* Progress Bars */}
       {currentUser.role !== 'invitado' && userBudget ? (
         <div className="space-y-1.5">
-          <div className="flex justify-between text-[11px] text-slate-500 font-medium">
+          <div className="flex justify-between text-xs text-slate-500 font-medium">
             <span>Progreso Personal</span>
             <span>{percentage.toFixed(0)}%</span>
           </div>
           <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div 
+            <div
               className={`h-full transition-all duration-550 ${
                 percentage >= 90 ? 'bg-rose-500' : percentage >= 75 ? 'bg-amber-500' : 'bg-lime-500'
               }`}
@@ -205,12 +205,12 @@ export const RoleTimeTracker: React.FC<Props> = ({
         </div>
       ) : (
         <div className="space-y-1.5">
-          <div className="flex justify-between text-[11px] text-slate-500 font-medium">
+          <div className="flex justify-between text-xs text-slate-500 font-medium">
             <span>Progreso Global del Equipo</span>
             <span>{globalPercentage.toFixed(0)}% ({totalConsumed}h de {totalAllocated}h)</span>
           </div>
           <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div 
+            <div
               className={`h-full transition-all duration-550 ${
                 globalPercentage >= 90 ? 'bg-rose-500' : globalPercentage >= 75 ? 'bg-amber-500' : 'bg-lime-500'
               }`}
@@ -222,7 +222,7 @@ export const RoleTimeTracker: React.FC<Props> = ({
 
       {/* Small Cost Summary Display */}
       {totalAllocated > 0 && (
-        <div className="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-[10px] text-slate-500 flex items-center justify-between font-medium">
+        <div className="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-xs text-slate-500 flex items-center justify-between font-medium">
           <span>Costo estimado total:</span>
           <span>
             <strong className="text-slate-800 font-bold">${totalCostConsumed.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD</strong> de ${totalCostAllocated.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD presupuestados
@@ -238,9 +238,9 @@ export const RoleTimeTracker: React.FC<Props> = ({
         <div className="border-t border-slate-100 pt-4 space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-700 block">Cargar Horas de Trabajo</span>
-            
+
             {/* Type Selector */}
-            <div className="flex gap-1 bg-slate-100 p-0.5 rounded-lg text-[10px]">
+            <div className="flex gap-1 bg-slate-100 p-0.5 rounded-lg text-xs">
               <button
                 type="button"
                 onClick={() => setEntryType('normal')}
@@ -271,11 +271,11 @@ export const RoleTimeTracker: React.FC<Props> = ({
               </button>
             </div>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-2">
-            <input 
-              type="number" 
-              placeholder="Horas" 
+            <input
+              type="number"
+              placeholder="Horas"
               className="w-full sm:w-20 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-lime-400 focus:border-lime-400 font-medium"
               value={hoursToLog}
               min="0.5"
@@ -285,19 +285,19 @@ export const RoleTimeTracker: React.FC<Props> = ({
                 setHoursToLog(val === '' ? '' : Number(val));
               }}
             />
-            <input 
-              type="text" 
-              placeholder={entryType === 'retrabajo' ? '¿Qué ajuste o corrección realizaste?' : '¿Qué actividades realizaste?'} 
+            <input
+              type="text"
+              placeholder={entryType === 'retrabajo' ? 'Â¿QuÃ© ajuste o correcciÃ³n realizaste?' : 'Â¿QuÃ© actividades realizaste?'}
               className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-lime-400 focus:border-lime-400"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
-            <button 
+            <button
               onClick={handleLog}
               disabled={!hoursToLog || (!description.trim() && !retrabajoMotivo.trim()) || (entryType === 'retrabajo' && !retrabajoMotivo.trim() && !description.trim())}
               className={`font-bold px-4 py-2 rounded-xl text-xs disabled:opacity-40 transition-colors shrink-0 cursor-pointer ${
-                entryType === 'retrabajo' 
-                  ? 'bg-amber-600 hover:bg-amber-700 text-white' 
+                entryType === 'retrabajo'
+                  ? 'bg-amber-600 hover:bg-amber-700 text-white'
                   : 'bg-slate-900 hover:bg-slate-800 text-white'
               }`}
             >
@@ -308,27 +308,27 @@ export const RoleTimeTracker: React.FC<Props> = ({
           {/* Additional fields if Retrabajo */}
           {entryType === 'retrabajo' && (
             <div className="bg-amber-50/80 border border-amber-200 p-3 rounded-xl space-y-2.5 animate-fadeIn">
-              <span className="text-[10px] font-bold text-amber-900 uppercase tracking-wider block">
+              <span className="text-xs font-bold text-amber-900 uppercase tracking-wider block">
                 Detalles del Retrabajo (Obligatorio)
               </span>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[10px] font-bold text-amber-800 block mb-1">Origen del Retrabajo</label>
+                  <label className="text-xs font-bold text-amber-800 block mb-1">Origen del Retrabajo</label>
                   <select
                     value={retrabajoOrigen}
                     onChange={(e) => setRetrabajoOrigen(e.target.value as any)}
                     className="w-full bg-white border border-amber-200 text-xs text-slate-800 rounded-lg p-1.5 font-medium outline-none"
                   >
                     <option value="cliente">Cliente (Cambio de brief / nuevas solicitudes)</option>
-                    <option value="interno">Interno (Error de diseño/dev / re-trabajo interno)</option>
+                    <option value="interno">Interno (Error de diseÃ±o/dev / re-trabajo interno)</option>
                     <option value="proveedor">Proveedor / Tercero</option>
                   </select>
                 </div>
 
                 {project.deliverables && project.deliverables.length > 0 && (
                   <div>
-                    <label className="text-[10px] font-bold text-amber-800 block mb-1">Entregable Vinculado (Opcional)</label>
+                    <label className="text-xs font-bold text-amber-800 block mb-1">Entregable Vinculado (Opcional)</label>
                     <select
                       value={deliverableId}
                       onChange={(e) => setDeliverableId(e.target.value)}
@@ -344,10 +344,10 @@ export const RoleTimeTracker: React.FC<Props> = ({
               </div>
 
               <div>
-                <label className="text-[10px] font-bold text-amber-800 block mb-1">Motivo Específico</label>
+                <label className="text-xs font-bold text-amber-800 block mb-1">Motivo EspecÃ­fico</label>
                 <input
                   type="text"
-                  placeholder="Ej: Cambio de brief del cliente, ajuste de maquetación..."
+                  placeholder="Ej: Cambio de brief del cliente, ajuste de maquetaciÃ³n..."
                   value={retrabajoMotivo}
                   onChange={(e) => setRetrabajoMotivo(e.target.value)}
                   className="w-full bg-white border border-amber-200 text-xs text-slate-800 rounded-lg px-2.5 py-1.5 outline-none font-medium"
@@ -384,7 +384,7 @@ export const RoleTimeTracker: React.FC<Props> = ({
                 </span>
                 <button
                   onClick={() => setShowBudgetEditor(false)}
-                  className="text-[10px] text-slate-500 hover:text-slate-800 underline font-medium"
+                  className="text-xs text-slate-500 hover:text-slate-800 underline font-medium"
                 >
                   Cancelar
                 </button>
@@ -392,56 +392,56 @@ export const RoleTimeTracker: React.FC<Props> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 block">Coord (h) - $40/h</label>
+                  <label className="text-xs font-bold text-slate-500 block">Coord (h) - $40/h</label>
                   <input
                     type="number"
                     className="w-full border border-slate-200 rounded-lg p-1.5 text-xs outline-none bg-white font-semibold text-center"
                     value={allocatedCoord}
                     onChange={(e) => setAllocatedCoord(Math.max(0, Number(e.target.value)))}
                   />
-                  <span className="text-[9px] text-slate-400 block text-center mt-0.5">
+                  <span className="text-xs text-slate-400 block text-center mt-0.5">
                     Gasto: {project.budget?.coordinador?.consumed || 0}h
                   </span>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 block">SAC (h) - $35.50/h</label>
+                  <label className="text-xs font-bold text-slate-500 block">SAC (h) - $35.50/h</label>
                   <input
                     type="number"
                     className="w-full border border-slate-200 rounded-lg p-1.5 text-xs outline-none bg-white font-semibold text-center"
                     value={allocatedSac}
                     onChange={(e) => setAllocatedSac(Math.max(0, Number(e.target.value)))}
                   />
-                  <span className="text-[9px] text-slate-400 block text-center mt-0.5">
+                  <span className="text-xs text-slate-400 block text-center mt-0.5">
                     Gasto: {project.budget?.sac?.consumed || 0}h
                   </span>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 block">ContentS (h) - $28.11/h</label>
+                  <label className="text-xs font-bold text-slate-500 block">ContentS (h) - $28.11/h</label>
                   <input
                     type="number"
                     className="w-full border border-slate-200 rounded-lg p-1.5 text-xs outline-none bg-white font-semibold text-center"
                     value={allocatedContentS}
                     onChange={(e) => setAllocatedContentS(Math.max(0, Number(e.target.value)))}
                   />
-                  <span className="text-[9px] text-slate-400 block text-center mt-0.5">
+                  <span className="text-xs text-slate-400 block text-center mt-0.5">
                     Gasto: {project.budget?.contents?.consumed || 0}h
                   </span>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-slate-500 block">ContentD (h) - $33.19/h</label>
+                  <label className="text-xs font-bold text-slate-500 block">ContentD (h) - $33.19/h</label>
                   <input
                     type="number"
                     className="w-full border border-slate-200 rounded-lg p-1.5 text-xs outline-none bg-white font-semibold text-center"
                     value={allocatedContentD}
                     onChange={(e) => setAllocatedContentD(Math.max(0, Number(e.target.value)))}
                   />
-                  <span className="text-[9px] text-slate-400 block text-center mt-0.5">
+                  <span className="text-xs text-slate-400 block text-center mt-0.5">
                     Gasto: {project.budget?.contentd?.consumed || 0}h
                   </span>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center pt-1 border-t border-slate-200/60 text-[10px]">
+              <div className="flex justify-between items-center pt-1 border-t border-slate-200/60 text-xs">
                 <span className="font-medium text-slate-500">
                   Nuevo total: <strong className="font-bold text-slate-800">{allocatedCoord + allocatedSac + allocatedContentS + allocatedContentD}h</strong>
                 </span>

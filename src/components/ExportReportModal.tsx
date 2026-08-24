@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Project } from '../types';
 import { TppLogo } from './TppLogo';
-import { 
-  FileText, 
-  Download, 
-  X, 
-  Printer, 
-  FileSpreadsheet, 
-  CheckCircle2, 
-  Filter, 
+import {
+  FileText,
+  Download,
+  X,
+  Printer,
+  FileSpreadsheet,
+  CheckCircle2,
+  Filter,
   ShieldCheck,
   Calendar,
   Layers,
@@ -37,8 +37,8 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
   if (!isOpen || !project) return null;
 
   // Filter phases based on user selection
-  const activePhases = selectedPhaseFilter === 'all' 
-    ? project.phases 
+  const activePhases = selectedPhaseFilter === 'all'
+    ? project.phases
     : project.phases.filter(p => p.id === selectedPhaseFilter);
 
   // Calculate totals
@@ -113,8 +113,8 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-in fade-in duration-200 print:hidden">
-      <div className="bg-white/95 backdrop-blur-2xl rounded-3xl max-w-xl w-full shadow-2xl border border-white/80 overflow-hidden flex flex-col">
-        
+      <div className="bg-white/95 backdrop-blur-2xl rounded-2xl max-w-xl w-full shadow-2xl border border-white/80 overflow-hidden flex flex-col">
+
         {/* MODAL HEADER */}
         <div className="bg-slate-900 text-white p-6 flex items-center justify-between border-b border-slate-800 relative overflow-hidden shrink-0">
           <div className="flex items-center gap-3 z-10">
@@ -124,15 +124,15 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-black text-base text-white tracking-tight uppercase">Exportar Reporte Ejecutivo</h3>
-                <span className="px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider bg-[#84CC16] text-slate-950">
+                <span className="px-2 py-0.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#84CC16] text-slate-950">
                   Fase 3
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-medium">{project.name} · {project.clientName}</p>
+              <p className="text-xs text-slate-400 font-medium">{project.name} Â· {project.clientName}</p>
             </div>
           </div>
 
-          <button 
+          <button
             onClick={onClose}
             className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
           >
@@ -142,11 +142,11 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
 
         {/* MODAL BODY */}
         <div className="p-6 space-y-6 overflow-y-auto max-h-[75vh]">
-          
+
           {/* FORMAT SELECTION */}
           <div>
             <label className="text-xs font-black uppercase tracking-wider text-slate-500 block mb-2.5">
-              1. Formato de Exportación
+              1. Formato de ExportaciÃ³n
             </label>
             <div className="grid grid-cols-3 gap-3">
               <button
@@ -199,7 +199,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
+                <label className="text-xs font-bold uppercase text-slate-500 block mb-1">
                   Filtrar por Fase
                 </label>
                 <select
@@ -215,7 +215,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
               </div>
 
               <div>
-                <label className="text-[10px] font-bold uppercase text-slate-500 block mb-1">
+                <label className="text-xs font-bold uppercase text-slate-500 block mb-1">
                   Rango de Fechas
                 </label>
                 <select
@@ -223,10 +223,10 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                   onChange={(e) => setDateRangeFilter(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5500]/50"
                 >
-                  <option value="all">Todo el Histórico</option>
+                  <option value="all">Todo el HistÃ³rico</option>
                   <option value="month">Este Mes</option>
                   <option value="quarter">Este Trimestre</option>
-                  <option value="year">Este Año</option>
+                  <option value="year">Este AÃ±o</option>
                 </select>
               </div>
             </div>
@@ -248,7 +248,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                 />
                 <div className="flex-1 min-w-0">
                   <span className="text-xs font-black text-slate-900 block">Marca de Agua TPP Hub Digital</span>
-                  <span className="text-[10px] text-slate-500 font-medium">Incluye sello oficial de confidencialidad en el encabezado y pie</span>
+                  <span className="text-xs text-slate-500 font-medium">Incluye sello oficial de confidencialidad en el encabezado y pie</span>
                 </div>
                 <ShieldCheck className="w-5 h-5 text-[#84CC16] shrink-0" />
               </label>
@@ -262,7 +262,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                 />
                 <div className="flex-1 min-w-0">
                   <span className="text-xs font-black text-slate-900 block">Desglose Financiero y Tarifas</span>
-                  <span className="text-[10px] text-slate-500 font-medium">Costos presupuestados vs ejecutados</span>
+                  <span className="text-xs text-slate-500 font-medium">Costos presupuestados vs ejecutados</span>
                 </div>
               </label>
             </div>
@@ -273,8 +273,8 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
             <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-3 text-white flex items-center justify-between border border-slate-700">
               <TppLogo size="sm" variant="full" darkMode={true} />
               <div className="text-right">
-                <span className="text-[9px] font-black uppercase tracking-widest text-[#84CC16] block">INFORME OFICIAL CONFIDENCIAL</span>
-                <span className="text-[8px] text-slate-400 font-mono">TPP-HUB-REPORT-{new Date().toISOString().slice(0,10)}</span>
+                <span className="text-xs font-black uppercase tracking-widest text-[#84CC16] block">INFORME OFICIAL CONFIDENCIAL</span>
+                <span className="text-xs text-slate-400 font-mono">TPP-HUB-REPORT-{new Date().toISOString().slice(0,10)}</span>
               </div>
             </div>
           )}

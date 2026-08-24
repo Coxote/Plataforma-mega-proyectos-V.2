@@ -1,17 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { Client, Project, OrdenVenta } from '../types';
-import { 
-  Building2, 
-  Sparkles, 
-  Plus, 
-  Search, 
-  Phone, 
-  Mail, 
-  Globe, 
-  Copy, 
-  Check, 
-  BookOpen, 
-  User, 
+import {
+  Building2,
+  Sparkles,
+  Plus,
+  Search,
+  Phone,
+  Mail,
+  Globe,
+  Copy,
+  Check,
+  BookOpen,
+  User,
   TrendingUp,
   Sliders,
   Palette,
@@ -36,11 +36,11 @@ interface ClientsManagementProps {
   onUpdateClientStatus?: (clientId: string, nuevoEstado: 'activo' | 'inactivo' | 'pausado') => void;
 }
 
-export const ClientsManagement: React.FC<ClientsManagementProps> = ({ 
-  clients, 
+export const ClientsManagement: React.FC<ClientsManagementProps> = ({
+  clients,
   projects = [],
-  onAddClient, 
-  onUpdateClientStatus 
+  onAddClient,
+  onUpdateClientStatus
 }) => {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -165,15 +165,15 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
       {/* HEADER SUPERIOR */}
       <div className="px-8 py-6 bg-white border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
         <div>
-          <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1.5">
+          <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest mb-1.5">
             <Sparkles className="w-3.5 h-3.5 text-cyan-500" />
             Directorio de Clientes
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">Clientes & Historial de Marcas</h1>
-          <p className="text-xs text-slate-500 font-medium">Gestiona cuentas, historial de proyectos con Órdenes de Venta (OVs) y Brand Bibles.</p>
+          <p className="text-xs text-slate-500 font-medium">Gestiona cuentas, historial de proyectos con Ã“rdenes de Venta (OVs) y Brand Bibles.</p>
         </div>
 
-        <button 
+        <button
           onClick={() => {
             setEditingClient(null);
             setIsWizardOpen(true);
@@ -186,17 +186,17 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
 
       {/* CONTENIDO PRINCIPAL EN DOS COLUMNAS */}
       <div className="flex-1 flex overflow-hidden">
-        
+
         {/* COLUMNA IZQUIERDA: LISTA DE CLIENTES */}
         <div className="w-full md:w-80 lg:w-96 bg-white border-r border-slate-200 flex flex-col shrink-0">
-          
+
           {/* SEARCH & FILTERS */}
           <div className="p-4 border-b border-slate-100 space-y-3">
             <div className="relative">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input 
+              <input
                 type="text"
-                placeholder="Buscar por cliente o categoría..."
+                placeholder="Buscar por cliente o categorÃ­a..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all"
@@ -204,7 +204,7 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
             </div>
 
             {/* STATUS TABS */}
-            <div className="flex gap-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
+            <div className="flex gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
               <button
                 onClick={() => setStatusFilter('activos')}
                 className={`flex-1 py-1 px-2 rounded-lg transition-all cursor-pointer text-center ${
@@ -244,8 +244,8 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
               <div className="p-8 text-center text-slate-400 text-xs font-medium space-y-1">
                 <p>No se encontraron clientes en este filtro.</p>
                 {statusFilter !== 'todos' && (
-                  <button 
-                    onClick={() => setStatusFilter('todos')} 
+                  <button
+                    onClick={() => setStatusFilter('todos')}
                     className="text-cyan-600 font-bold hover:underline cursor-pointer"
                   >
                     Ver todos los clientes ({totalCount})
@@ -257,14 +257,14 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                 const isSelected = selectedClient?.id === client.id;
                 const badge = getClientStatusBadge(client.estado);
                 return (
-                  <div 
+                  <div
                     key={client.id}
                     onClick={() => {
                       setSelectedClient(client);
                     }}
                     className={`p-4 transition-all cursor-pointer flex items-start gap-3.5 border-l-4 ${
-                      isSelected 
-                        ? 'bg-cyan-50/40 border-cyan-500' 
+                      isSelected
+                        ? 'bg-cyan-50/40 border-cyan-500'
                         : 'border-transparent hover:bg-slate-50/60'
                     }`}
                   >
@@ -273,24 +273,24 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                     }`}>
                       {client.nombreComercial.charAt(0)}
                     </div>
-                    
+
                     <div className="flex-1 min-w-0 space-y-1">
                       <div className="flex justify-between items-start gap-1">
                         <h4 className="font-bold text-slate-900 text-xs truncate">{client.nombreComercial}</h4>
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border shrink-0 uppercase tracking-wider flex items-center gap-1 ${badge.bg}`}>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full border shrink-0 uppercase tracking-wider flex items-center gap-1 ${badge.bg}`}>
                           <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
                           {badge.label}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium truncate">
+                      <div className="flex items-center justify-between text-xs text-slate-400 font-medium truncate">
                         <span>Contacto: {client.contactoPrincipal}</span>
-                        <span className="text-slate-400 font-mono text-[9px]">{client.categoria}</span>
+                        <span className="text-slate-400 font-mono text-xs">{client.categoria}</span>
                       </div>
-                      
+
                       {client.brandBible && (
                         <div className="flex items-center gap-1.5 pt-0.5">
-                          <span className="text-[9px] text-cyan-600 font-bold bg-cyan-100/50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                          <span className="text-xs text-cyan-600 font-bold bg-cyan-100/50 px-1.5 py-0.5 rounded flex items-center gap-0.5">
                             <Sparkles className="w-2.5 h-2.5" /> Brand Bible IA
                           </span>
                         </div>
@@ -307,13 +307,13 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
         <div className="hidden md:flex flex-1 flex-col h-full bg-slate-50/50 overflow-y-auto p-8">
           {currentSelectedClient ? (
             <div className="max-w-4xl space-y-6 animate-in fade-in duration-300">
-              
+
               {/* HEADER DE CLIENTE */}
-              <div className="bg-white p-6 rounded-3xl border border-slate-200/60 shadow-xs space-y-4">
+              <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-xs space-y-4">
                 <div className="flex justify-between items-start gap-4">
                   <div className="space-y-2 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] bg-cyan-100 text-cyan-700 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                      <span className="text-xs bg-cyan-100 text-cyan-700 font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
                         {currentSelectedClient.categoria}
                       </span>
 
@@ -321,7 +321,7 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                       {(() => {
                         const badge = getClientStatusBadge(currentSelectedClient.estado);
                         return (
-                          <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border uppercase tracking-wider flex items-center gap-1 ${badge.bg}`}>
+                          <span className={`text-xs font-bold px-2.5 py-1 rounded-full border uppercase tracking-wider flex items-center gap-1 ${badge.bg}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${badge.dot}`} />
                             {badge.label}
                           </span>
@@ -330,7 +330,7 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
 
                       {/* Quick Status Selector */}
                       {onUpdateClientStatus && (
-                        <div className="flex gap-1 bg-slate-100 p-0.5 rounded-lg text-[10px] font-bold ml-auto">
+                        <div className="flex gap-1 bg-slate-100 p-0.5 rounded-lg text-xs font-bold ml-auto">
                           <button
                             type="button"
                             title="Cambiar estado a Activo"
@@ -370,19 +370,19 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                         </div>
                       )}
 
-                      <button 
+                      <button
                         onClick={() => {
                           setEditingClient(currentSelectedClient);
                           setIsWizardOpen(true);
                         }}
-                        className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer border border-slate-200"
+                        className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer border border-slate-200"
                       >
                         <Edit3 className="w-3 h-3 text-slate-500" /> Editar Datos
                       </button>
                     </div>
 
                     <h2 className="text-2xl font-black text-slate-900 tracking-tight">{currentSelectedClient.nombreComercial}</h2>
-                    
+
                     {/* CONTACT INFO GRID */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs font-semibold text-slate-600">
                       <div className="flex items-center gap-2">
@@ -416,19 +416,19 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                 </div>
 
                 {/* DATES METADATA BAR */}
-                <div className="flex flex-wrap items-center gap-4 text-[11px] font-semibold text-slate-500 pt-3 border-t border-slate-100">
+                <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-500 pt-3 border-t border-slate-100">
                   <div className="flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-slate-400" />
                     <span>Fecha de Alta: <strong className="text-slate-800">{currentSelectedClient.fechaAlta ? currentSelectedClient.fechaAlta.split('T')[0] : 'Julio 2026'}</strong></span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Última Actividad: <strong className="text-slate-800">{currentSelectedClient.fechaUltimaActividad ? currentSelectedClient.fechaUltimaActividad.split('T')[0] : 'Reciente'}</strong></span>
+                    <span>Ãšltima Actividad: <strong className="text-slate-800">{currentSelectedClient.fechaUltimaActividad ? currentSelectedClient.fechaUltimaActividad.split('T')[0] : 'Reciente'}</strong></span>
                   </div>
                 </div>
               </div>
 
-              {/* TABS NAVEGACIÓN PERFIL DE CLIENTE */}
+              {/* TABS NAVEGACIÃ“N PERFIL DE CLIENTE */}
               <div className="flex gap-2 border-b border-slate-200 pb-0">
                 <button
                   onClick={() => setProfileTab('proyectos')}
@@ -440,7 +440,7 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                 >
                   <Briefcase className="w-4 h-4" />
                   Historial de Proyectos & OVs
-                  <span className="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded-full text-[10px] font-black">
+                  <span className="bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded-full text-xs font-black">
                     {clientProjects.length}
                   </span>
                 </button>
@@ -464,32 +464,32 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
               {/* CONTENIDO TAB 1: HISTORIAL DE PROYECTOS Y OVS */}
               {profileTab === 'proyectos' && (
                 <div className="space-y-6">
-                  
+
                   {/* METRICAS DE LA CUENTA */}
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                     <div className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-2xs">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                         <FolderKanban className="w-3.5 h-3.5 text-cyan-600" /> Proyectos Totales
                       </div>
                       <div className="text-xl font-black text-slate-900">{clientProjects.length}</div>
                     </div>
 
                     <div className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-2xs">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                         <Receipt className="w-3.5 h-3.5 text-emerald-600" /> OVs Registradas
                       </div>
                       <div className="text-xl font-black text-emerald-700">{totalOvsCount}</div>
                     </div>
 
                     <div className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-2xs">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                         <DollarSign className="w-3.5 h-3.5 text-cyan-600" /> Monto Acumulado
                       </div>
                       <div className="text-xl font-black text-slate-900">${totalRevenue.toLocaleString('es-ES', { minimumFractionDigits: 2 })}</div>
                     </div>
 
                     <div className="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-2xs">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                      <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-amber-600" /> Horas Contratadas
                       </div>
                       <div className="text-xl font-black text-slate-900">{totalContractedHours} hrs</div>
@@ -498,12 +498,12 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
 
                   {/* LISTA DE PROYECTOS ASOCIADOS */}
                   {clientProjects.length === 0 ? (
-                    <div className="bg-white p-12 text-center text-slate-400 text-xs font-medium border border-dashed border-slate-200 rounded-3xl space-y-3">
+                    <div className="bg-white p-12 text-center text-slate-400 text-xs font-medium border border-dashed border-slate-200 rounded-2xl space-y-3">
                       <Briefcase className="w-8 h-8 text-slate-300 mx-auto" />
                       <div>
                         <h3 className="font-bold text-slate-700">Sin proyectos asociados</h3>
-                        <p className="text-[11px] text-slate-400 mt-0.5 max-w-sm mx-auto">
-                          No existen proyectos creados bajo la cuenta <strong className="text-slate-600">{currentSelectedClient.nombreComercial}</strong> aún.
+                        <p className="text-xs text-slate-400 mt-0.5 max-w-sm mx-auto">
+                          No existen proyectos creados bajo la cuenta <strong className="text-slate-600">{currentSelectedClient.nombreComercial}</strong> aÃºn.
                         </p>
                       </div>
                     </div>
@@ -516,18 +516,18 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
 
                         return (
                           <div key={project.id} className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden transition-all hover:border-slate-300">
-                            
+
                             {/* CABECERA DEL PROYECTO */}
                             <div className="p-5 bg-slate-50/50 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-mono text-[10px] font-bold text-slate-500 bg-slate-200/80 px-2 py-0.5 rounded">
+                                  <span className="font-mono text-xs font-bold text-slate-500 bg-slate-200/80 px-2 py-0.5 rounded">
                                     ID: {project.id}
                                   </span>
-                                  <span className="text-[10px] font-bold bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded uppercase tracking-wider">
+                                  <span className="text-xs font-bold bg-cyan-100 text-cyan-800 px-2 py-0.5 rounded uppercase tracking-wider">
                                     {project.templateType || 'Proyecto'}
                                   </span>
-                                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded flex items-center gap-1">
+                                  <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded flex items-center gap-1">
                                     <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                                     Salud: {project.health}%
                                   </span>
@@ -540,26 +540,26 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                                 <div className="text-xs font-bold text-slate-700">
                                   Fase Actual: <span className="text-cyan-700 font-black">{activePhaseLabel}</span>
                                 </div>
-                                <div className="text-[11px] text-slate-400 font-medium">
+                                <div className="text-xs text-slate-400 font-medium">
                                   Horas: <strong className="text-slate-800">{consumedHours}h</strong> / {project.hoursTotal}h
                                 </div>
                               </div>
                             </div>
 
-                            {/* DETALLE DE ÓRDENES DE VENTA (OVs) */}
+                            {/* DETALLE DE Ã“RDENES DE VENTA (OVs) */}
                             <div className="p-5 space-y-3">
                               <div className="flex items-center justify-between text-xs font-bold text-slate-700 border-b border-slate-100 pb-2">
-                                <span className="flex items-center gap-1.5 text-cyan-800 uppercase tracking-wider text-[11px]">
+                                <span className="flex items-center gap-1.5 text-cyan-800 uppercase tracking-wider text-xs">
                                   <Receipt className="w-4 h-4 text-cyan-600" />
-                                  Órdenes de Venta (OVs) de la Cuenta
+                                  Ã“rdenes de Venta (OVs) de la Cuenta
                                 </span>
-                                <span className="text-[11px] text-slate-400 font-medium">
-                                  {ovs.length} {ovs.length === 1 ? 'Orden' : 'Órdenes'} de Venta
+                                <span className="text-xs text-slate-400 font-medium">
+                                  {ovs.length} {ovs.length === 1 ? 'Orden' : 'Ã“rdenes'} de Venta
                                 </span>
                               </div>
 
                               {ovs.length === 0 ? (
-                                <p className="text-xs text-slate-400 italic">No se han registrado Órdenes de Venta específicas para este proyecto.</p>
+                                <p className="text-xs text-slate-400 italic">No se han registrado Ã“rdenes de Venta especÃ­ficas para este proyecto.</p>
                               ) : (
                                 <div className="space-y-2">
                                   {ovs.length > 1 && (
@@ -570,7 +570,7 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                                           ${ovs.reduce((s, o) => s + (o.monto || 0), 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })} {ovs[0]?.moneda || 'USD'}
                                         </span>
                                       </div>
-                                      <div className="text-[11px] text-slate-600 font-medium">
+                                      <div className="text-xs text-slate-600 font-medium">
                                         Horas Contratadas Sumadas: <strong className="text-slate-900 font-bold">{ovs.reduce((s, o) => s + (o.horasAsociadas || 0), 0)} hrs</strong>
                                       </div>
                                     </div>
@@ -582,12 +582,12 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                                       return (
                                         <div key={ov.id} className="py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                                           <div className="flex items-center gap-3">
-                                            {/* ID / NÚMERO DE OV PROMINENTE */}
+                                            {/* ID / NÃšMERO DE OV PROMINENTE */}
                                             <div className="bg-cyan-50 border border-cyan-200 text-cyan-800 px-3 py-1 rounded-xl font-mono font-black text-xs shadow-2xs flex items-center gap-1.5 shrink-0">
                                               <Receipt className="w-3.5 h-3.5 text-cyan-600" />
                                               {ov.numero}
                                               {ovs.length > 1 && index > 0 && (
-                                                <span className="ml-1 bg-cyan-200 text-cyan-900 text-[9px] font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                                                <span className="ml-1 bg-cyan-200 text-cyan-900 text-xs font-extrabold px-1.5 py-0.2 rounded-full uppercase">
                                                   Adenda
                                                 </span>
                                               )}
@@ -597,16 +597,16 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                                               <div className="font-bold text-slate-800 text-xs">
                                                 Monto: <span className="text-emerald-700 font-black">${(ov.monto || 0).toLocaleString('es-ES', { minimumFractionDigits: 2 })} {ov.moneda || 'USD'}</span>
                                               </div>
-                                              <div className="text-[10px] text-slate-400 font-medium flex items-center gap-2">
-                                                <span>Emisión: {ov.fechaEmision ? ov.fechaEmision.split('T')[0] : 'N/A'}</span>
-                                                <span>•</span>
+                                              <div className="text-xs text-slate-400 font-medium flex items-center gap-2">
+                                                <span>EmisiÃ³n: {ov.fechaEmision ? ov.fechaEmision.split('T')[0] : 'N/A'}</span>
+                                                <span>â€¢</span>
                                                 <span>Horas: {ov.horasAsociadas} hrs</span>
                                               </div>
                                             </div>
                                           </div>
 
                                           <div className="flex items-center gap-2 self-start sm:self-center">
-                                            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${badge.bg}`}>
+                                            <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${badge.bg}`}>
                                               {badge.label}
                                             </span>
                                           </div>
@@ -632,7 +632,7 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                 <div>
                   {currentSelectedClient.brandBible ? (
                     <div className="space-y-6">
-                      
+
                       {/* TITLE OF BRAND BIBLE SECTION */}
                       <div className="flex items-center gap-2.5 border-b border-slate-200 pb-3">
                         <BookOpen className="w-5 h-5 text-cyan-600" />
@@ -644,7 +644,7 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                         <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-xs space-y-2">
                           <div className="flex items-center gap-2 text-cyan-600">
                             <TrendingUp className="w-4.5 h-4.5" />
-                            <span className="text-[11px] font-bold uppercase tracking-widest">Arquetipo de Marca</span>
+                            <span className="text-xs font-bold uppercase tracking-widest">Arquetipo de Marca</span>
                           </div>
                           <p className="text-sm font-bold text-slate-900">{currentSelectedClient.brandBible.archetype || 'No especificado'}</p>
                         </div>
@@ -653,16 +653,16 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                         <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-xs space-y-2">
                           <div className="flex items-center gap-2 text-cyan-600">
                             <Sliders className="w-4.5 h-4.5" />
-                            <span className="text-[11px] font-bold uppercase tracking-widest">Tono de Voz</span>
+                            <span className="text-xs font-bold uppercase tracking-widest">Tono de Voz</span>
                           </div>
                           <p className="text-xs font-semibold text-slate-700 leading-relaxed">{currentSelectedClient.brandBible.tonoVoz || 'No especificado'}</p>
                         </div>
 
-                        {/* Misión y Visión */}
+                        {/* MisiÃ³n y VisiÃ³n */}
                         <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-xs space-y-2 sm:col-span-2">
                           <div className="flex items-center gap-2 text-cyan-600">
                             <Building2 className="w-4.5 h-4.5" />
-                            <span className="text-[11px] font-bold uppercase tracking-widest">Misión & Visión</span>
+                            <span className="text-xs font-bold uppercase tracking-widest">MisiÃ³n & VisiÃ³n</span>
                           </div>
                           <p className="text-xs font-semibold text-slate-700 leading-relaxed">{currentSelectedClient.brandBible.misionVision || 'No especificado'}</p>
                         </div>
@@ -671,7 +671,7 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                         <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-xs space-y-2 sm:col-span-2">
                           <div className="flex items-center gap-2 text-cyan-600">
                             <Sparkles className="w-4.5 h-4.5" />
-                            <span className="text-[11px] font-bold uppercase tracking-widest">Mensajes Clave</span>
+                            <span className="text-xs font-bold uppercase tracking-widest">Mensajes Clave</span>
                           </div>
                           <p className="text-xs font-bold text-slate-800 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">{currentSelectedClient.brandBible.mensajesClave || 'No especificado'}</p>
                         </div>
@@ -680,21 +680,21 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                         <div className="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-xs space-y-3 sm:col-span-2">
                           <div className="flex items-center gap-2 text-cyan-600">
                             <Palette className="w-4.5 h-4.5" />
-                            <span className="text-[11px] font-bold uppercase tracking-widest">Paleta de Colores Extraída</span>
+                            <span className="text-xs font-bold uppercase tracking-widest">Paleta de Colores ExtraÃ­da</span>
                           </div>
                           <div className="flex flex-wrap gap-4">
                             {currentSelectedClient.brandBible.coloresHex && currentSelectedClient.brandBible.coloresHex.length > 0 ? (
                               currentSelectedClient.brandBible.coloresHex.map((color) => (
-                                <div 
+                                <div
                                   key={color}
                                   onClick={() => handleCopyColor(color)}
                                   className="group flex flex-col items-center gap-1 bg-slate-50 border border-slate-200/50 hover:bg-slate-100 p-2.5 rounded-2xl transition-all cursor-pointer min-w-[70px]"
                                 >
-                                  <span 
-                                    className="w-10 h-10 rounded-full block shadow-inner border border-slate-200" 
+                                  <span
+                                    className="w-10 h-10 rounded-full block shadow-inner border border-slate-200"
                                     style={{ backgroundColor: color }}
                                   />
-                                  <span className="text-[10px] font-mono font-bold text-slate-700 flex items-center gap-0.5">
+                                  <span className="text-xs font-mono font-bold text-slate-700 flex items-center gap-0.5">
                                     {copiedColor === color ? (
                                       <Check className="w-3 h-3 text-emerald-600" />
                                     ) : (
@@ -714,11 +714,11 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
 
                     </div>
                   ) : (
-                    <div className="bg-white p-12 text-center text-slate-400 text-xs font-medium border border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center space-y-3">
+                    <div className="bg-white p-12 text-center text-slate-400 text-xs font-medium border border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center space-y-3">
                       <Sparkles className="w-8 h-8 text-slate-300" />
                       <div>
                         <h3 className="font-bold text-slate-700">Sin Brand Bible generada</h3>
-                        <p className="text-[11px] text-slate-400 mt-0.5 max-w-sm">Este cliente posee datos de contacto básicos pero aún no se ha ejecutado el extractor de manual de marca con Inteligencia Artificial.</p>
+                        <p className="text-xs text-slate-400 mt-0.5 max-w-sm">Este cliente posee datos de contacto bÃ¡sicos pero aÃºn no se ha ejecutado el extractor de manual de marca con Inteligencia Artificial.</p>
                       </div>
                     </div>
                   )}
@@ -731,7 +731,7 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
               <Building2 className="w-12 h-12 text-slate-300" />
               <div>
                 <h3 className="font-bold text-slate-700 text-sm">Selecciona un cliente</h3>
-                <p className="text-[11px] text-slate-400 mt-1 max-w-xs">Elige un cliente de la lista de la izquierda para revisar el historial de proyectos, Órdenes de Venta (OVs) y Brand Bible.</p>
+                <p className="text-xs text-slate-400 mt-1 max-w-xs">Elige un cliente de la lista de la izquierda para revisar el historial de proyectos, Ã“rdenes de Venta (OVs) y Brand Bible.</p>
               </div>
             </div>
           )}
@@ -740,7 +740,7 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
       </div>
 
       {/* NEW CLIENT WIZARD */}
-      <NewClientWizard 
+      <NewClientWizard
         isOpen={isWizardOpen}
         onClose={() => setIsWizardOpen(false)}
         onSaveClient={onAddClient}

@@ -1,27 +1,27 @@
 import React, { useState, useMemo } from 'react';
 import { Project, UserSession } from '../types';
 import { runSlaRuleEngine } from '../utils/slaRuleEngine';
-import { 
-  calculateGlobalFinancials, 
-  calculateTeamWorkload, 
-  getGlobalRetrabajoStats, 
-  getRetrabajoBadgeStyle, 
+import {
+  calculateGlobalFinancials,
+  calculateTeamWorkload,
+  getGlobalRetrabajoStats,
+  getRetrabajoBadgeStyle,
   getProjectProfitabilityRanking,
   getGlobalReworkIndicator,
   getTeamPerformanceComparisons,
-  GROSS_MONTHLY_CAPACITY, 
-  IDLE_TIME_HOURS, 
-  EFFECTIVE_MONTHLY_CAPACITY 
+  GROSS_MONTHLY_CAPACITY,
+  IDLE_TIME_HOURS,
+  EFFECTIVE_MONTHLY_CAPACITY
 } from '../utils/metrics';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  AlertTriangle, 
-  Activity, 
-  Shield, 
-  Clock, 
-  DollarSign, 
+import {
+  TrendingUp,
+  TrendingDown,
+  Users,
+  AlertTriangle,
+  Activity,
+  Shield,
+  Clock,
+  DollarSign,
   Filter,
   Search,
   ArrowUpDown,
@@ -75,12 +75,12 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
     });
   }, [slaAlerts, alertFilter]);
 
-  // Métricas unificadas desde utils/metrics.ts
+  // MÃ©tricas unificadas desde utils/metrics.ts
   const financials = useMemo(() => calculateGlobalFinancials(projects), [projects]);
   const globalRework = useMemo(() => getGlobalReworkIndicator(projects, users), [projects, users]);
   const profitabilityRanking = useMemo(() => getProjectProfitabilityRanking(projects), [projects]);
   const teamPerformance = useMemo(() => getTeamPerformanceComparisons(users, projects), [users, projects]);
-  
+
   // Color helper for roles
   const getUserColor = (role: string): string => {
     switch (role) {
@@ -104,12 +104,12 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
     // Filter out client accounts (role 'invitado') for workload dashboard
     const activeStaff = users.filter(u => u.role !== 'invitado');
     const loads = calculateTeamWorkload(activeStaff, projects);
-    
+
     return loads.map(load => {
       // Determine skills based on role
       let baseSkills: string[] = [];
       if (load.role === 'coordinador') {
-        baseSkills = ['Gestión', 'Finanzas', 'Liderazgo'];
+        baseSkills = ['GestiÃ³n', 'Finanzas', 'Liderazgo'];
       } else if (load.role === 'sac') {
         baseSkills = ['Cuentas', 'Figma Inspect', 'Copywriting'];
       } else if (load.role === 'contents') {
@@ -127,10 +127,10 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
         if (nameLower.includes('futbol') || nameLower.includes('game') || nameLower.includes('recreativo') || nameLower.includes('gaming')) {
           baseSkills.push('Game Dev');
         }
-        if (nameLower.includes('ui') || nameLower.includes('ux') || nameLower.includes('web') || nameLower.includes('diseño')) {
+        if (nameLower.includes('ui') || nameLower.includes('ux') || nameLower.includes('web') || nameLower.includes('diseÃ±o')) {
           baseSkills.push('UX/UI');
         }
-        if (nameLower.includes('redes') || nameLower.includes('campaña') || nameLower.includes('social')) {
+        if (nameLower.includes('redes') || nameLower.includes('campaÃ±a') || nameLower.includes('social')) {
           baseSkills.push('Marketing');
         }
       });
@@ -181,35 +181,35 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
     return [...projects]
       .filter(p => !p.phases.every(ph => ph.status === 'completed')) // Solo activos
       .map(p => {
-        const consumed = p.budget 
-          ? (Object.values(p.budget) as Array<{ allocated: number; consumed: number }>).reduce((sum, r) => sum + (r.consumed || 0), 0) 
+        const consumed = p.budget
+          ? (Object.values(p.budget) as Array<{ allocated: number; consumed: number }>).reduce((sum, r) => sum + (r.consumed || 0), 0)
           : 0;
         const totalSold = p.hoursTotal || 40;
         const risk = totalSold > 0 ? (consumed / totalSold) * 100 : 0;
-        
+
         // Determinar fase activa
         const activePhase = p.phases.find(ph => ph.id === p.activePhaseId)?.label || 'Kickoff';
 
         return { ...p, risk, consumed, activePhase };
       })
       .sort((a, b) => b.risk - a.risk)
-      .slice(0, 5); // Mostramos los 5 más críticos
+      .slice(0, 5); // Mostramos los 5 mÃ¡s crÃ­ticos
   }, [projects]);
 
   // Percent consumed of sold hours helper
-  const globalHoursProgress = financials.totalSoldHours > 0 
-    ? (financials.totalConsumedHours / financials.totalSoldHours) * 100 
+  const globalHoursProgress = financials.totalSoldHours > 0
+    ? (financials.totalConsumedHours / financials.totalSoldHours) * 100
     : 0;
 
   return (
     <div className="flex-1 flex flex-col h-full bg-slate-50/50 overflow-hidden relative" id="coordinator-control-tower">
-      
+
       {/* Header Superior Interno con Conmutador de Vistas */}
       <div className="px-6 py-4 bg-white/80 backdrop-blur-xl border-b border-slate-200/80 flex flex-wrap justify-between items-center gap-4 shrink-0 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-1">
+          <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">
             <Shield className="w-3.5 h-3.5 text-[#84CC16]" />
-            {subView === 'executive' ? 'Dirección C-Level' : 'Herramienta de Control Interno'}
+            {subView === 'executive' ? 'DirecciÃ³n C-Level' : 'Herramienta de Control Interno'}
           </div>
           <h1 className="text-xl font-black text-slate-900 tracking-tight">
             {subView === 'executive' ? 'Dashboard Ejecutivo del Proyecto' : 'Torre de Control de Operaciones'}
@@ -221,8 +221,8 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
           <button
             onClick={() => setSubView('executive')}
             className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 font-extrabold ${
-              subView === 'executive' 
-                ? 'bg-gradient-to-r from-[#FF5500] to-[#E04B00] text-white shadow-md shadow-orange-500/25 border border-white/30 backdrop-blur-md scale-[1.02]' 
+              subView === 'executive'
+                ? 'bg-gradient-to-r from-[#FF5500] to-[#E04B00] text-white shadow-md shadow-orange-500/25 border border-white/30 backdrop-blur-md scale-[1.02]'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
             }`}
           >
@@ -232,8 +232,8 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
           <button
             onClick={() => setSubView('operations')}
             className={`px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-2 font-extrabold ${
-              subView === 'operations' 
-                ? 'bg-gradient-to-r from-[#FF5500] to-[#E04B00] text-white shadow-md shadow-orange-500/25 border border-white/30 backdrop-blur-md scale-[1.02]' 
+              subView === 'operations'
+                ? 'bg-gradient-to-r from-[#FF5500] to-[#E04B00] text-white shadow-md shadow-orange-500/25 border border-white/30 backdrop-blur-md scale-[1.02]'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
             }`}
           >
@@ -245,7 +245,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
 
       {subView === 'executive' ? (
         <div className="flex-1 overflow-y-auto">
-          <ExecutiveDashboard 
+          <ExecutiveDashboard
             projects={projects}
             activeProjectId={activeProjectId}
             onSelectProject={onSelectProject}
@@ -255,9 +255,9 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
       ) : (
       /* Contenido scrolleable del Dashboard Operativo */
       <div className="flex-1 p-6 md:p-8 overflow-y-auto space-y-6">
-        
+
         {/* NIVEL 1: BANDA DE ESTADO HORIZONTAL COMPACTA (StatBar) */}
-        <StatBar 
+        <StatBar
           stats={[
             {
               id: 'stat-hours',
@@ -277,7 +277,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
             },
             {
               id: 'stat-deviation',
-              label: 'Desviación de Costo',
+              label: 'DesviaciÃ³n de Costo',
               value: `${financials.costDeviation > 0 ? '+' : ''}${financials.costDeviation.toFixed(1)}%`,
               trend: {
                 value: financials.costDeviation > 10 ? 'Alerta' : 'En Rango',
@@ -314,12 +314,12 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                 <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">
                   Motor de Reglas & Control de Alertas SLA
                 </h2>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-900 text-white">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-slate-900 text-white">
                   {slaAlerts.length} {slaAlerts.length === 1 ? 'Alerta' : 'Alertas'}
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Monitoreo automatizado en tiempo real de plazos de fases, entregables en revisión y fechas límite de SLA.
+                Monitoreo automatizado en tiempo real de plazos de fases, entregables en revisiÃ³n y fechas lÃ­mite de SLA.
               </p>
             </div>
 
@@ -346,7 +346,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                     : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
                 }`}
               >
-                🚨 Críticas ({slaAlerts.filter(a => a.severity === 'critical').length})
+                ðŸš¨ CrÃ­ticas ({slaAlerts.filter(a => a.severity === 'critical').length})
               </button>
 
               <button
@@ -358,7 +358,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                     : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
                 }`}
               >
-                ⚠️ Próximas ({slaAlerts.filter(a => a.severity === 'warning').length})
+                âš ï¸ PrÃ³ximas ({slaAlerts.filter(a => a.severity === 'warning').length})
               </button>
 
               <button
@@ -370,7 +370,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                     : 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
                 }`}
               >
-                📦 Entregables ({slaAlerts.filter(a => a.targetType === 'entregable').length})
+                ðŸ“¦ Entregables ({slaAlerts.filter(a => a.targetType === 'entregable').length})
               </button>
 
               <button
@@ -382,7 +382,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                     : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
                 }`}
               >
-                📋 Fases / Proyectos ({slaAlerts.filter(a => a.targetType === 'fase' || a.targetType === 'proyecto').length})
+                ðŸ“‹ Fases / Proyectos ({slaAlerts.filter(a => a.targetType === 'fase' || a.targetType === 'proyecto').length})
               </button>
             </div>
           </div>
@@ -391,9 +391,9 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
           {filteredAlerts.length === 0 ? (
             <div className="bg-emerald-50/60 border border-emerald-200/80 rounded-2xl p-6 text-center space-y-2">
               <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-              <h3 className="text-sm font-black text-emerald-900">¡SLA y Plazos en Orden!</h3>
+              <h3 className="text-sm font-black text-emerald-900">Â¡SLA y Plazos en Orden!</h3>
               <p className="text-xs text-emerald-700 font-medium max-w-md mx-auto">
-                No hay alertas pendientes para el filtro seleccionado. Todas las fases y entregables activos cumplen sus fechas límites y niveles de servicio.
+                No hay alertas pendientes para el filtro seleccionado. Todas las fases y entregables activos cumplen sus fechas lÃ­mites y niveles de servicio.
               </p>
             </div>
           ) : (
@@ -413,21 +413,21 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider ${
                               isCritical ? 'bg-rose-100 text-rose-800 border border-rose-300' : 'bg-amber-100 text-amber-900 border border-amber-300'
                             }`}
                           >
                             {isCritical ? <AlertTriangle className="w-3 h-3 text-rose-600" /> : <Clock className="w-3 h-3 text-amber-600" />}
-                            {isCritical ? 'Vencido / Crítico' : 'Próximo a Vencer'}
+                            {isCritical ? 'Vencido / CrÃ­tico' : 'PrÃ³ximo a Vencer'}
                           </span>
 
-                          <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-extrabold text-slate-700 uppercase">
-                            {alert.targetType === 'entregable' ? '📦 Entregable' : alert.targetType === 'fase' ? `📋 Fase ${alert.phaseLabel || ''}` : '💼 Proyecto'}
+                          <span className="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-xs font-extrabold text-slate-700 uppercase">
+                            {alert.targetType === 'entregable' ? 'ðŸ“¦ Entregable' : alert.targetType === 'fase' ? `ðŸ“‹ Fase ${alert.phaseLabel || ''}` : 'ðŸ’¼ Proyecto'}
                           </span>
                         </div>
 
                         {/* Days Diff Pill */}
-                        <span className={`text-[11px] font-black font-mono px-2.5 py-0.5 rounded-lg border ${
+                        <span className={`text-xs font-black font-mono px-2.5 py-0.5 rounded-lg border ${
                           alert.daysDiff < 0 ? 'bg-rose-100 text-rose-900 border-rose-300' : 'bg-amber-100 text-amber-900 border-amber-300'
                         }`}>
                           {alert.daysDiff < 0 ? `${Math.abs(alert.daysDiff)}d vencido` : `${alert.daysDiff}d restante(s)`}
@@ -441,7 +441,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                     </div>
 
                     <div className="pt-2 border-t border-slate-200/80 flex items-center justify-between text-xs">
-                      <div className="text-[11px] font-medium text-slate-500">
+                      <div className="text-xs font-medium text-slate-500">
                         <strong className="text-slate-800">{alert.projectName}</strong> ({alert.clientName})
                       </div>
 
@@ -465,11 +465,11 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
           )}
         </div>
 
-        {/* SECCIÓN DE CARGA Y SATURACIÓN DEL EQUIPO */}
+        {/* SECCIÃ“N DE CARGA Y SATURACIÃ“N DEL EQUIPO */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Carga de Trabajo y Saturación del Equipo</h2>
+              <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest">Carga de Trabajo y SaturaciÃ³n del Equipo</h2>
               <p className="text-xs text-slate-400 font-medium mt-0.5">Haz clic en cualquier ficha para ver el desglose detallado.</p>
             </div>
 
@@ -478,7 +478,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
               {/* Search input */}
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input 
+                <input
                   type="text"
                   placeholder="Buscar colaborador..."
                   value={searchQuery}
@@ -502,15 +502,15 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
           {/* Grid de Tarjetas de Equipo Reales */}
           {filteredAndSortedMembers.length === 0 ? (
             <div className="p-12 text-center text-slate-400 text-xs font-medium border border-dashed border-slate-200 bg-slate-50/50 rounded-2xl">
-              No se encontraron colaboradores que coincidan con la búsqueda.
+              No se encontraron colaboradores que coincidan con la bÃºsqueda.
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {filteredAndSortedMembers.map(member => (
-                <TeamCard 
-                  key={member.id} 
-                  member={member} 
-                  onSelect={(m) => setSelectedMember(m)} 
+                <TeamCard
+                  key={member.id}
+                  member={member}
+                  onSelect={(m) => setSelectedMember(m)}
                   getUserColor={getUserColor}
                 />
               ))}
@@ -518,16 +518,16 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
           )}
         </div>
 
-        {/* 📊 NUEVA SECCIÓN: COMPARATIVAS DE DESEMPEÑO Y PRODUCTIVIDAD ENTRE MIEMBROS (utils/metrics.ts) */}
+        {/* ðŸ“Š NUEVA SECCIÃ“N: COMPARATIVAS DE DESEMPEÃ‘O Y PRODUCTIVIDAD ENTRE MIEMBROS (utils/metrics.ts) */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                 <Award className="w-4.5 h-4.5 text-indigo-600" />
-                Comparativa de Desempeño y Productividad del Equipo
+                Comparativa de DesempeÃ±o y Productividad del Equipo
               </h2>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Benchmarking interno combinando saturación efectiva, tasa de retrabajo y proyectos activos.
+                Benchmarking interno combinando saturaciÃ³n efectiva, tasa de retrabajo y proyectos activos.
               </p>
             </div>
           </div>
@@ -536,11 +536,11 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-50/80 border-b border-slate-200">
-                  <tr className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                  <tr className="text-xs font-bold uppercase tracking-wider text-slate-500">
                     <th className="px-4 py-3">Colaborador</th>
-                    <th className="px-4 py-3 text-center">Score Desempeño</th>
+                    <th className="px-4 py-3 text-center">Score DesempeÃ±o</th>
                     <th className="px-4 py-3">Nivel Eficiencia</th>
-                    <th className="px-4 py-3">Saturación Efectiva (153.6h)</th>
+                    <th className="px-4 py-3">SaturaciÃ³n Efectiva (153.6h)</th>
                     <th className="px-4 py-3">Tasa Retrabajo</th>
                     <th className="px-4 py-3">Proyectos Activos</th>
                   </tr>
@@ -564,7 +564,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                             </div>
                             <div>
                               <strong className="text-xs font-bold text-slate-900 block">{item.username}</strong>
-                              <span className="text-[10px] text-slate-400 capitalize">{item.puesto}</span>
+                              <span className="text-xs text-slate-400 capitalize">{item.puesto}</span>
                             </div>
                           </div>
                         </td>
@@ -577,14 +577,14 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                         </td>
 
                         <td className="px-4 py-3">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${ratingBadge}`}>
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-black uppercase tracking-wider ${ratingBadge}`}>
                             {item.efficiencyRating}
                           </span>
                         </td>
 
                         <td className="px-4 py-3">
                           <div className="space-y-1 max-w-[140px]">
-                            <div className="flex justify-between text-[10px] font-bold">
+                            <div className="flex justify-between text-xs font-bold">
                               <span className="text-slate-700 font-mono">{item.consumedHours}h</span>
                               <span className="text-slate-400">{item.effectiveSaturation}%</span>
                             </div>
@@ -603,7 +603,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                           <span className={`font-mono font-bold text-xs ${item.reworkPercentage > 15 ? 'text-rose-600' : 'text-slate-700'}`}>
                             {item.reworkPercentage}%
                           </span>
-                          <span className="block text-[10px] text-slate-400 font-medium">({item.reworkHours}h de retrabajo)</span>
+                          <span className="block text-xs text-slate-400 font-medium">({item.reworkHours}h de retrabajo)</span>
                         </td>
 
                         <td className="px-4 py-3 font-bold text-slate-800 text-center">
@@ -628,17 +628,17 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                   <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
                     <RotateCcw className="w-4 h-4 text-amber-600" />Ranking de Retrabajo por Proyecto y Colaborador
                   </h2>
-                  <p className="text-xs text-slate-500 font-medium mt-0.5">Identifica dónde se están concentrando las re-iteraciones y reprocesos.</p>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5">Identifica dÃ³nde se estÃ¡n concentrando las re-iteraciones y reprocesos.</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Ranking de Proyectos con más Retrabajo */}
+                {/* Ranking de Proyectos con mÃ¡s Retrabajo */}
                 <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
                   <span className="text-xs font-bold text-slate-700 block uppercase tracking-wider">
                     Proyectos con Mayor % de Retrabajo
                   </span>
-                  
+
                   {stats.porProyecto.length === 0 ? (
                     <p className="text-xs text-slate-400 font-medium py-4 text-center">No hay registros de horas en los proyectos.</p>
                   ) : (
@@ -646,20 +646,20 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                       {stats.porProyecto.slice(0, 5).map(p => {
                         const badge = getRetrabajoBadgeStyle(p.porcentaje);
                         return (
-                          <div 
+                          <div
                             key={p.projectId}
                             onClick={() => onSelectProject(p.projectId)}
                             className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition cursor-pointer"
                           >
                             <div>
                               <strong className="text-xs font-extrabold text-slate-800 block">{p.projectName}</strong>
-                              <span className="text-[10px] text-slate-400 font-medium">{p.clientName}</span>
+                              <span className="text-xs text-slate-400 font-medium">{p.clientName}</span>
                             </div>
                             <div className="text-right">
-                              <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.bg} ${badge.text} ${badge.border}`}>
+                              <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full border ${badge.bg} ${badge.text} ${badge.border}`}>
                                 {p.porcentaje.toFixed(1)}%
                               </span>
-                              <span className="text-[10px] text-slate-400 block mt-0.5 font-medium">{p.horasRetrabajo}h / {p.totalHoras}h</span>
+                              <span className="text-xs text-slate-400 block mt-0.5 font-medium">{p.horasRetrabajo}h / {p.totalHoras}h</span>
                             </div>
                           </div>
                         );
@@ -668,7 +668,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                   )}
                 </div>
 
-                {/* Ranking de Usuarios con más Retrabajo acumulado */}
+                {/* Ranking de Usuarios con mÃ¡s Retrabajo acumulado */}
                 <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3">
                   <span className="text-xs font-bold text-slate-700 block uppercase tracking-wider">
                     Horas de Retrabajo por Colaborador
@@ -681,24 +681,24 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                       {stats.usuariosList.slice(0, 5).map(u => {
                         const badge = getRetrabajoBadgeStyle(u.porcentaje);
                         return (
-                          <div 
+                          <div
                             key={u.userId}
                             className="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50"
                           >
                             <div className="flex items-center gap-2.5">
-                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-white text-[10px] font-extrabold ${getUserColor(u.role)}`}>
+                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-extrabold ${getUserColor(u.role)}`}>
                                 {(u.username || '').substring(0, 2).toUpperCase()}
                               </div>
                               <div>
                                 <strong className="text-xs font-bold text-slate-800 block">{u.username}</strong>
-                                <span className="text-[10px] text-slate-400 font-medium capitalize">{u.puesto}</span>
+                                <span className="text-xs text-slate-400 font-medium capitalize">{u.puesto}</span>
                               </div>
                             </div>
                             <div className="text-right">
-                              <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.bg} ${badge.text} ${badge.border}`}>
+                              <span className={`inline-block text-xs font-bold px-2 py-0.5 rounded-full border ${badge.bg} ${badge.text} ${badge.border}`}>
                                 {u.horasRetrabajo}h ({u.porcentaje.toFixed(1)}%)
                               </span>
-                              <span className="text-[10px] text-slate-400 block mt-0.5 font-medium">De {u.totalHoras}h totales</span>
+                              <span className="text-xs text-slate-400 block mt-0.5 font-medium">De {u.totalHoras}h totales</span>
                             </div>
                           </div>
                         );
@@ -720,17 +720,17 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                 Ranking de Proyectos por Rentabilidad y Salud Financiera
               </h2>
               <p className="text-xs text-slate-500 font-medium mt-0.5">
-                Evaluación y jerarquía según margen bruto %, costo laboral real y rendimiento hora por proyecto.
+                EvaluaciÃ³n y jerarquÃ­a segÃºn margen bruto %, costo laboral real y rendimiento hora por proyecto.
               </p>
             </div>
 
             {/* Badges de resumen global de la agencia */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-bold bg-emerald-50 text-emerald-800 px-3 py-1.5 rounded-xl border border-emerald-200/80 flex items-center gap-1.5">
+              <span className="text-xs font-bold bg-emerald-50 text-emerald-800 px-3 py-1.5 rounded-xl border border-emerald-200/80 flex items-center gap-1.5">
                 <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
                 Margen Bruto Global: <strong className="font-extrabold text-slate-900">${financials.totalGrossProfit.toLocaleString('es-CL')} ({financials.grossMarginPercent}%)</strong>
               </span>
-              <span className="text-[11px] font-bold bg-indigo-50 text-indigo-800 px-3 py-1.5 rounded-xl border border-indigo-200/80 flex items-center gap-1.5">
+              <span className="text-xs font-bold bg-indigo-50 text-indigo-800 px-3 py-1.5 rounded-xl border border-indigo-200/80 flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5 text-indigo-600" />
                 Rendimiento Hora: <strong className="font-extrabold text-slate-900">${financials.realHourlyYield.toLocaleString('es-CL')}/h</strong>
               </span>
@@ -740,13 +740,13 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
           <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-xs">
             {profitabilityRanking.length === 0 ? (
               <div className="p-8 text-center text-slate-400 text-xs font-medium">
-                No hay proyectos registrados para análisis de rentabilidad.
+                No hay proyectos registrados para anÃ¡lisis de rentabilidad.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-slate-50/80 border-b border-slate-200">
-                    <tr className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                    <tr className="text-xs font-bold uppercase tracking-wider text-slate-500">
                       <th className="px-4 py-3 text-center">Ranking</th>
                       <th className="px-4 py-3">Proyecto / Cliente</th>
                       <th className="px-4 py-3">Ingreso (OVs)</th>
@@ -754,18 +754,18 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                       <th className="px-4 py-3">Margen Bruto</th>
                       <th className="px-4 py-3">Rendimiento Hora</th>
                       <th className="px-4 py-3">Estado de Salud</th>
-                      <th className="px-4 py-3 text-right">Acción</th>
+                      <th className="px-4 py-3 text-right">AcciÃ³n</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-xs">
                     {profitabilityRanking.map(item => {
-                      let badgeStyle = { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: 'Alta Rentabilidad (≥40%)' };
+                      let badgeStyle = { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: 'Alta Rentabilidad (â‰¥40%)' };
                       if (item.status === 'optima') {
-                        badgeStyle = { bg: 'bg-blue-50 text-blue-700 border-blue-200', label: 'Óptima (20-39%)' };
+                        badgeStyle = { bg: 'bg-blue-50 text-blue-700 border-blue-200', label: 'Ã“ptima (20-39%)' };
                       } else if (item.status === 'ajustada') {
                         badgeStyle = { bg: 'bg-amber-50 text-amber-800 border-amber-200', label: 'Ajustada (0-19%)' };
                       } else if (item.status === 'perdida') {
-                        badgeStyle = { bg: 'bg-rose-50 text-rose-700 border-rose-200', label: 'En Pérdida (<0%)' };
+                        badgeStyle = { bg: 'bg-rose-50 text-rose-700 border-rose-200', label: 'En PÃ©rdida (<0%)' };
                       }
 
                       return (
@@ -782,26 +782,26 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                           </td>
                           <td className="px-4 py-3">
                             <div className="font-extrabold text-slate-900">{item.name}</div>
-                            <div className="text-[11px] text-slate-500 font-medium">{item.clientName}</div>
+                            <div className="text-xs text-slate-500 font-medium">{item.clientName}</div>
                           </td>
                           <td className="px-4 py-3 font-mono font-bold text-slate-800">
                             ${item.income.toLocaleString('es-CL')}
                           </td>
                           <td className="px-4 py-3 font-mono text-slate-600">
                             ${item.realCost.toLocaleString('es-CL')}
-                            <span className="block text-[10px] text-slate-400">{item.consumedHours}h ejec.</span>
+                            <span className="block text-xs text-slate-400">{item.consumedHours}h ejec.</span>
                           </td>
                           <td className="px-4 py-3 font-mono font-black">
                             <span className={item.grossProfit >= 0 ? 'text-emerald-700' : 'text-rose-600'}>
                               ${item.grossProfit.toLocaleString('es-CL')}
                             </span>
-                            <span className="block text-[10px] text-slate-500 font-bold">{item.marginPercent}% margen</span>
+                            <span className="block text-xs text-slate-500 font-bold">{item.marginPercent}% margen</span>
                           </td>
                           <td className="px-4 py-3 font-mono font-bold text-indigo-700">
                             ${item.hourlyYield.toLocaleString('es-CL')}/h
                           </td>
                           <td className="px-4 py-3">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border ${badgeStyle.bg}`}>
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${badgeStyle.bg}`}>
                               {badgeStyle.label}
                             </span>
                           </td>
@@ -809,7 +809,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                             <button
                               type="button"
                               onClick={() => onSelectProject(item.id)}
-                              className="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-[11px] font-bold rounded-xl border border-slate-200 transition-colors cursor-pointer"
+                              className="px-3 py-1.5 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition-colors cursor-pointer"
                             >
                               Ver Finanzas
                             </button>
@@ -824,9 +824,9 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
           </div>
         </div>
 
-        {/* BLOQUE FASE 6: INFORME CONSOLIDADO & AUDITORÍA DE CIERRE DE AGENCIA */}
+        {/* BLOQUE FASE 6: INFORME CONSOLIDADO & AUDITORÃA DE CIERRE DE AGENCIA */}
         <div className="space-y-4 pt-2 border-t border-slate-200/80" id="phase-6-audit-report">
-          <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden space-y-6">
+          <div className="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 shadow-xl relative overflow-hidden space-y-6">
             {/* Background Decorative Glow */}
             <div className="absolute -right-16 -top-16 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -left-16 -bottom-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -835,17 +835,17 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
               <div className="space-y-1">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-bold">
                   <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  Fase 6 Finalizada — Cierre Consolidado & Auditoría
+                  Fase 6 Finalizada â€” Cierre Consolidado & AuditorÃ­a
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                  Informe Ejecutivo y Certificación de Operaciones
+                  Informe Ejecutivo y CertificaciÃ³n de Operaciones
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-300 max-w-2xl font-medium">
-                  Matriz unificada con métricas de capacidad (192h/20% ocio), margen de rentabilidad bruta, control de retrabajo y trazabilidad Multi-OV.
+                  Matriz unificada con mÃ©tricas de capacidad (192h/20% ocio), margen de rentabilidad bruta, control de retrabajo y trazabilidad Multi-OV.
                 </p>
               </div>
 
-              {/* Botones de Exportación / Impresión */}
+              {/* Botones de ExportaciÃ³n / ImpresiÃ³n */}
               <div className="flex items-center gap-3">
                 <button
                   type="button"
@@ -859,7 +859,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                   type="button"
                   onClick={() => {
                     const headers = "Proyecto,Cliente,Ingreso,Costo,Margen_Bruto,Margen_Porcentaje,Horas_Consumidas,Rendimiento_Hora\n";
-                    const rows = financials.projectProfitabilityList.map(p => 
+                    const rows = financials.projectProfitabilityList.map(p =>
                       `"${p.name}","${p.clientName}",${p.income},${p.realCost},${p.grossProfit},${p.marginPercent}%,${p.consumedHours},${p.hourlyYield}`
                     ).join("\n");
                     const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
@@ -874,7 +874,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                   className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-2xl transition-all cursor-pointer shadow-md"
                 >
                   <Download className="w-4 h-4" />
-                  Exportar Auditoría (CSV)
+                  Exportar AuditorÃ­a (CSV)
                 </button>
               </div>
             </div>
@@ -886,7 +886,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                   <FileCheck2 className="w-4 h-4" />
                   Fase 1: Control de Retrabajo
                 </div>
-                <p className="text-[11px] text-slate-300 font-medium">
+                <p className="text-xs text-slate-300 font-medium">
                   {globalRework.totalRetrabajoGlobal}h registradas ({globalRework.porcentajeGlobal.toFixed(1)}% del total general).
                 </p>
               </div>
@@ -896,7 +896,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                   <FileCheck2 className="w-4 h-4" />
                   Fase 2: Allocations de Tiempos
                 </div>
-                <p className="text-[11px] text-slate-300 font-medium">
+                <p className="text-xs text-slate-300 font-medium">
                   Desglose por rol (Coordinador, SAC, Contents, ContentD).
                 </p>
               </div>
@@ -904,10 +904,10 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
               <div className="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 space-y-1">
                 <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
                   <FileCheck2 className="w-4 h-4" />
-                  Fase 3: Gestión Multi-OV
+                  Fase 3: GestiÃ³n Multi-OV
                 </div>
-                <p className="text-[11px] text-slate-300 font-medium">
-                  Múltiples Órdenes de Venta asociadas por proyecto.
+                <p className="text-xs text-slate-300 font-medium">
+                  MÃºltiples Ã“rdenes de Venta asociadas por proyecto.
                 </p>
               </div>
 
@@ -916,7 +916,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                   <FileCheck2 className="w-4 h-4" />
                   Fase 4: Capacidad (192h / 20% Ocio)
                 </div>
-                <p className="text-[11px] text-slate-300 font-medium">
+                <p className="text-xs text-slate-300 font-medium">
                   Capacidad efectiva de {EFFECTIVE_MONTHLY_CAPACITY}h por integrante ({IDLE_TIME_HOURS}h de margen).
                 </p>
               </div>
@@ -926,7 +926,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                   <FileCheck2 className="w-4 h-4" />
                   Fase 5: Matriz de Rentabilidad
                 </div>
-                <p className="text-[11px] text-slate-300 font-medium">
+                <p className="text-xs text-slate-300 font-medium">
                   Margen Bruto de {financials.grossMarginPercent}% y ${financials.realHourlyYield.toLocaleString('es-CL')}/h rendido.
                 </p>
               </div>
@@ -934,10 +934,10 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
               <div className="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/80 space-y-1">
                 <div className="flex items-center gap-2 text-xs font-bold text-purple-400">
                   <Award className="w-4 h-4 text-purple-300" />
-                  Fase 6: Cierre & Auditoría
+                  Fase 6: Cierre & AuditorÃ­a
                 </div>
-                <p className="text-[11px] text-slate-300 font-medium">
-                  Reporte unificado y listo para presentación gerencial.
+                <p className="text-xs text-slate-300 font-medium">
+                  Reporte unificado y listo para presentaciÃ³n gerencial.
                 </p>
               </div>
             </div>
@@ -949,7 +949,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
           <h2 className="text-sm font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
             <AlertTriangle className="w-4.5 h-4.5 text-orange-600 animate-pulse" /> Proyectos con Mayor Consumo de Horas (Top 5)
           </h2>
-          
+
           <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-none">
             {criticalProjects.length === 0 ? (
               <div className="p-8 text-center text-slate-400 text-xs font-medium border-dashed border-2 border-slate-100 rounded-2xl">
@@ -959,11 +959,11 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-slate-50 border-b border-slate-200">
-                    <tr className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                    <tr className="text-xs font-bold uppercase tracking-wide text-slate-500">
                       <th className="px-4 py-3">Proyecto / Cliente</th>
                       <th className="px-4 py-3">Fase Actual</th>
                       <th className="px-4 py-3">Consumo de Horas</th>
-                      <th className="px-4 py-3 text-right">Acción</th>
+                      <th className="px-4 py-3 text-right">AcciÃ³n</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
@@ -981,10 +981,10 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                           </td>
                           <td className="px-4 py-3.5">
                             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                              isCritical 
-                                ? 'border-rose-200 bg-rose-50 text-rose-700' 
-                                : isWarning 
-                                ? 'border-amber-200 bg-amber-50 text-amber-700' 
+                              isCritical
+                                ? 'border-rose-200 bg-rose-50 text-rose-700'
+                                : isWarning
+                                ? 'border-amber-200 bg-amber-50 text-amber-700'
                                 : 'border-emerald-200 bg-emerald-50 text-emerald-700'
                             }`}>
                               {p.activePhase}
@@ -999,7 +999,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                                 <span className="text-slate-500 font-medium">{p.consumed} de {p.hoursTotal}h</span>
                               </div>
                               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                <div 
+                                <div
                                   className={`h-full rounded-full transition-all duration-300 ${
                                     isCritical ? 'bg-rose-500' : isWarning ? 'bg-amber-400' : 'bg-emerald-500'
                                   }`}
@@ -1010,7 +1010,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                           </td>
                           <td className="px-4 py-3.5 text-right">
                             {isCritical ? (
-                              <button 
+                              <button
                                 onClick={() => onSelectProject(p.id)}
                                 className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full bg-orange-600 px-3 text-xs font-extrabold text-white transition hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500/30 cursor-pointer shadow-none border border-orange-500"
                               >
@@ -1018,7 +1018,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
                                 <span>Intervenir</span>
                               </button>
                             ) : (
-                              <button 
+                              <button
                                 onClick={() => onSelectProject(p.id)}
                                 className="inline-flex h-8 items-center justify-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-xs font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 cursor-pointer shadow-none"
                               >
@@ -1044,13 +1044,13 @@ export const CoordinatorDashboard: React.FC<Props> = ({ projects, users, activeP
       {selectedMember && (
         <React.Fragment key="user-inspector-container">
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 transition-opacity" 
+          <div
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 transition-opacity"
             onClick={() => setSelectedMember(null)}
           />
-          <UserInspectorPanel 
-            member={selectedMember} 
-            onClose={() => setSelectedMember(null)} 
+          <UserInspectorPanel
+            member={selectedMember}
+            onClose={() => setSelectedMember(null)}
             getUserColor={getUserColor}
             projects={projects}
           />

@@ -1,32 +1,32 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Project, 
-  UserSession, 
-  ScenarioSimulationParams, 
-  ScenarioSimulationResult, 
-  PredictiveProjectRisk 
+import {
+  Project,
+  UserSession,
+  ScenarioSimulationParams,
+  ScenarioSimulationResult,
+  PredictiveProjectRisk
 } from '../types';
 import { calculateGlobalFinancials } from '../utils/metrics';
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  BrainCircuit, 
-  Sliders, 
-  ShieldAlert, 
-  CheckCircle2, 
-  AlertTriangle, 
-  HelpCircle, 
-  Download, 
-  Printer, 
-  Sparkles, 
-  Target, 
-  DollarSign, 
-  PieChart, 
-  ArrowRight, 
-  RotateCcw, 
-  Activity, 
-  BarChart3, 
-  Zap, 
+import {
+  TrendingUp,
+  TrendingDown,
+  BrainCircuit,
+  Sliders,
+  ShieldAlert,
+  CheckCircle2,
+  AlertTriangle,
+  HelpCircle,
+  Download,
+  Printer,
+  Sparkles,
+  Target,
+  DollarSign,
+  PieChart,
+  ArrowRight,
+  RotateCcw,
+  Activity,
+  BarChart3,
+  Zap,
   Award,
   Layers,
   FileSpreadsheet
@@ -79,8 +79,8 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
     const targetProfit = projectedRevenue * 0.25;
     const recommendedOVAdjustment = projectedProfit < targetProfit ? targetProfit - projectedProfit : 0;
 
-    let riskLevel: 'Bajo' | 'Moderado' | 'Alto' | 'Crítico' = 'Bajo';
-    if (projectedMarginPct < 0) riskLevel = 'Crítico';
+    let riskLevel: 'Bajo' | 'Moderado' | 'Alto' | 'CrÃ­tico' = 'Bajo';
+    if (projectedMarginPct < 0) riskLevel = 'CrÃ­tico';
     else if (projectedMarginPct < 15) riskLevel = 'Alto';
     else if (projectedMarginPct < 25) riskLevel = 'Moderado';
 
@@ -125,8 +125,8 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
       );
 
       if (reworkRatio > 20) {
-        mainRiskFactor = `Alto índice de retrabajo (${reworkRatio.toFixed(1)}%) en entregables clave`;
-        suggestedMitigation = 'Implementar revisión de control de calidad previo a envío al cliente';
+        mainRiskFactor = `Alto Ã­ndice de retrabajo (${reworkRatio.toFixed(1)}%) en entregables clave`;
+        suggestedMitigation = 'Implementar revisiÃ³n de control de calidad previo a envÃ­o al cliente';
       } else if (consumptionRatio > 90) {
         mainRiskFactor = `Agotamiento de presupuesto de horas (${consumptionRatio.toFixed(1)}% consumido)`;
         suggestedMitigation = 'Emitir Orden de Venta (OV) adicional por alcance extra';
@@ -153,13 +153,13 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
     setAiAnalysisLoading(true);
     try {
       const promptText = `
-        Analiza la siguiente simulación de escenario financiero para la Agencia TPP:
+        Analiza la siguiente simulaciÃ³n de escenario financiero para la Agencia TPP:
         - Margen Neta Proyectada: ${simulationResult.projectedMarginPct.toFixed(1)}%
         - Utilidad Proyectada: $${simulationResult.projectedProfit.toLocaleString()} USD
-        - Variación respecto a Baseline: $${simulationResult.deltaProfit.toLocaleString()} USD
-        - Ajuste Sugerido en Órdenes de Venta: $${simulationResult.recommendedOVAdjustment.toLocaleString()} USD
+        - VariaciÃ³n respecto a Baseline: $${simulationResult.deltaProfit.toLocaleString()} USD
+        - Ajuste Sugerido en Ã“rdenes de Venta: $${simulationResult.recommendedOVAdjustment.toLocaleString()} USD
         - Nivel de Riesgo Global: ${simulationResult.riskLevel}
-        Proporciona un diagnóstico ejecutivo breve en 3 puntos clave con recomendaciones estratégicas.
+        Proporciona un diagnÃ³stico ejecutivo breve en 3 puntos clave con recomendaciones estratÃ©gicas.
       `;
 
       const response = await fetch('/api/analyze-brief', {
@@ -173,18 +173,18 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
 
       if (response && response.ok) {
         const data = await response.json();
-        setAiInsightText(data.resumenEjecutivo || data.propuestaValor || 'Simulación analizada con éxito.');
+        setAiInsightText(data.resumenEjecutivo || data.propuestaValor || 'SimulaciÃ³n analizada con Ã©xito.');
       } else {
         // Fallback robust AI synthesis
         setAiInsightText(`
-          1. Diagnóstico de Rentabilidad: El escenario proyecta un margen de ${simulationResult.projectedMarginPct.toFixed(1)}%, situando el riesgo financiero en nivel "${simulationResult.riskLevel}".
-          2. Impacto en Desviación: Los retrasos simulados y horas de retrabajo generan un delta de $${simulationResult.deltaProfit.toLocaleString()} USD sobre el presupuesto original.
-          3. Acción Recomendada: Se sugiere emitir una Orden de Venta (OV) de contingencia por un valor aproximado de $${Math.round(simulationResult.recommendedOVAdjustment).toLocaleString()} USD para blindar el margen de utilidad del 25%.
+          1. DiagnÃ³stico de Rentabilidad: El escenario proyecta un margen de ${simulationResult.projectedMarginPct.toFixed(1)}%, situando el riesgo financiero en nivel "${simulationResult.riskLevel}".
+          2. Impacto en DesviaciÃ³n: Los retrasos simulados y horas de retrabajo generan un delta de $${simulationResult.deltaProfit.toLocaleString()} USD sobre el presupuesto original.
+          3. AcciÃ³n Recomendada: Se sugiere emitir una Orden de Venta (OV) de contingencia por un valor aproximado de $${Math.round(simulationResult.recommendedOVAdjustment).toLocaleString()} USD para blindar el margen de utilidad del 25%.
         `);
       }
     } catch (e) {
       console.error(e);
-      setAiInsightText('Análisis ejecutado en motor local predictivo.');
+      setAiInsightText('AnÃ¡lisis ejecutado en motor local predictivo.');
     } finally {
       setAiAnalysisLoading(false);
     }
@@ -216,15 +216,15 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
 
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 print:p-0">
-      
+
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-xs print:border-none">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs print:border-none">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-slate-900 text-amber-400 tracking-wider">
+            <span className="text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-slate-900 text-amber-400 tracking-wider">
               FASE 7.1 COMPLETA
             </span>
-            <span className="text-xs text-slate-400 font-bold">• Inteligencia Predictiva & Simulación</span>
+            <span className="text-xs text-slate-400 font-bold">â€¢ Inteligencia Predictiva & SimulaciÃ³n</span>
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             <BrainCircuit className="w-7 h-7 text-[#FF5500]" />
@@ -257,17 +257,17 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
 
       {/* SECTION 1: SIMULADOR DE ESCENARIOS FINANCIEROS ("WHAT-IF") */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         {/* Sliders Panel (5 cols) */}
-        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-6">
+        <div className="lg:col-span-5 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-6">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 className="font-black text-base text-slate-900 flex items-center gap-2">
               <Sliders className="w-5 h-5 text-amber-500" />
-              <span>Parámetros del Escenario</span>
+              <span>ParÃ¡metros del Escenario</span>
             </h3>
             <button
               onClick={() => setParams({ reworkIncreasePct: 0, hourlyRateMultiplier: 1.0, slaDelayDays: 0, bufferContingencyPct: 0 })}
-              className="text-[11px] font-bold text-slate-400 hover:text-slate-700 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-bold text-slate-400 hover:text-slate-700 flex items-center gap-1 cursor-pointer"
             >
               <RotateCcw className="w-3 h-3" /> Reset
             </button>
@@ -288,7 +288,7 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
               onChange={(e) => setParams((p) => ({ ...p, reworkIncreasePct: Number(e.target.value) }))}
               className="w-full accent-[#FF5500] cursor-pointer"
             />
-            <p className="text-[10px] text-slate-400">Simula costo adicional de horas no facturables por correcciones.</p>
+            <p className="text-xs text-slate-400">Simula costo adicional de horas no facturables por correcciones.</p>
           </div>
 
           {/* Slider 2: Hourly Rate Multiplier */}
@@ -306,14 +306,14 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
               onChange={(e) => setParams((p) => ({ ...p, hourlyRateMultiplier: Number(e.target.value) }))}
               className="w-full accent-indigo-600 cursor-pointer"
             />
-            <p className="text-[10px] text-slate-400">Variación por contratación externa o incremento de salarios.</p>
+            <p className="text-xs text-slate-400">VariaciÃ³n por contrataciÃ³n externa o incremento de salarios.</p>
           </div>
 
           {/* Slider 3: SLA Delay Days */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs">
-              <label className="font-bold text-slate-700">Retraso Proyectado en SLA (Días):</label>
-              <span className="font-black text-rose-600 font-mono">+{params.slaDelayDays} días</span>
+              <label className="font-bold text-slate-700">Retraso Proyectado en SLA (DÃ­as):</label>
+              <span className="font-black text-rose-600 font-mono">+{params.slaDelayDays} dÃ­as</span>
             </div>
             <input
               type="range"
@@ -324,7 +324,7 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
               onChange={(e) => setParams((p) => ({ ...p, slaDelayDays: Number(e.target.value) }))}
               className="w-full accent-rose-600 cursor-pointer"
             />
-            <p className="text-[10px] text-slate-400">Penalización estimada por penalizaciones contractuales ($250/día).</p>
+            <p className="text-xs text-slate-400">PenalizaciÃ³n estimada por penalizaciones contractuales ($250/dÃ­a).</p>
           </div>
 
           {/* Slider 4: Buffer Contingency */}
@@ -342,15 +342,15 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
               onChange={(e) => setParams((p) => ({ ...p, bufferContingencyPct: Number(e.target.value) }))}
               className="w-full accent-emerald-600 cursor-pointer"
             />
-            <p className="text-[10px] text-slate-400">Colchón financiero reservado para imprevistos de producción.</p>
+            <p className="text-xs text-slate-400">ColchÃ³n financiero reservado para imprevistos de producciÃ³n.</p>
           </div>
         </div>
 
         {/* Results Live KPI Cards (7 cols) */}
-        <div className="lg:col-span-7 bg-slate-900 text-white border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between space-y-6">
+        <div className="lg:col-span-7 bg-slate-900 text-white border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between space-y-6">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div>
-              <span className="text-[10px] font-black uppercase text-amber-400 tracking-wider">Resultados Proyectados</span>
+              <span className="text-xs font-black uppercase text-amber-400 tracking-wider">Resultados Proyectados</span>
               <h3 className="font-black text-lg text-white">Impacto en EBITDA & Rentabilidad</h3>
             </div>
 
@@ -368,23 +368,23 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
 
           {/* KPI Cards Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            
+
             <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80">
-              <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Ingreso Proyectado</span>
+              <span className="text-xs font-extrabold uppercase text-slate-400 block">Ingreso Proyectado</span>
               <span className="text-xl font-black text-white">
                 ${Math.round(simulationResult.projectedRevenue).toLocaleString()}
               </span>
             </div>
 
             <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80">
-              <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Costo Proyectado</span>
+              <span className="text-xs font-extrabold uppercase text-slate-400 block">Costo Proyectado</span>
               <span className="text-xl font-black text-rose-400">
                 ${Math.round(simulationResult.projectedCost).toLocaleString()}
               </span>
             </div>
 
             <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80">
-              <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Margen Neto %</span>
+              <span className="text-xs font-extrabold uppercase text-slate-400 block">Margen Neto %</span>
               <span className={`text-xl font-black ${
                 simulationResult.projectedMarginPct >= 25 ? 'text-emerald-400' : 'text-amber-400'
               }`}>
@@ -393,14 +393,14 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
             </div>
 
             <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80">
-              <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Utilidad Proyectada</span>
+              <span className="text-xs font-extrabold uppercase text-slate-400 block">Utilidad Proyectada</span>
               <span className="text-xl font-black text-emerald-400">
                 ${Math.round(simulationResult.projectedProfit).toLocaleString()}
               </span>
             </div>
 
             <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80">
-              <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Delta vs Baseline</span>
+              <span className="text-xs font-extrabold uppercase text-slate-400 block">Delta vs Baseline</span>
               <span className={`text-xl font-black ${
                 simulationResult.deltaProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'
               }`}>
@@ -409,7 +409,7 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
             </div>
 
             <div className="bg-slate-800/80 p-4 rounded-2xl border border-slate-700/80">
-              <span className="text-[10px] font-extrabold uppercase text-amber-400 block">Ajuste OV Sugerido</span>
+              <span className="text-xs font-extrabold uppercase text-amber-400 block">Ajuste OV Sugerido</span>
               <span className="text-xl font-black text-amber-300">
                 ${Math.round(simulationResult.recommendedOVAdjustment).toLocaleString()}
               </span>
@@ -423,9 +423,9 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
               <div className="bg-slate-850 border border-slate-700 p-4 rounded-2xl space-y-2 text-xs text-slate-200">
                 <div className="flex items-center justify-between text-amber-400 font-bold">
                   <span className="flex items-center gap-1.5">
-                    <Sparkles className="w-4 h-4" /> Diagnóstico Predictivo IA:
+                    <Sparkles className="w-4 h-4" /> DiagnÃ³stico Predictivo IA:
                   </span>
-                  <button onClick={() => setAiInsightText(null)} className="text-[10px] text-slate-400 hover:underline">
+                  <button onClick={() => setAiInsightText(null)} className="text-xs text-slate-400 hover:underline">
                     Cerrar
                   </button>
                 </div>
@@ -438,7 +438,7 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
                 className="w-full py-3 bg-gradient-to-r from-[#FF5500] to-amber-600 hover:opacity-95 text-white font-black rounded-2xl text-xs transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <Sparkles className={`w-4 h-4 ${aiAnalysisLoading ? 'animate-spin' : ''}`} />
-                <span>{aiAnalysisLoading ? 'Generando Diagnóstico Estratégico IA...' : 'Generar Diagnóstico Estratégico de Escenario'}</span>
+                <span>{aiAnalysisLoading ? 'Generando DiagnÃ³stico EstratÃ©gico IA...' : 'Generar DiagnÃ³stico EstratÃ©gico de Escenario'}</span>
               </button>
             )}
           </div>
@@ -447,15 +447,15 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
       </div>
 
       {/* SECTION 2: RADAR PREDICTIVO DE SALUD Y RIESGOS DE PROYECTOS */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
           <div>
             <h3 className="font-extrabold text-base text-slate-900 tracking-tight flex items-center gap-2">
               <Target className="w-5 h-5 text-indigo-600" />
-              <span>AI Risk Radar: Puntuación de Salud & Alerta de Retrabajos</span>
+              <span>AI Risk Radar: PuntuaciÃ³n de Salud & Alerta de Retrabajos</span>
             </h3>
             <p className="text-xs text-slate-500">
-              Evaluación estadística de riesgo de desviación en proyectos basada en historial de consumo y patrones de retrabajo.
+              EvaluaciÃ³n estadÃ­stica de riesgo de desviaciÃ³n en proyectos basada en historial de consumo y patrones de retrabajo.
             </p>
           </div>
           <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
@@ -466,14 +466,14 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
         {/* Project Risk Table */}
         <div className="overflow-x-auto border border-slate-200 rounded-2xl">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50 text-slate-700 font-extrabold uppercase text-[10px] tracking-wider border-b border-slate-200">
+            <thead className="bg-slate-50 text-slate-700 font-extrabold uppercase text-xs tracking-wider border-b border-slate-200">
               <tr>
                 <th className="p-3">Proyecto / Cliente</th>
                 <th className="p-3 text-center">Score Salud</th>
                 <th className="p-3 text-center">Riesgo Retrabajo</th>
                 <th className="p-3 text-center">Prob. Fuga SLA</th>
                 <th className="p-3">Factor Principal de Riesgo</th>
-                <th className="p-3">Mitigación Recomendada</th>
+                <th className="p-3">MitigaciÃ³n Recomendada</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-800 font-medium">
@@ -481,7 +481,7 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
                 <tr key={risk.projectId} className="hover:bg-slate-50/80 transition-colors">
                   <td className="p-3">
                     <span className="font-black text-slate-900 block text-xs">{risk.projectName}</span>
-                    <span className="text-[10px] text-slate-400 font-bold">{risk.clientName}</span>
+                    <span className="text-xs text-slate-400 font-bold">{risk.clientName}</span>
                   </td>
 
                   <td className="p-3 text-center">
@@ -501,7 +501,7 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
                   </td>
 
                   <td className="p-3 text-center font-mono font-bold">
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] ${
+                    <span className={`px-2 py-0.5 rounded-full text-xs ${
                       risk.slaBreachProbability > 40
                         ? 'bg-rose-50 text-rose-700 font-black border border-rose-200'
                         : 'text-slate-600'

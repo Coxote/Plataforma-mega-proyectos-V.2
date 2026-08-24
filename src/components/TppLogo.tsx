@@ -28,7 +28,7 @@ export const TppLogo: React.FC<TppLogoProps> = ({
 
   return (
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
-      {/* 🟠🟢 OFFICIAL TPP ICON MARK */}
+      {/* ðŸŸ ðŸŸ¢ OFFICIAL TPP ICON MARK */}
       <div className={`${iconDimensions} shrink-0 relative flex items-center justify-center rounded-xl bg-gradient-to-br from-[#FF5500] to-[#E04B00] shadow-md shadow-orange-500/20 p-1.5 transition-transform hover:scale-105`}>
         {/* Geometric ribbon T symbol */}
         <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-white">
@@ -39,12 +39,12 @@ export const TppLogo: React.FC<TppLogoProps> = ({
           <path d="M35 40 L55 20 L55 40 Z" fill="#E2E8F0" />
           <path d="M35 40 L55 40 L55 85 L35 85 Z" fill="#FFFFFF" />
         </svg>
-        
+
         {/* Small Lime Accent Badge on top corner */}
         <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-[#84CC16] rounded-full border-2 border-slate-900 shadow-xs" />
       </div>
 
-      {/* 📝 TPP HUB DIGITAL TEXT LOGO */}
+      {/* ðŸ“ TPP HUB DIGITAL TEXT LOGO */}
       {variant === 'full' && (
         <div className="flex flex-col leading-none">
           <div className="flex items-baseline gap-1">
@@ -55,7 +55,7 @@ export const TppLogo: React.FC<TppLogoProps> = ({
               HUB
             </span>
           </div>
-          <span className={`text-[9px] font-bold uppercase tracking-widest ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+          <span className={`text-xs font-bold uppercase tracking-widest ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
             DIGITAL
           </span>
         </div>

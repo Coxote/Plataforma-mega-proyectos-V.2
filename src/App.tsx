@@ -77,7 +77,7 @@ const DEFAULT_CLIENTS: Client[] = [
   {
     id: 'c-impelsa',
     nombreComercial: 'Impelsa',
-    categoria: 'Distribución',
+    categoria: 'DistribuciÃ³n',
     contactoPrincipal: 'Contacto Impelsa',
     email: 'contacto@impelsa.com',
     telefono: '+502 2222-1005',
@@ -102,9 +102,9 @@ const DEFAULT_USERS: UserSession[] = [
   { id: 'u-rodrigo', username: 'rodrigo', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-lourdes', username: 'lourdes', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-maylin', username: 'maylin', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-eduardo', username: 'eduardo', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-edgar', username: 'edgar', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-jeremy', username: 'jeremy', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-eduardo', username: 'eduardo', puesto: 'DiseÃ±ador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-edgar', username: 'edgar', puesto: 'DiseÃ±ador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-jeremy', username: 'jeremy', puesto: 'DiseÃ±ador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-noemi', username: 'noemi', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-alejandra', username: 'alejandra', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-fabiola', username: 'fabiola', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
@@ -140,7 +140,7 @@ export default function App() {
   // Hook de monitoreo de entregables y SLAs del sistema
   const deliverableMonitoring = useDeliverableMonitoring(projects);
 
-  // Normalizador de proyectos para migración automática Fase 0
+  // Normalizador de proyectos para migraciÃ³n automÃ¡tica Fase 0
   const normalizeProject = (p: any): Project => {
     const timeEntries = (p.timeEntries || []).map((e: any) => ({
       ...e,
@@ -319,7 +319,7 @@ export default function App() {
     if (!clientName) return;
     const today = new Date().toISOString().split('T')[0];
     const normalizedName = clientName.trim().toLowerCase();
-    
+
     setClients((prevClients) => {
       let found = false;
       const updatedClients = prevClients.map((c) => {
@@ -401,7 +401,7 @@ export default function App() {
       prevProjects.map((p) => (p.id === updated.id ? updated : p))
     );
 
-    // Actualizar actividad del cliente si cambió
+    // Actualizar actividad del cliente si cambiÃ³
     if (updated.clientName) {
       updateClientLastActivity(updated.clientName);
     }
@@ -430,7 +430,7 @@ export default function App() {
       startDate: data.startDate,
       endDate: data.endDate,
       deliverablesCount: data.deliverablesCount,
-      description: data.description || 'Breve descripción del proyecto...',
+      description: data.description || 'Breve descripciÃ³n del proyecto...',
       tags: data.tags || [],
       members: data.members || [],
       currency: data.currency || 'USD',
@@ -443,7 +443,7 @@ export default function App() {
       health: 100,
       createdAt: new Date().toISOString(),
       objective: 'Definir el objetivo principal...',
-      alcance: 'Definir el alcance técnico inicial...',
+      alcance: 'Definir el alcance tÃ©cnico inicial...',
       riesgos: 'Definir riesgos conocidos...',
       phases: data.phases || [],
       budget: customBudget,
@@ -504,7 +504,7 @@ export default function App() {
     const pendingTasks = (currentPhase.checklist || []).filter(item => !item.completed);
 
     if (pendingTasks.length > 0) {
-      alert(`⚠️ No se puede cerrar la fase "${currentPhase.label}" porque existen ${pendingTasks.length} tarea(s) sin completar en la checklist de la fase.\n\nCompleta todas las tareas para habilitar el cierre.`);
+      alert(`âš ï¸ No se puede cerrar la fase "${currentPhase.label}" porque existen ${pendingTasks.length} tarea(s) sin completar en la checklist de la fase.\n\nCompleta todas las tareas para habilitar el cierre.`);
       return;
     }
 
@@ -523,7 +523,7 @@ export default function App() {
     if (currentPhaseIndex < activeProject.phases.length - 1) {
       const nextPhase = activeProject.phases[currentPhaseIndex + 1];
       nextPhaseId = nextPhase.id;
-      
+
       updatedPhases[currentPhaseIndex + 1] = {
         ...updatedPhases[currentPhaseIndex + 1],
         status: 'active' as const,
@@ -540,7 +540,7 @@ export default function App() {
         userRole: currentUser ? currentUser.role : 'coordinador' as const,
         action: 'Cierre de Fase',
         entityType: 'Fase',
-        details: `Cerró fase ${activeProject.activePhaseId} exitosamente. Nueva fase: ${nextPhaseId}`,
+        details: `CerrÃ³ fase ${activeProject.activePhaseId} exitosamente. Nueva fase: ${nextPhaseId}`,
       },
       ...(activeProject.auditLog || [])
     ];
@@ -558,7 +558,7 @@ export default function App() {
 
   const handleSelectPhase = (phaseId: string) => {
     if (!activeProject) return;
-    
+
     const updatedProject: Project = {
       ...activeProject,
       activePhaseId: phaseId,
@@ -596,7 +596,7 @@ export default function App() {
         userRole: currentUser ? currentUser.role : 'invitado' as const,
         action: 'Feedback de Cliente',
         entityType: 'Entregable',
-        details: `Anotó comentario en entregable: "${(comment || '').substring(0, 40)}..."`,
+        details: `AnotÃ³ comentario en entregable: "${(comment || '').substring(0, 40)}..."`,
       },
       ...(activeProject.auditLog || [])
     ];
@@ -759,11 +759,11 @@ export default function App() {
         </div>
       ) : currentView === 'dashboard' && currentUser.role === 'coordinador' ? (
         <div className="flex-1 overflow-hidden h-full">
-          <CoordinatorDashboard 
-            projects={projects} 
-            users={usersList} 
+          <CoordinatorDashboard
+            projects={projects}
+            users={usersList}
             activeProjectId={activeProjectId}
-            onSelectProject={handleSelectProject} 
+            onSelectProject={handleSelectProject}
           />
         </div>
       ) : currentView === 'team' && currentUser.role === 'coordinador' ? (
@@ -816,15 +816,15 @@ export default function App() {
         </div>
       ) : currentView === 'predictive' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') ? (
         <div className="flex-1 overflow-y-auto h-full">
-          <PredictiveAnalyticsPanel 
-            projects={projects} 
-            users={usersList} 
-            currentUser={currentUser} 
+          <PredictiveAnalyticsPanel
+            projects={projects}
+            users={usersList}
+            currentUser={currentUser}
           />
         </div>
       ) : (
         <div className="flex-1 flex overflow-hidden h-full relative" id="workspace-columns">
-          
+
           {/* LEFT SIDEBAR: PROJECTS & SEARCH */}
           <Sidebar
             projects={visibleProjects}
@@ -844,7 +844,7 @@ export default function App() {
           <div className="flex-1 h-full overflow-hidden flex flex-col min-w-0">
             {visibleProjects.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50/50">
-                <div className="w-16 h-16 bg-amber-100 text-amber-700 rounded-3xl flex items-center justify-center mb-4 border border-amber-200 shadow-sm">
+                <div className="w-16 h-16 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mb-4 border border-amber-200 shadow-sm">
                   <Briefcase className="w-8 h-8" />
                 </div>
                 <h3 className="text-lg font-black text-slate-800 mb-2">Sin Proyectos Asignados</h3>

@@ -1,12 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { 
-  Calendar as CalendarIcon, 
-  Filter, 
-  Layers, 
-  Users, 
-  Search, 
-  Briefcase, 
-  Clock, 
+import {
+  Calendar as CalendarIcon,
+  Filter,
+  Layers,
+  Users,
+  Search,
+  Briefcase,
+  Clock,
   ChevronDown,
   X,
   Sparkles,
@@ -97,7 +97,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
   // View states
   const [groupBy, setGroupBy] = useState<'project' | 'user'>('project');
   const [zoomLevel, setZoomLevel] = useState<'day' | 'week'>('day');
-  
+
   // Filters
   const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('todos');
   const [selectedUserFilter, setSelectedUserFilter] = useState<string>('todos');
@@ -155,7 +155,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
 
       // Find assigned users for this project
       const assignedUserMap = new Map<string, { id: string; name: string; avatar?: string; role?: string }>();
-      
+
       // Add users allocated in budget
       Object.entries(proj.budget || {}).forEach(([role, budget]) => {
         if ((budget as any).allocated > 0) {
@@ -181,7 +181,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
       });
 
       const assignedUsers = Array.from(assignedUserMap.values());
-      
+
       // Determine timeline position (staggered realistically across days 1 to 31)
       const startDay = Math.min(24, Math.max(1, (idx * 5) % 20 + 2));
       const durationDays = Math.min(31 - startDay + 1, Math.max(6, 8 + (idx % 3) * 3));
@@ -195,7 +195,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
       items.push({
         id: `proj-${proj.id}`,
         title: proj.name,
-        subtitle: `Cliente: ${proj.clientName} • Fase: ${activePhaseLabel}`,
+        subtitle: `Cliente: ${proj.clientName} â€¢ Fase: ${activePhaseLabel}`,
         projectName: proj.name,
         clientName: proj.clientName,
         category: proj.activePhaseId ? activePhaseLabel : 'Proyecto',
@@ -230,7 +230,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
       items.push({
         id: `task-${task.id}`,
         title: task.project || 'Tarea Planner',
-        subtitle: `${task.brand} • ${task.status}`,
+        subtitle: `${task.brand} â€¢ ${task.status}`,
         projectName: task.project || 'Daily Task',
         clientName: task.brand || 'Marca',
         category: 'Tarea Planner',
@@ -256,11 +256,11 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
     if (items.length === 0) {
       const fallbackThemes = COLOR_THEMES;
       const sampleProjects = [
-        { id: 'f1', title: 'Rediseño Web Corporativo', client: 'Arrocha', progress: 76, start: 2, dur: 12, theme: fallbackThemes[1] },
+        { id: 'f1', title: 'RediseÃ±o Web Corporativo', client: 'Arrocha', progress: 76, start: 2, dur: 12, theme: fallbackThemes[1] },
         { id: 'f2', title: 'Wireframing & Prototipado UX', client: 'Banco General', progress: 45, start: 8, dur: 10, theme: fallbackThemes[3] },
-        { id: 'f3', title: 'Design System & Tokenización', client: 'SaaS Platform', progress: 100, start: 1, dur: 18, theme: fallbackThemes[0] },
-        { id: 'f4', title: 'Campaña Redes Q3 (Sprites)', client: 'Cerveza Panamá', progress: 22, start: 14, dur: 11, theme: fallbackThemes[4] },
-        { id: 'f5', title: 'Investigación & Entrevistas UAT', client: 'Skaldic', progress: 62, start: 18, dur: 9, theme: fallbackThemes[2] },
+        { id: 'f3', title: 'Design System & TokenizaciÃ³n', client: 'SaaS Platform', progress: 100, start: 1, dur: 18, theme: fallbackThemes[0] },
+        { id: 'f4', title: 'CampaÃ±a Redes Q3 (Sprites)', client: 'Cerveza PanamÃ¡', progress: 22, start: 14, dur: 11, theme: fallbackThemes[4] },
+        { id: 'f5', title: 'InvestigaciÃ³n & Entrevistas UAT', client: 'Skaldic', progress: 62, start: 18, dur: 9, theme: fallbackThemes[2] },
       ];
 
       sampleProjects.forEach(sp => {
@@ -270,10 +270,10 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
           subtitle: `Cliente: ${sp.client}`,
           projectName: sp.title,
           clientName: sp.client,
-          category: 'Demostración',
+          category: 'DemostraciÃ³n',
           assignedUsers: [
             { id: 'u1', name: 'Karen O.', role: 'Coordinador' },
-            { id: 'u2', name: 'Lucía M.', role: 'Diseñador' }
+            { id: 'u2', name: 'LucÃ­a M.', role: 'DiseÃ±ador' }
           ],
           startDay: sp.start,
           durationDays: sp.dur,
@@ -282,7 +282,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
           colorTheme: sp.theme,
           type: 'project',
           originalDates: `Julio ${sp.start} - Julio ${sp.start + sp.dur - 1}`,
-          details: 'Proyecto de demostración de línea de tiempo estilo Gantt.',
+          details: 'Proyecto de demostraciÃ³n de lÃ­nea de tiempo estilo Gantt.',
           projectId: sp.id
         });
       });
@@ -310,13 +310,13 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
   // Filtered Gantt Items
   const filteredGanttItems = useMemo(() => {
     return rawGanttItems.filter(item => {
-      const matchesSearch = searchQuery.trim() === '' || 
+      const matchesSearch = searchQuery.trim() === '' ||
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.clientName.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesProject = selectedProjectFilter === 'todos' || item.projectName === selectedProjectFilter;
 
-      const matchesUser = selectedUserFilter === 'todos' || 
+      const matchesUser = selectedUserFilter === 'todos' ||
         item.assignedUsers.some(u => u.id === selectedUserFilter || u.name === selectedUserFilter);
 
       const matchesStatus = selectedStatusFilter === 'todos' || item.status === selectedStatusFilter;
@@ -369,13 +369,13 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
 
   return (
     <div className="p-4 sm:p-6 bg-slate-50 min-h-full space-y-4 sm:space-y-6 flex flex-col relative font-sans text-slate-900" id="gantt-timeline-container">
-      
+
       {/* HEADER PRINCIPAL VISTA GANTT */}
       <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">
             <Layers className="w-4 h-4 text-blue-600" />
-            Línea de Tiempo & Cronograma
+            LÃ­nea de Tiempo & Cronograma
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
             Gantt de Proyectos & Asignaciones
@@ -394,7 +394,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                 zoomLevel === 'day' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Día
+              DÃ­a
             </button>
             <button
               onClick={() => setZoomLevel('week')}
@@ -415,7 +415,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
 
       {/* FILTROS Y CONTROLES SUPERIORES (Elegantes y Minimalistas) */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-2xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-        
+
         {/* Toggle Por Proyecto / Por Usuario */}
         <div className="flex items-center bg-slate-100/80 p-1 rounded-xl border border-slate-200/80 w-full lg:w-auto shrink-0">
           <button
@@ -442,10 +442,10 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
           </button>
         </div>
 
-        {/* Búsqueda y Dropdowns personalizados ultra-limpios */}
+        {/* BÃºsqueda y Dropdowns personalizados ultra-limpios */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-2.5 w-full lg:w-auto">
-          
-          {/* Input Búsqueda */}
+
+          {/* Input BÃºsqueda */}
           <div className="relative w-full lg:w-52">
             <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
@@ -510,39 +510,39 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
       </div>
 
       {/* MOBILE SCROLL HINT */}
-      <div className="block sm:hidden text-[10px] text-slate-500 font-bold flex items-center justify-between px-1">
-        <span>Desliza para ver la línea de tiempo</span>
-        <span className="text-blue-600 font-extrabold uppercase">Deslizar →</span>
+      <div className="block sm:hidden text-xs text-slate-500 font-bold flex items-center justify-between px-1">
+        <span>Desliza para ver la lÃ­nea de tiempo</span>
+        <span className="text-blue-600 font-extrabold uppercase">Deslizar â†’</span>
       </div>
 
       {/* CONTENEDOR PRINCIPAL DEL GANTT */}
       <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden flex flex-col relative min-h-[500px]">
-        
+
         {/* SCROLL WRAPPER HORIZONTAL Y VERTICAL */}
         <div className="overflow-x-auto overflow-y-auto flex-1 touch-pan-x">
-          
+
           <div className="min-w-[1150px] sm:min-w-[1300px] flex flex-col h-full divide-y divide-slate-100">
-            
-            {/* CABECERA EJE DÍAS */}
+
+            {/* CABECERA EJE DÃAS */}
             <div className="flex bg-slate-50/90 sticky top-0 z-30 border-b border-slate-200/90 backdrop-blur-xs">
-              
-              {/* Columna Izquierda Fija: Títulos */}
+
+              {/* Columna Izquierda Fija: TÃ­tulos */}
               <div className="w-64 sm:w-72 p-3.5 font-black text-xs text-slate-500 uppercase tracking-wider border-r border-slate-200/80 shrink-0 bg-slate-50 sticky left-0 z-40 flex items-center justify-between shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                 <span>{groupBy === 'project' ? 'Proyectos' : 'Colaborador'}</span>
-                <span className="text-[10px] font-extrabold text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded-full">
+                <span className="text-xs font-extrabold text-slate-500 bg-slate-200/70 px-2 py-0.5 rounded-full">
                   {groupedRows.length}
                 </span>
               </div>
 
-              {/* Grid de Días con Marcador de HOY */}
+              {/* Grid de DÃ­as con Marcador de HOY */}
               <div className="grid flex-1 relative" style={{ gridTemplateColumns: 'repeat(31, minmax(0, 1fr))' }}>
-                
+
                 {/* Marcador Badge Flotante para HOY (Inspirado en Taskken UI) */}
-                <div 
+                <div
                   className="absolute -bottom-1 z-40 -translate-x-1/2 pointer-events-none"
                   style={{ left: `${todayLineLeftPct}%` }}
                 >
-                  <div className="bg-slate-950 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 border border-slate-800 whitespace-nowrap">
+                  <div className="bg-slate-950 text-white text-xs font-black px-2 py-0.5 rounded-full shadow-md flex items-center gap-1 border border-slate-800 whitespace-nowrap">
                     <Clock className="w-2.5 h-2.5 text-rose-400" />
                     <span>8:42</span>
                   </div>
@@ -553,16 +553,16 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                   const isWeekend = day % 7 === 4 || day % 7 === 5;
 
                   return (
-                    <div 
+                    <div
                       key={day}
-                      className={`text-center py-2.5 text-[10px] font-black border-r border-slate-200/60 flex flex-col justify-center items-center relative ${
-                        isToday 
-                          ? 'bg-blue-50 text-blue-900 font-black z-10' 
-                          : isWeekend 
-                          ? 'bg-slate-100/60 text-slate-400 font-semibold' 
+                      className={`text-center py-2.5 text-xs font-black border-r border-slate-200/60 flex flex-col justify-center items-center relative ${
+                        isToday
+                          ? 'bg-blue-50 text-blue-900 font-black z-10'
+                          : isWeekend
+                          ? 'bg-slate-100/60 text-slate-400 font-semibold'
                           : 'text-slate-600 font-bold bg-slate-50/50'
                       }`}
-                      title={isToday ? "Hoy (14 de Julio)" : `Día ${day}`}
+                      title={isToday ? "Hoy (14 de Julio)" : `DÃ­a ${day}`}
                     >
                       <span>{day}</span>
                       <span className="text-[7.5px] uppercase tracking-tighter opacity-70">
@@ -577,9 +577,9 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
 
             {/* CUERPO DE FILAS Y BARRAS DEL GANTT */}
             <div className="divide-y divide-slate-100 flex-1 relative">
-              
-              {/* LÍNEA GUÍA ROJA VERTICAL DE HOY (Top a Bottom) */}
-              <div 
+
+              {/* LÃNEA GUÃA ROJA VERTICAL DE HOY (Top a Bottom) */}
+              <div
                 className="absolute top-0 bottom-0 w-0.5 bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.6)] z-20 pointer-events-none"
                 style={{ left: `calc(288px + (100% - 288px) * ${todayLineLeftPct / 100})` }}
               />
@@ -591,7 +591,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
               ) : (
                 groupedRows.map((row) => (
                   <div key={row.id} className="flex hover:bg-slate-50/70 transition-colors min-h-[72px] sm:min-h-[80px] relative group">
-                    
+
                     {/* Columna Fija Izquierda: Nombre de Proyecto/Usuario */}
                     <div className="w-64 sm:w-72 p-3 sm:p-4 border-r border-slate-200/80 shrink-0 flex items-center justify-between bg-white group-hover:bg-slate-50/90 transition-all sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                       <div className="min-w-0 flex-1 pr-2">
@@ -601,7 +601,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                           </span>
                         </div>
 
-                        <p className="text-[10px] font-semibold text-slate-500 truncate">
+                        <p className="text-xs font-semibold text-slate-500 truncate">
                           {row.sublabel}
                         </p>
 
@@ -609,7 +609,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                         {groupBy === 'project' && row.progressPercent !== undefined && (
                           <div className="mt-2 flex items-center gap-2">
                             <div className="flex-1 bg-slate-100 h-1.5 rounded-full overflow-hidden border border-slate-200/80">
-                              <div 
+                              <div
                                 className="bg-blue-600 h-full rounded-full transition-all"
                                 style={{ width: `${row.progressPercent}%` }}
                               />
@@ -634,7 +634,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                             />
                           ))}
                           {row.assignedUsers.length > 3 && (
-                            <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 border-2 border-white text-[9px] font-black flex items-center justify-center">
+                            <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-700 border-2 border-white text-xs font-black flex items-center justify-center">
                               +{row.assignedUsers.length - 3}
                             </div>
                           )}
@@ -644,15 +644,15 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
 
                     {/* Area de Cronograma X-Axis */}
                     <div className="flex-1 relative h-full flex items-center">
-                      
-                      {/* Grid Fondo Días (Lineas Verticales) */}
+
+                      {/* Grid Fondo DÃ­as (Lineas Verticales) */}
                       <div className="absolute inset-0 grid grid-cols-31 h-full pointer-events-none">
                         {DAYS_IN_MONTH.map(day => (
-                          <div 
-                            key={day} 
+                          <div
+                            key={day}
                             className={`border-r border-slate-100/90 h-full ${
                               day === CURRENT_DAY ? 'bg-rose-50/20' : ''
-                            }`} 
+                            }`}
                           />
                         ))}
                       </div>
@@ -675,12 +675,12 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                             title={`${item.title} (${item.progressPercent}% avance) - Tap para ver detalles`}
                           >
                             {/* Insignia % Avance (Pill a la izquierda como en Taskken) */}
-                            <div className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider shrink-0 ${item.colorTheme.badgeBg} ${item.colorTheme.badgeText}`}>
+                            <div className={`px-2 py-0.5 rounded-full text-xs font-black uppercase tracking-wider shrink-0 ${item.colorTheme.badgeBg} ${item.colorTheme.badgeText}`}>
                               {item.progressPercent}%
                             </div>
 
-                            {/* Título en Centro */}
-                            <span className="truncate px-2 text-center text-[11px] font-extrabold flex-1">
+                            {/* TÃ­tulo en Centro */}
+                            <span className="truncate px-2 text-center text-xs font-extrabold flex-1">
                               {item.title}
                             </span>
 
@@ -718,9 +718,9 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
       {/* MODAL DETALLE DE PROYECTO O TAREA */}
       {activeModalItem && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 relative space-y-5">
-            
-            <button 
+          <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 relative space-y-5">
+
+            <button
               onClick={() => setActiveModalItem(null)}
               className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-all cursor-pointer"
             >
@@ -729,7 +729,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
 
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
+                <span className="px-2.5 py-0.5 rounded-md text-xs font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
                   {activeModalItem.type === 'project' ? 'Proyecto' : 'Tarea Planner'}
                 </span>
                 <span className="text-xs font-bold text-slate-500">
@@ -745,10 +745,10 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
               </p>
             </div>
 
-            {/* Métricas */}
+            {/* MÃ©tricas */}
             <div className="grid grid-cols-2 gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
               <div>
-                <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5">
+                <label className="text-xs font-extrabold uppercase text-slate-400 block mb-0.5">
                   % Avance Actual
                 </label>
                 <div className="text-xl font-black text-slate-900">
@@ -757,8 +757,8 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
               </div>
 
               <div>
-                <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-0.5">
-                  Línea de Tiempo
+                <label className="text-xs font-extrabold uppercase text-slate-400 block mb-0.5">
+                  LÃ­nea de Tiempo
                 </label>
                 <div className="text-xs font-bold text-slate-800 mt-1">
                   {activeModalItem.originalDates}
@@ -768,20 +768,20 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
 
             {/* Equipo Asignado */}
             <div>
-              <label className="text-[10px] font-extrabold uppercase text-slate-400 block mb-2">
+              <label className="text-xs font-extrabold uppercase text-slate-400 block mb-2">
                 Equipo Asignado ({activeModalItem.assignedUsers.length})
               </label>
               <div className="space-y-2">
                 {activeModalItem.assignedUsers.map((u, i) => (
                   <div key={i} className="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100">
-                    <img 
-                      src={u.avatar || `https://i.pravatar.cc/100?u=${u.name}`} 
-                      alt={u.name} 
-                      className="w-8 h-8 rounded-full border border-white shadow-2xs object-cover" 
+                    <img
+                      src={u.avatar || `https://i.pravatar.cc/100?u=${u.name}`}
+                      alt={u.name}
+                      className="w-8 h-8 rounded-full border border-white shadow-2xs object-cover"
                     />
                     <div>
                       <div className="text-xs font-bold text-slate-900">{u.name}</div>
-                      <div className="text-[10px] text-slate-500 font-semibold capitalize">{u.role || 'Colaborador'}</div>
+                      <div className="text-xs text-slate-500 font-semibold capitalize">{u.role || 'Colaborador'}</div>
                     </div>
                   </div>
                 ))}

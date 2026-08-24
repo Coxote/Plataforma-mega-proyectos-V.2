@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  X, Plus, Trash2, FileText, ArrowLeft, 
-  FileCode2, CheckCircle2, ShieldAlert, GripVertical, 
+import {
+  X, Plus, Trash2, FileText, ArrowLeft,
+  FileCode2, CheckCircle2, ShieldAlert, GripVertical,
   ChevronUp, ChevronDown, Layers, Clock, Upload, Sparkles, Loader2
 } from 'lucide-react';
 import { RoleHoursAllocation, UserSession, EstadoOV } from '../types';
@@ -38,7 +38,7 @@ export interface ProjectDraftOV {
   estado: EstadoOV;
 }
 
-// Componente para gestión unificada de Array de Órdenes de Venta (OV)
+// Componente para gestiÃ³n unificada de Array de Ã“rdenes de Venta (OV)
 const OrdenesVentaArrayManager: React.FC<{
   draft: any;
   onAddOV: () => void;
@@ -82,11 +82,11 @@ const OrdenesVentaArrayManager: React.FC<{
               if (typeof data.horasPorRol.contentd === 'number') onUpdateOV(ovId, 'horasPorRol_contentd', data.horasPorRol.contentd);
             }
           } else {
-            alert(data.error || 'No se pudo extraer información del archivo de la OV.');
+            alert(data.error || 'No se pudo extraer informaciÃ³n del archivo de la OV.');
           }
         } catch (err) {
           console.error(err);
-          alert('Error de conexión al procesar el archivo.');
+          alert('Error de conexiÃ³n al procesar el archivo.');
         } finally {
           setParsingOVId(null);
         }
@@ -101,15 +101,15 @@ const OrdenesVentaArrayManager: React.FC<{
   const getEstadoBadge = (st: EstadoOV) => {
     switch (st) {
       case 'creada':
-        return { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: '• Creada' };
+        return { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: 'â€¢ Creada' };
       case 'enviada':
-        return { bg: 'bg-sky-50 text-sky-700 border-sky-200', label: '• Enviada' };
+        return { bg: 'bg-sky-50 text-sky-700 border-sky-200', label: 'â€¢ Enviada' };
       case 'bloqueada':
-        return { bg: 'bg-indigo-50 text-indigo-700 border-indigo-200', label: '• Bloqueada' };
+        return { bg: 'bg-indigo-50 text-indigo-700 border-indigo-200', label: 'â€¢ Bloqueada' };
       case 'facturada':
-        return { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: '• Facturada' };
+        return { bg: 'bg-emerald-50 text-emerald-700 border-emerald-200', label: 'â€¢ Facturada' };
       default:
-        return { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: '• Creada' };
+        return { bg: 'bg-amber-50 text-amber-700 border-amber-200', label: 'â€¢ Creada' };
     }
   };
 
@@ -122,10 +122,10 @@ const OrdenesVentaArrayManager: React.FC<{
           </div>
           <div>
             <span className="text-xs font-black text-slate-800 uppercase tracking-wider block">
-              Órdenes de Venta (OV) del Proyecto ({draft.ordenesVenta.length})
+              Ã“rdenes de Venta (OV) del Proyecto ({draft.ordenesVenta.length})
             </span>
-            <span className="text-[10px] text-slate-500 font-medium">
-              Agrega múltiples OVs o sube tu PDF/Imagen para autocompletar horas por rol con IA.
+            <span className="text-xs text-slate-500 font-medium">
+              Agrega mÃºltiples OVs o sube tu PDF/Imagen para autocompletar horas por rol con IA.
             </span>
           </div>
         </div>
@@ -135,7 +135,7 @@ const OrdenesVentaArrayManager: React.FC<{
           className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs shrink-0"
         >
           <Plus className="w-3.5 h-3.5" />
-          Añadir Órden de Venta
+          AÃ±adir Ã“rden de Venta
         </button>
       </div>
 
@@ -148,22 +148,22 @@ const OrdenesVentaArrayManager: React.FC<{
             <div key={ov.id} className="p-4 bg-white rounded-xl border border-slate-200 shadow-xs space-y-3">
               <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="w-5 h-5 bg-cyan-100 text-cyan-800 rounded-full flex items-center justify-center text-[10px] font-black shrink-0">
+                  <span className="w-5 h-5 bg-cyan-100 text-cyan-800 rounded-full flex items-center justify-center text-xs font-black shrink-0">
                     {index + 1}
                   </span>
                   <span className="text-xs font-extrabold text-slate-800">
-                    OV #{ov.numero || 'Sin número'}
+                    OV #{ov.numero || 'Sin nÃºmero'}
                   </span>
-                  <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${badge.bg}`}>
+                  <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full border ${badge.bg}`}>
                     {badge.label}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-2">
                   {/* UPLOADER BUTTON WITH IA AUTO-FILL */}
-                  <label className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all border ${
-                    isParsing 
-                      ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                  <label className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer transition-all border ${
+                    isParsing
+                      ? 'bg-amber-50 text-amber-700 border-amber-200'
                       : 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200/80'
                   }`}>
                     {isParsing ? (
@@ -205,7 +205,7 @@ const OrdenesVentaArrayManager: React.FC<{
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <div>
-                  <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Número / Código *</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">NÃºmero / CÃ³digo *</label>
                   <input
                     type="text"
                     value={ov.numero}
@@ -216,7 +216,7 @@ const OrdenesVentaArrayManager: React.FC<{
                 </div>
 
                 <div>
-                  <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Estado OV *</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Estado OV *</label>
                   <select
                     value={ov.estado || 'creada'}
                     onChange={(e) => onUpdateOV(ov.id, 'estado', e.target.value as any)}
@@ -230,7 +230,7 @@ const OrdenesVentaArrayManager: React.FC<{
                 </div>
 
                 <div>
-                  <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Fecha Emisión</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Fecha EmisiÃ³n</label>
                   <input
                     type="date"
                     value={ov.fechaEmision}
@@ -240,7 +240,7 @@ const OrdenesVentaArrayManager: React.FC<{
                 </div>
 
                 <div>
-                  <label className="block text-[9px] font-bold text-slate-400 uppercase mb-1">Descripción / Detalle</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">DescripciÃ³n / Detalle</label>
                   <input
                     type="text"
                     value={ov.descripcion}
@@ -254,7 +254,7 @@ const OrdenesVentaArrayManager: React.FC<{
               {/* DESGLOSE FINANCIERO CON IMPUESTOS Y COMISIONES */}
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 p-2.5 bg-slate-50/80 rounded-lg border border-slate-200/80">
                 <div>
-                  <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Subtotal Neto</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Subtotal Neto</label>
                   <input
                     type="number"
                     step="any"
@@ -274,7 +274,7 @@ const OrdenesVentaArrayManager: React.FC<{
                 </div>
 
                 <div>
-                  <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Impuestos / IVA</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Impuestos / IVA</label>
                   <input
                     type="number"
                     step="any"
@@ -294,7 +294,7 @@ const OrdenesVentaArrayManager: React.FC<{
                 </div>
 
                 <div>
-                  <label className="block text-[9px] font-bold text-slate-500 uppercase mb-1">Comisión / Retención</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">ComisiÃ³n / RetenciÃ³n</label>
                   <input
                     type="number"
                     step="any"
@@ -314,7 +314,7 @@ const OrdenesVentaArrayManager: React.FC<{
                 </div>
 
                 <div>
-                  <label className="block text-[9px] font-bold text-slate-700 uppercase mb-1">Monto Total ({draft.currency}) *</label>
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Monto Total ({draft.currency}) *</label>
                   <input
                     type="number"
                     step="any"
@@ -326,14 +326,14 @@ const OrdenesVentaArrayManager: React.FC<{
                 </div>
               </div>
 
-              {/* SECCIÓN DESGLOSE DE HORAS POR ROL */}
+              {/* SECCIÃ“N DESGLOSE DE HORAS POR ROL */}
               <div className="pt-2.5 border-t border-slate-100 bg-slate-50/70 p-3 rounded-xl space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-[#FF5500]" />
-                    Horas Vendidas por Rol (OV #{ov.numero || 'Sin número'})
+                    Horas Vendidas por Rol (OV #{ov.numero || 'Sin nÃºmero'})
                   </span>
-                  <span className="text-[10px] font-bold text-[#FF5500] bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full font-mono">
+                  <span className="text-xs font-bold text-[#FF5500] bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full font-mono">
                     Total Horas OV: {typeof ov.horasAsociadas === 'number' ? ov.horasAsociadas : 0} hrs
                   </span>
                 </div>
@@ -341,7 +341,7 @@ const OrdenesVentaArrayManager: React.FC<{
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 {/* Supervisor */}
                 <div className="bg-white p-2 rounded-lg border border-slate-200">
-                  <label className="block text-[9px] font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-purple-500 inline-block"></span>
                     Supervisor
                   </label>
@@ -357,7 +357,7 @@ const OrdenesVentaArrayManager: React.FC<{
 
                 {/* Coordinador PM */}
                 <div className="bg-white p-2 rounded-lg border border-slate-200">
-                  <label className="block text-[9px] font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-cyan-500 inline-block"></span>
                     Coordinador PM
                   </label>
@@ -373,7 +373,7 @@ const OrdenesVentaArrayManager: React.FC<{
 
                 {/* SAC / Consultor */}
                 <div className="bg-white p-2 rounded-lg border border-slate-200">
-                  <label className="block text-[9px] font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>
                     SAC / Consultor
                   </label>
@@ -389,7 +389,7 @@ const OrdenesVentaArrayManager: React.FC<{
 
                 {/* Social Media (ContentS) */}
                 <div className="bg-white p-2 rounded-lg border border-slate-200">
-                  <label className="block text-[9px] font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
                     Social Media
                   </label>
@@ -403,11 +403,11 @@ const OrdenesVentaArrayManager: React.FC<{
                   />
                 </div>
 
-                {/* Diseñador (ContentD) */}
+                {/* DiseÃ±ador (ContentD) */}
                 <div className="bg-white p-2 rounded-lg border border-slate-200">
-                  <label className="block text-[9px] font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
+                  <label className="block text-xs font-bold text-slate-700 uppercase mb-1 flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>
-                    Diseñador
+                    DiseÃ±ador
                   </label>
                   <input
                     type="number"
@@ -435,7 +435,7 @@ const OrdenesVentaArrayManager: React.FC<{
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="font-bold text-slate-500">Monto Total OVs Válidas:</span>
+          <span className="font-bold text-slate-500">Monto Total OVs VÃ¡lidas:</span>
           <span className="font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-xl border border-emerald-100">
             ${(typeof draft.totalIncome === 'number' ? draft.totalIncome : 0).toLocaleString('es-CL')} {draft.currency}
           </span>
@@ -450,7 +450,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
   const [activeTab, setActiveTab] = useState<'general' | 'fases' | 'integrantes'>('general');
   const [clients, setClients] = useState<any[]>([]);
 
-  // Búsqueda de integrantes
+  // BÃºsqueda de integrantes
   const [rosterSearch, setRosterSearch] = useState('');
 
   // Drag & drop state para Integrantes
@@ -459,7 +459,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
   // Drag & drop state para Fases
   const [draggedPhaseIndex, setDraggedPhaseIndex] = useState<number | null>(null);
 
-  // Estado para creación manual de Fase
+  // Estado para creaciÃ³n manual de Fase
   const [newPhaseName, setNewPhaseName] = useState('');
   const [newChecklistText, setNewChecklistText] = useState('');
   const [newPhaseChecklist, setNewPhaseChecklist] = useState<string[]>([]);
@@ -530,12 +530,12 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     members: [],
     currency: 'USD',
     totalIncome: '',
-    roleHours: { 
+    roleHours: {
       supervisor: 0,
-      coordinador: 0, 
-      sac: 0, 
-      contents: 0, 
-      contentd: 0 
+      coordinador: 0,
+      sac: 0,
+      contents: 0,
+      contentd: 0
     }
   };
 
@@ -548,7 +548,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     }
   });
 
-  // Guardar automáticamente el borrador cuando cambia
+  // Guardar automÃ¡ticamente el borrador cuando cambia
   useEffect(() => {
     if (isOpen) {
       try {
@@ -561,11 +561,11 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
 
   if (!isOpen) return null;
 
-  const totalHoursCalculated = 
+  const totalHoursCalculated =
     Number(draft.roleHours.supervisor || 0) +
-    Number(draft.roleHours.coordinador || 0) + 
-    Number(draft.roleHours.sac || 0) + 
-    Number(draft.roleHours.contents || 0) + 
+    Number(draft.roleHours.coordinador || 0) +
+    Number(draft.roleHours.sac || 0) +
+    Number(draft.roleHours.contents || 0) +
     Number(draft.roleHours.contentd || 0);
 
   // Funciones de Etiquetas
@@ -598,12 +598,12 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     if (!draft.members.some(m => m.id === user.id)) {
       setDraft(prev => ({
         ...prev,
-        members: [...prev.members, { 
-          id: user.id, 
-          name: user.name, 
-          role: user.roleBase, 
+        members: [...prev.members, {
+          id: user.id,
+          name: user.name,
+          role: user.roleBase,
           participationRole: 'Principal',
-          avatar: user.avatar 
+          avatar: user.avatar
         }]
       }));
     }
@@ -731,26 +731,26 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
         lines.forEach((line) => {
           if (line.startsWith('# ')) {
             if (currentPhase) parsedPhases.push(currentPhase);
-            currentPhase = { 
-              id: `md-${Date.now()}-${Math.random()}`, 
-              label: line.replace('# ', '').trim(), 
-              status: parsedPhases.length === 0 ? 'active' : 'pending', 
+            currentPhase = {
+              id: `md-${Date.now()}-${Math.random()}`,
+              label: line.replace('# ', '').trim(),
+              status: parsedPhases.length === 0 ? 'active' : 'pending',
               completedAt: null,
-              checklist: [], 
-              fields: {} 
+              checklist: [],
+              fields: {}
             };
           } else if (line.startsWith('- [ ]') && currentPhase) {
-            currentPhase.checklist.push({ 
-              id: `t-${Date.now()}-${Math.random()}`, 
-              text: line.replace('- [ ]', '').trim(), 
-              completed: false 
+            currentPhase.checklist.push({
+              id: `t-${Date.now()}-${Math.random()}`,
+              text: line.replace('- [ ]', '').trim(),
+              completed: false
             });
           }
         });
         if (currentPhase) parsedPhases.push(currentPhase);
-        
+
         const finalParsed = parsedPhases.length ? parsedPhases : [{ id: '1', label: 'A1. Fase Importada', status: 'active', completedAt: null, checklist: [], fields: {} }];
-        
+
         const renumbered = finalParsed.map((ph, idx) => {
           const cleanName = ph.label.replace(/^A\d+\.\s*/, '');
           return {
@@ -850,7 +850,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
           const roleKey = field.replace('horasPorRol_', '');
           const existing = o.horasPorRol || { supervisor: '', coordinador: '', sac: '', contents: '', contentd: '' };
           const updatedRoleHours = { ...existing, [roleKey]: value };
-          const sumOV = 
+          const sumOV =
             (typeof updatedRoleHours.supervisor === 'number' ? updatedRoleHours.supervisor : 0) +
             (typeof updatedRoleHours.coordinador === 'number' ? updatedRoleHours.coordinador : 0) +
             (typeof updatedRoleHours.sac === 'number' ? updatedRoleHours.sac : 0) +
@@ -894,29 +894,29 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
   // Guardar proyecto
   const handleFinish = () => {
     const defaultInitialPhases = [
-      { 
-        id: 'A1', 
-        label: 'A1. Kickoff & Planificación', 
-        status: 'active', 
-        completedAt: null, 
-        checklist: [{ id: 't-1', text: 'Reunión inicial con cliente', completed: false }], 
-        fields: {} 
+      {
+        id: 'A1',
+        label: 'A1. Kickoff & PlanificaciÃ³n',
+        status: 'active',
+        completedAt: null,
+        checklist: [{ id: 't-1', text: 'ReuniÃ³n inicial con cliente', completed: false }],
+        fields: {}
       },
-      { 
-        id: 'A2', 
-        label: 'A2. Ejecución & Desarrollo', 
-        status: 'pending', 
-        completedAt: null, 
-        checklist: [{ id: 't-2', text: 'Desarrollo de entregables principales', completed: false }], 
-        fields: {} 
+      {
+        id: 'A2',
+        label: 'A2. EjecuciÃ³n & Desarrollo',
+        status: 'pending',
+        completedAt: null,
+        checklist: [{ id: 't-2', text: 'Desarrollo de entregables principales', completed: false }],
+        fields: {}
       },
-      { 
-        id: 'A3', 
-        label: 'A3. Entrega & Aprobación', 
-        status: 'pending', 
-        completedAt: null, 
-        checklist: [{ id: 't-3', text: 'Aprobación final del cliente', completed: false }], 
-        fields: {} 
+      {
+        id: 'A3',
+        label: 'A3. Entrega & AprobaciÃ³n',
+        status: 'pending',
+        completedAt: null,
+        checklist: [{ id: 't-3', text: 'AprobaciÃ³n final del cliente', completed: false }],
+        fields: {}
       }
     ];
 
@@ -948,20 +948,20 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
       name: draft.projectName,
       clientName: draft.clientName,
       templateType: 'custom',
-      startDate: draft.startDate, 
-      endDate: draft.endDate || new Date().toISOString().split('T')[0], 
-      saleOrderNumber: combinedOVNumbers, 
+      startDate: draft.startDate,
+      endDate: draft.endDate || new Date().toISOString().split('T')[0],
+      saleOrderNumber: combinedOVNumbers,
       ovNumber: combinedOVNumbers,
       ordenesVenta: formattedOVs,
-      deliverablesCount: Number(draft.deliverablesCount) || 0, 
-      description: draft.description || '', 
+      deliverablesCount: Number(draft.deliverablesCount) || 0,
+      description: draft.description || '',
       riesgos: draft.riskMitigationText || '',
-      tags: draft.tags, 
-      members: draft.members.map(m => ({ id: m.id, name: m.name, role: m.role, participationRole: m.participationRole })), 
-      currency: draft.currency, 
-      totalIncome: computedTotalIncome || Number(draft.totalIncome) || 0, 
-      roleHours: draft.roleHours, 
-      hoursTotal: totalHoursCalculated, 
+      tags: draft.tags,
+      members: draft.members.map(m => ({ id: m.id, name: m.name, role: m.role, participationRole: m.participationRole })),
+      currency: draft.currency,
+      totalIncome: computedTotalIncome || Number(draft.totalIncome) || 0,
+      roleHours: draft.roleHours,
+      hoursTotal: totalHoursCalculated,
       phases: finalPhases
     });
 
@@ -977,21 +977,21 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
       avatar: u.avatar || `https://i.pravatar.cc/150?u=${u.username}`
     }));
 
-  const filteredRoster = rosterUsers.filter(member => 
-    member.name.toLowerCase().includes(rosterSearch.toLowerCase()) || 
+  const filteredRoster = rosterUsers.filter(member =>
+    member.name.toLowerCase().includes(rosterSearch.toLowerCase()) ||
     member.roleBase.toLowerCase().includes(rosterSearch.toLowerCase())
   );
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[95vh] animate-in fade-in duration-200">
-        
+      <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[95vh] animate-in fade-in duration-200">
+
         {/* ======================= PASO 1 ======================= */}
         {step === 1 && (
           <div className="p-8 space-y-6 overflow-y-auto">
             <div className="flex justify-between items-center border-b border-slate-100 pb-4">
               <div>
-                <h2 className="text-xl font-black text-slate-900">Configuración Inicial del Proyecto</h2>
+                <h2 className="text-xl font-black text-slate-900">ConfiguraciÃ³n Inicial del Proyecto</h2>
                 <p className="text-xs text-slate-500 font-medium mt-0.5">Introduce el nombre y cliente para comenzar.</p>
               </div>
               <button onClick={handleResetAndClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer">
@@ -1002,12 +1002,12 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Nombre del proyecto *</label>
-                <input 
-                  type="text" 
-                  placeholder="Ej: Rediseño Portal Clientes"
-                  value={draft.projectName} 
-                  onChange={(e) => setDraft(prev => ({ ...prev, projectName: e.target.value }))} 
-                  className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-[#FF5500] bg-slate-50" 
+                <input
+                  type="text"
+                  placeholder="Ej: RediseÃ±o Portal Clientes"
+                  value={draft.projectName}
+                  onChange={(e) => setDraft(prev => ({ ...prev, projectName: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-sm font-medium focus:outline-none focus:border-[#FF5500] bg-slate-50"
                 />
               </div>
 
@@ -1037,7 +1037,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       <div className="mt-2 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center gap-2 animate-in fade-in">
                         <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
                         <span>
-                          El cliente <strong>{matched.nombreComercial}</strong> se encuentra como <strong>{matched.estado}</strong>. Se reactivará automáticamente a estar <strong>Activo</strong> al guardar.
+                          El cliente <strong>{matched.nombreComercial}</strong> se encuentra como <strong>{matched.estado}</strong>. Se reactivarÃ¡ automÃ¡ticamente a estar <strong>Activo</strong> al guardar.
                         </span>
                       </div>
                     );
@@ -1048,9 +1048,9 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
             </div>
 
             <div className="flex justify-end pt-4 border-t border-slate-100">
-              <button 
-                disabled={!draft.projectName.trim() || !draft.clientName.trim()} 
-                onClick={() => setStep(2)} 
+              <button
+                disabled={!draft.projectName.trim() || !draft.clientName.trim()}
+                onClick={() => setStep(2)}
                 className="px-8 py-3 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl font-bold text-sm disabled:opacity-40 transition-colors cursor-pointer shadow-sm"
               >
                 Siguiente
@@ -1063,56 +1063,56 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
         {step === 2 && (
           <div className="flex flex-col h-full overflow-hidden">
             <div className="flex border-b border-slate-200 bg-slate-50/50 overflow-x-auto shrink-0">
-              <button 
-                onClick={() => setActiveTab('general')} 
+              <button
+                onClick={() => setActiveTab('general')}
                 className={`flex-1 py-4 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 cursor-pointer transition-all ${
                   activeTab === 'general' ? 'border-[#FF5500] text-[#FF5500] bg-white' : 'border-transparent text-slate-400 hover:text-slate-600'
                 }`}
               >
-                ⚙️ General
+                âš™ï¸ General
               </button>
-              
-              <button 
-                onClick={() => setActiveTab('fases')} 
+
+              <button
+                onClick={() => setActiveTab('fases')}
                 className={`flex-1 py-4 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 cursor-pointer transition-all ${
                   activeTab === 'fases' ? 'border-[#FF5500] text-[#FF5500] bg-white' : 'border-transparent text-slate-400 hover:text-slate-600'
                 }`}
               >
-                🏗️ Fases del Proyecto
+                ðŸ—ï¸ Fases del Proyecto
               </button>
-              
-              <button 
-                onClick={() => setActiveTab('integrantes')} 
+
+              <button
+                onClick={() => setActiveTab('integrantes')}
                 className={`flex-1 py-4 px-4 text-xs font-bold flex items-center justify-center gap-2 border-b-2 cursor-pointer transition-all ${
                   activeTab === 'integrantes' ? 'border-[#FF5500] text-[#FF5500] bg-white' : 'border-transparent text-slate-400 hover:text-slate-600'
                 }`}
               >
-                👥 Integrantes
+                ðŸ‘¥ Integrantes
               </button>
             </div>
 
             <div className="p-8 overflow-y-auto flex-1 bg-white">
-              
+
               {/* TAB GENERAL */}
               {activeTab === 'general' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-500 mb-1">Fecha de Inicio</label>
-                      <input 
-                        type="date" 
-                        value={draft.startDate} 
-                        onChange={(e) => setDraft(prev => ({ ...prev, startDate: e.target.value }))} 
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none" 
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Fecha de Inicio</label>
+                      <input
+                        type="date"
+                        value={draft.startDate}
+                        onChange={(e) => setDraft(prev => ({ ...prev, startDate: e.target.value }))}
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-500 mb-1">Fecha de Término *</label>
-                      <input 
-                        type="date" 
-                        value={draft.endDate} 
-                        onChange={(e) => setDraft(prev => ({ ...prev, endDate: e.target.value }))} 
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none" 
+                      <label className="block text-xs font-bold text-slate-500 mb-1">Fecha de TÃ©rmino *</label>
+                      <input
+                        type="date"
+                        value={draft.endDate}
+                        onChange={(e) => setDraft(prev => ({ ...prev, endDate: e.target.value }))}
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none"
                       />
                     </div>
                   </div>
@@ -1126,13 +1126,13 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   />
 
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 mb-1">Cantidad de entregables esperados</label>
-                    <input 
-                      type="number" 
-                      placeholder="Ej: 5" 
-                      value={draft.deliverablesCount} 
-                      onChange={(e) => setDraft(prev => ({ ...prev, deliverablesCount: e.target.value ? Number(e.target.value) : '' }))} 
-                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none" 
+                    <label className="block text-xs font-bold text-slate-500 mb-1">Cantidad de entregables esperados</label>
+                    <input
+                      type="number"
+                      placeholder="Ej: 5"
+                      value={draft.deliverablesCount}
+                      onChange={(e) => setDraft(prev => ({ ...prev, deliverablesCount: e.target.value ? Number(e.target.value) : '' }))}
+                      className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none"
                     />
                   </div>
 
@@ -1143,10 +1143,10 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
               {/* TAB FASES (CREADOR MANUAL DE FASES + IMPORTADOR MARKDOWN + DRAG AND DROP) */}
               {activeTab === 'fases' && (
                 <div className="space-y-6">
-                  
+
                   {/* IMPORTADOR MARKDOWN & CREADOR MANUAL EN 2 COLUMNAS */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    
+
                     {/* CREADOR MANUAL DE FASES CON CHECKLIST */}
                     <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-3">
                       <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
@@ -1155,7 +1155,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       </div>
 
                       <div>
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Nombre de la Fase *</label>
+                        <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nombre de la Fase *</label>
                         <input
                           type="text"
                           placeholder="Ej: Kickoff & Levantamiento"
@@ -1166,7 +1166,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       </div>
 
                       <div className="space-y-2">
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase">Checklist / Tareas de la Fase</label>
+                        <label className="block text-xs font-bold text-slate-500 uppercase">Checklist / Tareas de la Fase</label>
                         <div className="flex gap-2">
                           <input
                             type="text"
@@ -1189,7 +1189,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                           <div className="space-y-1 pt-1">
                             {newPhaseChecklist.map((task, idx) => (
                               <div key={idx} className="flex items-center justify-between bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-xs">
-                                <span className="text-slate-700 font-medium">✓ {task}</span>
+                                <span className="text-slate-700 font-medium">âœ“ {task}</span>
                                 <button
                                   type="button"
                                   onClick={() => handleRemoveChecklistItem(idx)}
@@ -1220,8 +1220,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                         <FileCode2 className="w-4 h-4 text-slate-600" />
                         <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Importar desde Markdown (.md)</h4>
                       </div>
-                      <p className="text-[11px] text-slate-500 leading-normal max-w-xs">
-                        Carga tu brief estructurado. Las líneas `#` se leen como Fases y `- [ ]` como tareas del checklist.
+                      <p className="text-xs text-slate-500 leading-normal max-w-xs">
+                        Carga tu brief estructurado. Las lÃ­neas `#` se leen como Fases y `- [ ]` como tareas del checklist.
                       </p>
                       <label className="cursor-pointer bg-white border border-slate-300 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors shadow-xs">
                         Subir archivo .md
@@ -1238,14 +1238,14 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                         <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                         Fases del Proyecto ({draft.customPhases.length})
                       </h4>
-                      <span className="text-[10px] text-slate-400 font-semibold">
-                        Arrastra con el ícono ⠿ o usa las flechas para reordenar las fases.
+                      <span className="text-xs text-slate-400 font-semibold">
+                        Arrastra con el Ã­cono â ¿ o usa las flechas para reordenar las fases.
                       </span>
                     </div>
 
                     {draft.customPhases.length === 0 ? (
                       <div className="p-8 border-2 border-dashed border-slate-200 rounded-2xl text-center text-xs text-slate-400 font-medium">
-                        Aún no has agregado fases. Crea una manualmente arriba o sube un archivo Markdown.
+                        AÃºn no has agregado fases. Crea una manualmente arriba o sube un archivo Markdown.
                       </div>
                     ) : (
                       <div className="space-y-2.5 max-h-[320px] overflow-y-auto pr-1">
@@ -1272,17 +1272,17 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                                 <h5 className="text-xs font-bold text-slate-800 truncate">{ph.label}</h5>
                                 {ph.checklist && ph.checklist.length > 0 ? (
                                   <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">
+                                    <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-semibold">
                                       {ph.checklist.length} tareas en checklist
                                     </span>
                                   </div>
                                 ) : (
-                                  <span className="text-[10px] text-slate-400 font-medium">Sin tareas en checklist</span>
+                                  <span className="text-xs text-slate-400 font-medium">Sin tareas en checklist</span>
                                 )}
                               </div>
                             </div>
 
-                            {/* Acciones de Reordenado y Eliminación */}
+                            {/* Acciones de Reordenado y EliminaciÃ³n */}
                             <div className="flex items-center gap-1 shrink-0">
                               <button
                                 type="button"
@@ -1324,30 +1324,30 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
               {activeTab === 'integrantes' && (
                 <div className="space-y-6 h-full flex flex-col">
                   <div className="flex flex-col lg:flex-row gap-6 items-stretch h-full min-h-[350px]">
-                    
+
                     {/* ROSTER LATERAL IZQUIERDO */}
                     <div className="w-full lg:w-1/3 bg-slate-50 p-4 rounded-2xl border border-slate-200/60 flex flex-col">
                       <div className="mb-3">
                         <span className="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-2">Roster de Integrantes</span>
-                        <input 
-                           type="text" 
+                        <input
+                           type="text"
                            placeholder="Buscar por nombre o rol..."
                            value={rosterSearch}
                            onChange={(e) => setRosterSearch(e.target.value)}
                            className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white outline-none focus:border-cyan-500"
                         />
                       </div>
-                      
+
                       <div className="flex-1 overflow-y-auto space-y-2 max-h-[280px]">
                         {filteredRoster.map(member => {
                           const isAssigned = draft.members.some(m => m.id === member.id);
                           return (
-                            <div 
-                              key={member.id} 
+                            <div
+                              key={member.id}
                               onClick={() => !isAssigned && handleAddMemberClick(member)}
                               className={`flex items-center justify-between p-2.5 rounded-xl border transition-all ${
-                                isAssigned 
-                                  ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-65' 
+                                isAssigned
+                                  ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed opacity-65'
                                   : 'bg-white border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 cursor-pointer shadow-xs'
                               }`}
                             >
@@ -1355,12 +1355,12 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                                 <img src={member.avatar} className="w-7 h-7 rounded-full border border-slate-100 shadow-inner" />
                                 <div className="flex flex-col">
                                   <span className="text-xs font-bold text-slate-800">{member.name}</span>
-                                  <span className="text-[10px] text-slate-400 font-semibold">{member.roleBase}</span>
+                                  <span className="text-xs text-slate-400 font-semibold">{member.roleBase}</span>
                                 </div>
                               </div>
                               {!isAssigned && (
-                                <span className="text-[10px] text-cyan-600 bg-cyan-50 font-bold px-2 py-0.5 rounded-lg border border-cyan-100">
-                                  Añadir
+                                <span className="text-xs text-cyan-600 bg-cyan-50 font-bold px-2 py-0.5 rounded-lg border border-cyan-100">
+                                  AÃ±adir
                                 </span>
                               )}
                             </div>
@@ -1371,21 +1371,21 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
 
                     {/* DRAG AND DROP COLUMNS */}
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-                      
+
                       {/* COLUMNA 1: PRINCIPAL */}
-                      <div 
+                      <div
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => handleDropToRole(e, 'Principal')}
                         className="bg-amber-50/50 border border-amber-200/60 p-3.5 rounded-2xl flex flex-col min-h-[180px] transition-colors hover:bg-amber-50"
                       >
                         <div className="flex items-center justify-between mb-3 border-b border-amber-200 pb-2">
                           <span className="text-xs font-black text-amber-800 uppercase tracking-wider flex items-center gap-1">
-                            👑 Principal ({draft.members.filter(m => m.participationRole === 'Principal').length})
+                            ðŸ‘‘ Principal ({draft.members.filter(m => m.participationRole === 'Principal').length})
                           </span>
                         </div>
                         <div className="flex-1 overflow-y-auto space-y-2">
                           {draft.members.filter(m => m.participationRole === 'Principal').map(m => (
-                            <div 
+                            <div
                               key={m.id}
                               draggable
                               onDragStart={(e) => handleDragStart(e, m.id)}
@@ -1395,10 +1395,10 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                                 <img src={m.avatar} className="w-7 h-7 rounded-full shrink-0 shadow-inner" />
                                 <div className="flex flex-col">
                                   <span className="text-xs font-bold text-slate-800">{m.name}</span>
-                                  <span className="text-[9px] text-slate-400 font-bold">{m.role}</span>
+                                  <span className="text-xs text-slate-400 font-bold">{m.role}</span>
                                 </div>
                               </div>
-                              <button 
+                              <button
                                 onClick={() => handleRemoveMember(m.id)}
                                 className="text-slate-300 hover:text-rose-500 p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                               >
@@ -1410,19 +1410,19 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       </div>
 
                       {/* COLUMNA 2: APOYO */}
-                      <div 
+                      <div
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => handleDropToRole(e, 'Apoyo')}
                         className="bg-blue-50/50 border border-blue-200/60 p-3.5 rounded-2xl flex flex-col min-h-[180px] transition-colors hover:bg-blue-50"
                       >
                         <div className="flex items-center justify-between mb-3 border-b border-blue-200 pb-2">
                           <span className="text-xs font-black text-blue-800 uppercase tracking-wider flex items-center gap-1">
-                            🤝 Apoyo ({draft.members.filter(m => m.participationRole === 'Apoyo').length})
+                            ðŸ¤ Apoyo ({draft.members.filter(m => m.participationRole === 'Apoyo').length})
                           </span>
                         </div>
                         <div className="flex-1 overflow-y-auto space-y-2">
                           {draft.members.filter(m => m.participationRole === 'Apoyo').map(m => (
-                            <div 
+                            <div
                               key={m.id}
                               draggable
                               onDragStart={(e) => handleDragStart(e, m.id)}
@@ -1432,10 +1432,10 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                                 <img src={m.avatar} className="w-7 h-7 rounded-full shrink-0 shadow-inner" />
                                 <div className="flex flex-col">
                                   <span className="text-xs font-bold text-slate-800">{m.name}</span>
-                                  <span className="text-[9px] text-slate-400 font-bold">{m.role}</span>
+                                  <span className="text-xs text-slate-400 font-bold">{m.role}</span>
                                 </div>
                               </div>
-                              <button 
+                              <button
                                 onClick={() => handleRemoveMember(m.id)}
                                 className="text-slate-300 hover:text-rose-500 p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                               >
@@ -1447,19 +1447,19 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       </div>
 
                       {/* COLUMNA 3: OBSERVADOR */}
-                      <div 
+                      <div
                         onDragOver={(e) => e.preventDefault()}
                         onDrop={(e) => handleDropToRole(e, 'Observador')}
                         className="bg-slate-100/50 border border-slate-300/60 p-3.5 rounded-2xl flex flex-col min-h-[180px] transition-colors hover:bg-slate-100"
                       >
                         <div className="flex items-center justify-between mb-3 border-b border-slate-300 pb-2">
                           <span className="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                            👁️ Observador ({draft.members.filter(m => m.participationRole === 'Observador').length})
+                            ðŸ‘ï¸ Observador ({draft.members.filter(m => m.participationRole === 'Observador').length})
                           </span>
                         </div>
                         <div className="flex-1 overflow-y-auto space-y-2">
                           {draft.members.filter(m => m.participationRole === 'Observador').map(m => (
-                            <div 
+                            <div
                               key={m.id}
                               draggable
                               onDragStart={(e) => handleDragStart(e, m.id)}
@@ -1469,10 +1469,10 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                                 <img src={m.avatar} className="w-7 h-7 rounded-full shrink-0 shadow-inner" />
                                 <div className="flex flex-col">
                                   <span className="text-xs font-bold text-slate-800">{m.name}</span>
-                                  <span className="text-[9px] text-slate-400 font-bold">{m.role}</span>
+                                  <span className="text-xs text-slate-400 font-bold">{m.role}</span>
                                 </div>
                               </div>
-                              <button 
+                              <button
                                 onClick={() => handleRemoveMember(m.id)}
                                 className="text-slate-300 hover:text-rose-500 p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                               >
@@ -1491,9 +1491,9 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
 
             </div>
 
-            {/* Navegación Footer */}
+            {/* NavegaciÃ³n Footer */}
             <div className="p-6 border-t border-slate-100 bg-white flex justify-between items-center shrink-0">
-              <button 
+              <button
                 type="button"
                 onClick={() => {
                   if (activeTab === 'integrantes') {
@@ -1503,7 +1503,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   } else {
                     setStep(1);
                   }
-                }} 
+                }}
                 className="text-xs font-bold text-[#FF5500] flex items-center gap-1 hover:underline cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" /> Volver
@@ -1524,9 +1524,9 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   Siguiente
                 </button>
               ) : (
-                <button 
+                <button
                   type="button"
-                  onClick={handleFinish} 
+                  onClick={handleFinish}
                   disabled={!draft.projectName.trim() || !draft.clientName.trim()}
                   className="px-8 py-3 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer disabled:opacity-40"
                 >

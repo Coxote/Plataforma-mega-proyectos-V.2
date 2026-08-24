@@ -1,12 +1,12 @@
 import { Phase, Project, DeliverableItem, Role, ClientAnnotation, DecisionLogEntry, UserSession, AuditLogEntry, ChecklistItem } from '../types';
-import { 
-  CheckSquare, 
-  Square, 
-  CheckCircle2, 
-  Save, 
+import {
+  CheckSquare,
+  Square,
+  CheckCircle2,
+  Save,
   Sparkles,
-  User, 
-  Briefcase, 
+  User,
+  Briefcase,
   AlertTriangle,
   ClipboardList,
   FileCode,
@@ -86,7 +86,7 @@ export default function PhaseContent({
 
   // Decision Log Form States
   const [decTitle, setDecTitle] = useState('');
-  const [decCategory, setDecCategory] = useState<'Alcance' | 'Diseño' | 'Técnico' | 'Presupuesto' | 'Aprobación' | 'Otro'>('Alcance');
+  const [decCategory, setDecCategory] = useState<'Alcance' | 'DiseÃ±o' | 'TÃ©cnico' | 'Presupuesto' | 'AprobaciÃ³n' | 'Otro'>('Alcance');
   const [decRationale, setDecRationale] = useState('');
   const [decApprovedBy, setDecApprovedBy] = useState('');
 
@@ -96,8 +96,8 @@ export default function PhaseContent({
 
   // Calculate total hours logged for active phase
   const phaseTimeEntries = (project.timeEntries || []).filter(
-    (entry) => 
-      entry.phaseId === activePhase.id || 
+    (entry) =>
+      entry.phaseId === activePhase.id ||
       entry.phaseId === activePhase.label ||
       (activePhase.label && entry.phaseId && activePhase.label.toLowerCase().includes(entry.phaseId.toLowerCase()))
   );
@@ -203,7 +203,7 @@ export default function PhaseContent({
     md += `**Proyecto:** ${project.name}\n`;
     md += `**Cliente:** ${project.clientName}\n`;
     md += `**Estado de la Fase:** ${phase.status === 'completed' ? 'Completada' : 'En Progreso'}\n`;
-    md += `**Fecha de Finalización:** ${phase.completedAt ? new Date(phase.completedAt).toLocaleDateString('es-CL') : 'En curso'}\n`;
+    md += `**Fecha de FinalizaciÃ³n:** ${phase.completedAt ? new Date(phase.completedAt).toLocaleDateString('es-CL') : 'En curso'}\n`;
     md += `**Tiempo Total Consumido:** ${phaseHours} horas\n\n`;
 
     md += `## Checklist, Hitos, Avances y Aprendizajes\n\n`;
@@ -211,7 +211,7 @@ export default function PhaseContent({
       phase.checklist.forEach((item, idx) => {
         md += `### ${idx + 1}. [${item.completed ? 'X' : ' '}] ${item.text}\n`;
         if (item.startDate) md += `- **Fecha Inicio:** ${item.startDate}\n`;
-        if (item.endDate) md += `- **Fecha Finalización:** ${item.endDate}\n`;
+        if (item.endDate) md += `- **Fecha FinalizaciÃ³n:** ${item.endDate}\n`;
         if (item.milestones) md += `- **Hitos y Avances:** ${item.milestones}\n`;
         if (item.learnings) md += `- **Aprendizaje / Lecciones:** ${item.learnings}\n`;
         md += `\n`;
@@ -221,7 +221,7 @@ export default function PhaseContent({
     }
 
     if (phase.fields && Object.keys(phase.fields).length > 0) {
-      md += `## Campos Específicos de la Fase\n\n`;
+      md += `## Campos EspecÃ­ficos de la Fase\n\n`;
       Object.entries(phase.fields).forEach(([key, val]) => {
         if (val) {
           md += `- **${key.toUpperCase()}:** ${val}\n`;
@@ -230,7 +230,7 @@ export default function PhaseContent({
       md += `\n`;
     }
 
-    md += `---\n*Documentación de Fase descargada el ${new Date().toLocaleDateString('es-CL')}*\n`;
+    md += `---\n*DocumentaciÃ³n de Fase descargada el ${new Date().toLocaleDateString('es-CL')}*\n`;
 
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -248,11 +248,11 @@ export default function PhaseContent({
     let md = `# Expediente Completo del Proyecto: ${project.name}\n`;
     md += `**Cliente:** ${project.clientName}\n`;
     md += `**Fecha de Inicio:** ${project.startDate || 'N/A'}\n`;
-    md += `**Fecha de Término:** ${project.endDate || 'N/A'}\n`;
+    md += `**Fecha de TÃ©rmino:** ${project.endDate || 'N/A'}\n`;
     md += `**Horas Presupuestadas:** ${project.hoursTotal || 0} hrs\n`;
     md += `**Monto Presupuesto:** $${(project.totalIncome || 0).toLocaleString('es-CL')} ${project.currency || 'USD'}\n\n`;
 
-    md += `## 1. Documentación de Todas las Fases y Checklists\n\n`;
+    md += `## 1. DocumentaciÃ³n de Todas las Fases y Checklists\n\n`;
     project.phases.forEach((p, idx) => {
       const cleanTitle = getCleanPhaseTitle(p.label, p.id, idx);
       const pEntries = (project.timeEntries || []).filter(t => t.phaseId === p.id || t.phaseId === p.label);
@@ -268,7 +268,7 @@ export default function PhaseContent({
         p.checklist.forEach((item, itemIdx) => {
           md += `${itemIdx + 1}. [${item.completed ? 'X' : ' '}] ${item.text}\n`;
           if (item.startDate) md += `   - Fecha Inicio: ${item.startDate}\n`;
-          if (item.endDate) md += `   - Fecha Término: ${item.endDate}\n`;
+          if (item.endDate) md += `   - Fecha TÃ©rmino: ${item.endDate}\n`;
           if (item.milestones) md += `   - Hitos y Avances: ${item.milestones}\n`;
           if (item.learnings) md += `   - Aprendizaje: ${item.learnings}\n`;
         });
@@ -382,7 +382,7 @@ export default function PhaseContent({
     if (isGeneralDisabled) return;
     const currentBB = project.brandBible || {};
     const sectionData = currentBB[section] || {};
-    
+
     const updatedBB = {
       ...currentBB,
       [section]: {
@@ -404,7 +404,7 @@ export default function PhaseContent({
     setAnalysisError(null);
     try {
       const data = await analyzeBriefWithGemini(briefInput);
-      
+
       const newAuditLog = [
         {
           id: `audit-${Date.now()}`,
@@ -412,9 +412,9 @@ export default function PhaseContent({
           userId: 'gemini-ai',
           username: 'Gemini 3.6-Flash',
           userRole: 'coordinador' as const,
-          action: 'Extracción Brand Bible',
+          action: 'ExtracciÃ³n Brand Bible',
           entityType: 'BrandBible',
-          details: `Analizó brief de ${briefInput.length} caracteres y autogeneró Brand Bible.`,
+          details: `AnalizÃ³ brief de ${briefInput.length} caracteres y autogenerÃ³ Brand Bible.`,
         },
         ...(project.auditLog || [])
       ];
@@ -459,9 +459,9 @@ export default function PhaseContent({
         userId: 'internal',
         username: 'Equipo de Trabajo',
         userRole: userRole,
-        action: 'Publicó Entregable',
+        action: 'PublicÃ³ Entregable',
         entityType: 'Entregable',
-        details: `Se publicó "${delivTitle}" (${delivType}). Visibilidad: ${delivVisible ? 'Público' : 'Privado'}.`,
+        details: `Se publicÃ³ "${delivTitle}" (${delivType}). Visibilidad: ${delivVisible ? 'PÃºblico' : 'Privado'}.`,
       },
       ...(project.auditLog || [])
     ];
@@ -529,7 +529,7 @@ export default function PhaseContent({
       return d;
     });
 
-    const actionText = newStatus === 'aprobado' ? 'Aprobó' : newStatus === 'rechazado' ? 'Rechazó/Pidió Corrección' : 'Cambió estado a ' + newStatus;
+    const actionText = newStatus === 'aprobado' ? 'AprobÃ³' : newStatus === 'rechazado' ? 'RechazÃ³/PidiÃ³ CorrecciÃ³n' : 'CambiÃ³ estado a ' + newStatus;
     const authorName = userRole === 'invitado' ? 'Cliente / Invitado' : 'Equipo Interno';
 
     const newAuditLog = [
@@ -554,10 +554,10 @@ export default function PhaseContent({
         timestamp: new Date().toISOString(),
         author: authorName,
         userRole: userRole,
-        title: `Aprobación de Entregable: ${target.title}`,
-        description: `El cliente (${authorName}) aprobó formalmente el entregable publicado.`,
+        title: `AprobaciÃ³n de Entregable: ${target.title}`,
+        description: `El cliente (${authorName}) aprobÃ³ formalmente el entregable publicado.`,
         category: 'aprobacion',
-        rationale: `El cliente (${authorName}) aprobó formalmente el entregable publicado.`,
+        rationale: `El cliente (${authorName}) aprobÃ³ formalmente el entregable publicado.`,
         approvedBy: authorName,
         phaseId: activePhase.id,
         date: new Date().toISOString().split('T')[0],
@@ -630,9 +630,9 @@ export default function PhaseContent({
         userId: 'internal',
         username: 'Coordinador',
         userRole: userRole,
-        action: 'Registro de Decisión',
-        entityType: 'Decisión',
-        details: `Registró acuerdo/decisión: "${decTitle}" en fase ${activePhase.id} (Categoría: ${decCategory}).`,
+        action: 'Registro de DecisiÃ³n',
+        entityType: 'DecisiÃ³n',
+        details: `RegistrÃ³ acuerdo/decisiÃ³n: "${decTitle}" en fase ${activePhase.id} (CategorÃ­a: ${decCategory}).`,
       },
       ...(project.auditLog || []),
     ];
@@ -669,7 +669,7 @@ export default function PhaseContent({
   const activeIndex = activePhaseIndex >= 0 ? activePhaseIndex : 0;
   const expectedMaxPercent = Math.round(((activeIndex + 1) / project.phases.length) * 100);
   const hoursPercent = totalHours > 0 ? Math.round((totalConsumedHours / totalHours) * 100) : 0;
-  
+
   let calculatedHealth = 100;
   if (hoursPercent > expectedMaxPercent + 10) {
     calculatedHealth -= Math.round((hoursPercent - (expectedMaxPercent + 10)) * 1.5);
@@ -693,7 +693,7 @@ export default function PhaseContent({
 
   const handleConfirmExceptionAndComplete = () => {
     if (!exceptionReason.trim()) {
-      alert('Por favor especifica el motivo o justificación de la excepción para finalizar la fase con el checklist incompleto.');
+      alert('Por favor especifica el motivo o justificaciÃ³n de la excepciÃ³n para finalizar la fase con el checklist incompleto.');
       return;
     }
 
@@ -705,7 +705,7 @@ export default function PhaseContent({
       userRole: (currentUser?.role || 'coordinador') as Role,
       action: `EXCEPCION_FASE_GATE`,
       entityType: `Fase`,
-      details: `Excepción Autorizada: Finalización de Fase "${activePhase.label}" al ${checklistPercent}% por: ${exceptionReason}`,
+      details: `ExcepciÃ³n Autorizada: FinalizaciÃ³n de Fase "${activePhase.label}" al ${checklistPercent}% por: ${exceptionReason}`,
       phaseId: activePhase.id
     };
 
@@ -736,7 +736,7 @@ export default function PhaseContent({
 
   return (
     <main className="flex flex-col h-full overflow-hidden bg-white" id="phase-content-wrapper">
-      
+
       {/* 1. TOP SUB-NAV PHASE PILLS BAR */}
       <div className="bg-slate-100/90 border-b border-slate-200/80 px-6 py-2 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0" id="phase-pills-bar">
         {visiblePhases.map((p) => {
@@ -772,14 +772,14 @@ export default function PhaseContent({
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] font-extrabold uppercase tracking-widest text-amber-900 bg-amber-100/80 px-2.5 py-0.5 rounded-md border border-amber-200/80">
+              <span className="text-xs font-extrabold uppercase tracking-widest text-amber-900 bg-amber-100/80 px-2.5 py-0.5 rounded-md border border-amber-200/80">
                 {project.clientName || 'GLOBEX S.A.'}
               </span>
               <h2 className="text-base font-black text-slate-900 tracking-tight truncate">
                 {project.name}
               </h2>
-              <span className="px-2.5 py-0.5 text-[10px] rounded-full font-bold border bg-blue-50 border-blue-200 text-blue-700">
-                • {activePhase.status === 'completed' ? 'Completada' : 'En Progreso'} ({getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)})
+              <span className="px-2.5 py-0.5 text-xs rounded-full font-bold border bg-blue-50 border-blue-200 text-blue-700">
+                â€¢ {activePhase.status === 'completed' ? 'Completada' : 'En Progreso'} ({getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)})
               </span>
             </div>
           </div>
@@ -820,7 +820,7 @@ export default function PhaseContent({
                     ? 'Fase completada'
                     : checklistPercent === 100
                     ? 'Checklist al 100% - Lista para finalizar'
-                    : `Checklist al ${checklistPercent}% - Requiere 100% o Excepción Autorizada`
+                    : `Checklist al ${checklistPercent}% - Requiere 100% o ExcepciÃ³n Autorizada`
                 }
               >
                 <CheckCircle2 className="w-3.5 h-3.5" />
@@ -879,11 +879,11 @@ export default function PhaseContent({
       {/* WORKSPACE CONTENT SCROLL CONTAINER */}
       <div className="flex-1 overflow-y-auto p-6 sm:p-8 bg-slate-50/50" id="form-scroll-container">
         <div className="max-w-4xl mx-auto space-y-6">
-          
+
           {/* TAB 1: PHASE REQUIREMENTS & CHECKLIST */}
           {activeTab === 'phase' && (
             <div className="space-y-6" id="phase-tab-content">
-              
+
               {/* 4 KPI CARDS ROW */}
               <div className={`grid grid-cols-1 sm:grid-cols-2 ${isProveedor ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-4`} id="kpi-cards-grid">
                 {/* Card 1: SALUD DEL PROYECTO */}
@@ -893,15 +893,15 @@ export default function PhaseContent({
                       <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
                         <TrendingUp className="w-4 h-4" />
                       </div>
-                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
                         SALUD DEL PROYECTO
                       </span>
                     </div>
                     <span className={`text-xs font-black px-2 py-0.5 rounded-full border ${
-                      finalHealth < 50 
-                        ? 'bg-rose-50 text-rose-700 border-rose-200' 
-                        : finalHealth < 80 
-                        ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                      finalHealth < 50
+                        ? 'bg-rose-50 text-rose-700 border-rose-200'
+                        : finalHealth < 80
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
                         : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                     }`}>
                       {finalHealth}%
@@ -910,22 +910,22 @@ export default function PhaseContent({
 
                   <div className="space-y-2">
                     <div className="text-xl font-black text-slate-900 tracking-tight">
-                      {finalHealth < 50 ? 'Crítico' : finalHealth < 80 ? 'En riesgo' : 'Óptimo'}
+                      {finalHealth < 50 ? 'CrÃ­tico' : finalHealth < 80 ? 'En riesgo' : 'Ã“ptimo'}
                     </div>
                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className={`h-full rounded-full transition-all ${
                           finalHealth < 50 ? 'bg-rose-500' : finalHealth < 80 ? 'bg-amber-500' : 'bg-emerald-500'
-                        }`} 
-                        style={{ width: `${finalHealth}%` }} 
+                        }`}
+                        style={{ width: `${finalHealth}%` }}
                       />
                     </div>
-                    <p className="text-[10px] text-slate-500 font-medium leading-tight">
-                      {finalHealth < 50 
-                        ? '⚠️ Requiere atención inmediata. Se sugieren reuniones de contención.'
+                    <p className="text-xs text-slate-500 font-medium leading-tight">
+                      {finalHealth < 50
+                        ? 'âš ï¸ Requiere atenciÃ³n inmediata. Se sugieren reuniones de contenciÃ³n.'
                         : finalHealth < 80
-                        ? '⚡ Desviaciones menores detectadas en los plazos.'
-                        : '✅ Proyecto ejecutándose de acuerdo a lo planificado.'}
+                        ? 'âš¡ Desviaciones menores detectadas en los plazos.'
+                        : 'âœ… Proyecto ejecutÃ¡ndose de acuerdo a lo planificado.'}
                     </p>
                   </div>
                 </div>
@@ -936,7 +936,7 @@ export default function PhaseContent({
                     <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
                       <Clock className="w-4 h-4" />
                     </div>
-                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                    <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
                       CONSUMO DE HORAS
                     </span>
                   </div>
@@ -954,7 +954,7 @@ export default function PhaseContent({
                     <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
                       <RotateCcw className="w-4 h-4" />
                     </div>
-                    <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                    <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
                       RETRABAJO
                     </span>
                   </div>
@@ -962,17 +962,17 @@ export default function PhaseContent({
                     <div className="text-xl font-black text-slate-900 tracking-tight">
                       {retrabajoStats.porcentajeRetrabajo.toFixed(1)}%
                     </div>
-                    <div className="grid grid-cols-3 gap-1 text-[10px] text-center font-medium">
+                    <div className="grid grid-cols-3 gap-1 text-xs text-center font-medium">
                       <div className="bg-amber-50/80 border border-amber-100/80 p-1.5 rounded-xl">
-                        <span className="text-slate-500 block text-[9px] font-semibold">Cliente</span>
+                        <span className="text-slate-500 block text-xs font-semibold">Cliente</span>
                         <strong className="text-amber-900 font-bold">{retrabajoStats.porOrigen.cliente}h</strong>
                       </div>
                       <div className="bg-slate-50 border border-slate-200/80 p-1.5 rounded-xl">
-                        <span className="text-slate-500 block text-[9px] font-semibold">Interno</span>
+                        <span className="text-slate-500 block text-xs font-semibold">Interno</span>
                         <strong className="text-slate-800 font-bold">{retrabajoStats.porOrigen.interno}h</strong>
                       </div>
                       <div className="bg-slate-50 border border-slate-200/80 p-1.5 rounded-xl">
-                        <span className="text-slate-500 block text-[9px] font-semibold">Proveedor</span>
+                        <span className="text-slate-500 block text-xs font-semibold">Proveedor</span>
                         <strong className="text-slate-800 font-bold">{retrabajoStats.porOrigen.proveedor}h</strong>
                       </div>
                     </div>
@@ -986,7 +986,7 @@ export default function PhaseContent({
                       <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
                         <DollarSign className="w-4 h-4" />
                       </div>
-                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
+                      <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">
                         COSTO ESTIMADO
                       </span>
                     </div>
@@ -995,7 +995,7 @@ export default function PhaseContent({
                         ${(project.totalIncome || 16991).toLocaleString('es-CL')}{' '}
                         <span className="text-xs text-slate-400 font-bold">USD</span>
                       </div>
-                      <div className="text-[10px] text-slate-500 font-semibold bg-slate-50 p-2 rounded-xl border border-slate-100 flex items-center justify-between">
+                      <div className="text-xs text-slate-500 font-semibold bg-slate-50 p-2 rounded-xl border border-slate-100 flex items-center justify-between">
                         <span className="text-slate-400">Presupuesto Base</span>
                         <strong className="text-slate-700 font-bold">$3.627,20 USD</strong>
                       </div>
@@ -1038,7 +1038,7 @@ export default function PhaseContent({
                         <button
                           onClick={() => handleDownloadPhase(activePhase)}
                           className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 border border-slate-200 cursor-pointer shadow-xs"
-                          title="Descargar documentación de esta fase en formato Markdown"
+                          title="Descargar documentaciÃ³n de esta fase en formato Markdown"
                         >
                           <Download className="w-3.5 h-3.5 text-slate-600" />
                           Descargar
@@ -1060,7 +1060,7 @@ export default function PhaseContent({
                                 ? 'Fase completada'
                                 : checklistPercent === 100
                                 ? 'Checklist al 100% - Lista para finalizar'
-                                : `Checklist al ${checklistPercent}% - Requiere 100% o Excepción Autorizada`
+                                : `Checklist al ${checklistPercent}% - Requiere 100% o ExcepciÃ³n Autorizada`
                             }
                           >
                             {activePhase.status === 'completed' ? (
@@ -1103,7 +1103,7 @@ export default function PhaseContent({
 
                       {checklistItems.length === 0 ? (
                         <div className="p-6 text-center bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                          <p className="text-xs text-slate-400 italic">No hay pasos agregados aún a este checklist.</p>
+                          <p className="text-xs text-slate-400 italic">No hay pasos agregados aÃºn a este checklist.</p>
                         </div>
                       ) : (
                         <div className="space-y-4">
@@ -1135,7 +1135,7 @@ export default function PhaseContent({
                                   </span>
                                 </button>
 
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                                   item.completed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                                 }`}>
                                   {item.completed ? 'Completado' : 'Pendiente'}
@@ -1146,7 +1146,7 @@ export default function PhaseContent({
                               <div className="grid grid-cols-1 gap-3 pt-1">
                                 {/* Milestones / Advances */}
                                 <div className="space-y-1">
-                                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
                                     Hitos y Avances
                                   </label>
                                   <textarea
@@ -1163,7 +1163,7 @@ export default function PhaseContent({
                                 <div className="space-y-3">
                                   <div className="grid grid-cols-2 gap-2">
                                     <div className="space-y-1">
-                                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
                                         Fecha Inicio
                                       </label>
                                       <input
@@ -1175,8 +1175,8 @@ export default function PhaseContent({
                                       />
                                     </div>
                                     <div className="space-y-1">
-                                      <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                        Fecha Finalización
+                                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                        Fecha FinalizaciÃ³n
                                       </label>
                                       <input
                                         type="date"
@@ -1189,7 +1189,7 @@ export default function PhaseContent({
                                   </div>
 
                                   <div className="space-y-1">
-                                    <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                                    <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
                                       <BookOpen className="w-3 h-3 text-indigo-500" />
                                       <span>Aprendizaje / Lecciones Aprendidas</span>
                                     </label>
@@ -1198,7 +1198,7 @@ export default function PhaseContent({
                                       rows={2}
                                       value={item.learnings || ''}
                                       onChange={(e) => handleUpdateChecklistItemField(item.id, 'learnings', e.target.value)}
-                                      placeholder="¿Qué aprendió el equipo en esta tarea o fase?"
+                                      placeholder="Â¿QuÃ© aprendiÃ³ el equipo en esta tarea o fase?"
                                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-indigo-400/50 focus:bg-white outline-none transition-all resize-none"
                                     />
                                   </div>
@@ -1257,14 +1257,14 @@ export default function PhaseContent({
                         Historial de Movimientos
                       </h3>
                     </div>
-                    <span className="text-[10px] bg-indigo-50 text-indigo-700 font-mono font-bold px-2 py-0.5 rounded-full border border-indigo-100">
+                    <span className="text-xs bg-indigo-50 text-indigo-700 font-mono font-bold px-2 py-0.5 rounded-full border border-indigo-100">
                       {(project.auditLog?.length || project.timeEntries?.length || 0)} registros
                     </span>
                   </div>
 
                   {(!project.auditLog || project.auditLog.length === 0) && (!project.timeEntries || project.timeEntries.length === 0) ? (
                     <div className="p-4 text-center bg-slate-50 rounded-xl border border-slate-100">
-                      <p className="text-xs text-slate-400 italic">No hay movimientos o registros recientes aún.</p>
+                      <p className="text-xs text-slate-400 italic">No hay movimientos o registros recientes aÃºn.</p>
                     </div>
                   ) : (
                     <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
@@ -1283,15 +1283,15 @@ export default function PhaseContent({
                         <div key={log.id || idx} className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs space-y-1">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-slate-800">{log.username || 'Sistema'}</span>
-                            <span className="text-[10px] text-slate-400 font-mono">
+                            <span className="text-xs text-slate-400 font-mono">
                               {new Date(log.timestamp).toLocaleDateString('es-CL', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
-                          <div className="text-[11px] text-slate-600 leading-snug">
+                          <div className="text-xs text-slate-600 leading-snug">
                             {log.details || log.action}
                           </div>
                           {log.phaseId && (
-                            <span className="inline-block text-[9px] bg-slate-200/80 text-slate-600 px-1.5 py-0.2 rounded font-semibold mt-1">
+                            <span className="inline-block text-xs bg-slate-200/80 text-slate-600 px-1.5 py-0.2 rounded font-semibold mt-1">
                               Fase: {log.phaseId}
                             </span>
                           )}
@@ -1313,7 +1313,7 @@ export default function PhaseContent({
                     </h4>
                   </div>
                   <p className="text-xs text-slate-300">
-                    Descarga un documento único con todas las fases, checklists, hitos, aprendizajes y el historial completo de movimientos.
+                    Descarga un documento Ãºnico con todas las fases, checklists, hitos, aprendizajes y el historial completo de movimientos.
                   </p>
                 </div>
 
@@ -1357,8 +1357,8 @@ export default function PhaseContent({
                     Perfil General del Proyecto
                   </button>
                 </div>
-                <span className="text-[11px] text-slate-400 font-medium px-3 hidden md:inline">
-                  {brandSubTab === 'brandbible' ? 'Guía de Identidad Inteligente' : 'Información técnica y comercial'}
+                <span className="text-xs text-slate-400 font-medium px-3 hidden md:inline">
+                  {brandSubTab === 'brandbible' ? 'GuÃ­a de Identidad Inteligente' : 'InformaciÃ³n tÃ©cnica y comercial'}
                 </span>
               </div>
 
@@ -1373,7 +1373,7 @@ export default function PhaseContent({
                   {/* Gemini Brief Parser Card */}
                   <div className="bg-gradient-to-br from-purple-900 to-indigo-950 text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-44 h-44 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
-                
+
                 <div className="max-w-2xl space-y-4">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-purple-300 animate-pulse" />
@@ -1381,11 +1381,11 @@ export default function PhaseContent({
                       Gemini 3.6-Flash Engine
                     </span>
                   </div>
-                  
+
                   <div>
                     <h3 className="text-lg font-bold font-playfair">Generar Brand Bible Inteligente</h3>
                     <p className="text-xs text-purple-200 mt-1 leading-relaxed">
-                      Pega abajo el brief del cliente, transcripción de llamada de inicio o apuntes desestructurados de marca. La Inteligencia Artificial extraerá automáticamente la misión, UVP, personalidad, guía de logo y voz estructurada para el portal.
+                      Pega abajo el brief del cliente, transcripciÃ³n de llamada de inicio o apuntes desestructurados de marca. La Inteligencia Artificial extraerÃ¡ automÃ¡ticamente la misiÃ³n, UVP, personalidad, guÃ­a de logo y voz estructurada para el portal.
                     </p>
                   </div>
 
@@ -1393,11 +1393,11 @@ export default function PhaseContent({
                     <textarea
                       value={briefInput}
                       onChange={(e) => setBriefInput(e.target.value)}
-                      placeholder="Ej: El cliente es un SaaS de logística llamado Fasty. Su misión es democratizar envíos ultra-rápidos en LATAM. Valoran mucho la simplicidad y la puntualidad (arquetipo el Héroe). Su paleta usa azul marino profundo #1E3A8A y verde vibrante #10B981, tipografía de cabeceras en Playfair..."
+                      placeholder="Ej: El cliente es un SaaS de logÃ­stica llamado Fasty. Su misiÃ³n es democratizar envÃ­os ultra-rÃ¡pidos en LATAM. Valoran mucho la simplicidad y la puntualidad (arquetipo el HÃ©roe). Su paleta usa azul marino profundo #1E3A8A y verde vibrante #10B981, tipografÃ­a de cabeceras en Playfair..."
                       className="w-full bg-white/10 border border-purple-700/80 rounded-xl px-4 py-3 text-xs text-white placeholder:text-purple-300 outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white/15 transition-all resize-y min-h-[100px] leading-relaxed"
                       disabled={isAnalyzing}
                     />
-                    
+
                     {analysisError && (
                       <div className="p-3 bg-red-950/40 border border-red-900/50 rounded-xl text-xs text-red-300 flex items-center gap-2 font-medium">
                         <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
@@ -1436,25 +1436,25 @@ export default function PhaseContent({
                       <FileText className="w-4 h-4 text-purple-600" />
                       Estructura de la Brand Bible
                     </h3>
-                    <p className="text-[10px] text-slate-400 mt-0.5">Refina y edita los campos autogenerados por Gemini.</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Refina y edita los campos autogenerados por Gemini.</p>
                   </div>
                   {userRole === 'coordinador' && (
-                    <span className="text-[10px] bg-purple-50 text-purple-700 font-extrabold px-2 py-0.5 rounded-md border border-purple-100 uppercase tracking-wider">
+                    <span className="text-xs bg-purple-50 text-purple-700 font-extrabold px-2 py-0.5 rounded-md border border-purple-100 uppercase tracking-wider">
                       Editable
                     </span>
                   )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  
+
                   {/* Category 1: Fundamentos */}
                   <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-3">
                     <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-1.5">
                       1. Fundamentos (One-Pager)
                     </h4>
-                    
+
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Misión</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase">MisiÃ³n</label>
                       <textarea
                         value={bb.onePager?.mission || ''}
                         disabled={isGeneralDisabled}
@@ -1465,7 +1465,7 @@ export default function PhaseContent({
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Visión</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase">VisiÃ³n</label>
                       <textarea
                         value={bb.onePager?.vision || ''}
                         disabled={isGeneralDisabled}
@@ -1476,7 +1476,7 @@ export default function PhaseContent({
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Propuesta de Valor (UVP)</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase">Propuesta de Valor (UVP)</label>
                       <textarea
                         value={bb.onePager?.uvp || ''}
                         disabled={isGeneralDisabled}
@@ -1491,11 +1491,11 @@ export default function PhaseContent({
                   {/* Category 2: Posicionamiento */}
                   <div className="p-4 bg-slate-50 border border-slate-100 rounded-xl space-y-3">
                     <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-1.5">
-                      2. Posicionamiento Estratégico
+                      2. Posicionamiento EstratÃ©gico
                     </h4>
-                    
+
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Declaración de Posicionamiento</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase">DeclaraciÃ³n de Posicionamiento</label>
                       <textarea
                         value={bb.positioning?.statement || ''}
                         disabled={isGeneralDisabled}
@@ -1506,7 +1506,7 @@ export default function PhaseContent({
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Competidores Clave</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase">Competidores Clave</label>
                       <textarea
                         value={bb.positioning?.competitors || ''}
                         disabled={isGeneralDisabled}
@@ -1523,9 +1523,9 @@ export default function PhaseContent({
                     <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-1.5">
                       3. Personalidad, Valores & Audiencia
                     </h4>
-                    
+
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Valores Clave de Marca</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase">Valores Clave de Marca</label>
                       <textarea
                         value={bb.valuesAndPersonality?.values || ''}
                         disabled={isGeneralDisabled}
@@ -1536,7 +1536,7 @@ export default function PhaseContent({
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Arquetipo de Marca</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase">Arquetipo de Marca</label>
                       <input
                         type="text"
                         value={bb.valuesAndPersonality?.archetype || ''}
@@ -1547,7 +1547,7 @@ export default function PhaseContent({
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Público Objetivo (Personas)</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase">PÃºblico Objetivo (Personas)</label>
                       <textarea
                         value={bb.targetAudience?.personas || ''}
                         disabled={isGeneralDisabled}
@@ -1564,9 +1564,9 @@ export default function PhaseContent({
                     <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-1.5">
                       4. Identidad Visual (Logo, Colores, Fuentes)
                     </h4>
-                    
+
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Guías de Aplicación de Logo</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase">GuÃ­as de AplicaciÃ³n de Logo</label>
                       <textarea
                         value={bb.visualIdentity?.logoGuidelines || ''}
                         disabled={isGeneralDisabled}
@@ -1577,7 +1577,7 @@ export default function PhaseContent({
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Paleta de Colores de Marca</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase">Paleta de Colores de Marca</label>
                       <textarea
                         value={bb.visualIdentity?.colorPalette || ''}
                         disabled={isGeneralDisabled}
@@ -1588,7 +1588,7 @@ export default function PhaseContent({
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="block text-[10px] font-bold text-slate-500 uppercase">Sistema Tipográfico</label>
+                      <label className="block text-xs font-bold text-slate-500 uppercase">Sistema TipogrÃ¡fico</label>
                       <textarea
                         value={bb.visualIdentity?.typographySystem || ''}
                         disabled={isGeneralDisabled}
@@ -1605,10 +1605,10 @@ export default function PhaseContent({
                     <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-1.5">
                       5. Voz, Tono & Vocabulario de Marca
                     </h4>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase">Lineamientos de Voz y Tono</label>
+                        <label className="block text-xs font-bold text-slate-500 uppercase">Lineamientos de Voz y Tono</label>
                         <textarea
                           value={bb.voiceAndTone?.guidelines || ''}
                           disabled={isGeneralDisabled}
@@ -1619,7 +1619,7 @@ export default function PhaseContent({
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="block text-[10px] font-bold text-slate-500 uppercase">Vocabulario Clave (Términos Permitidos / Prohibidos)</label>
+                        <label className="block text-xs font-bold text-slate-500 uppercase">Vocabulario Clave (TÃ©rminos Permitidos / Prohibidos)</label>
                         <textarea
                           value={bb.voiceAndTone?.vocabulary || ''}
                           disabled={isGeneralDisabled}
@@ -1647,17 +1647,17 @@ export default function PhaseContent({
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-extrabold uppercase tracking-widest">
+                      <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-extrabold uppercase tracking-widest">
                         Portal de Entregables
                       </span>
                       {userRole === 'invitado' && (
-                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-extrabold uppercase">
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-extrabold uppercase">
                           Vista Cliente Activa
                         </span>
                       )}
                     </div>
                     <h2 className="text-base font-black text-white">
-                      Centro de Revisión & Visto Bueno de Entregables
+                      Centro de RevisiÃ³n & Visto Bueno de Entregables
                     </h2>
                     <p className="text-xs text-slate-300 leading-relaxed max-w-2xl">
                       Revisa las piezas finales publicadas, deja comentarios o anotaciones puntuales y aprueba formalmente los entregables de cada fase.
@@ -1670,14 +1670,14 @@ export default function PhaseContent({
                       <div className="text-lg font-black text-white">
                         {(project.deliverables || []).filter(d => userRole !== 'invitado' || d.isVisibleToClient).length}
                       </div>
-                      <div className="text-[9px] uppercase text-slate-300 font-bold">Publicados</div>
+                      <div className="text-xs uppercase text-slate-300 font-bold">Publicados</div>
                     </div>
 
                     <div className="bg-emerald-500/20 border border-emerald-500/30 px-3 py-2 rounded-xl text-center">
                       <div className="text-lg font-black text-emerald-300">
                         {(project.deliverables || []).filter(d => (userRole !== 'invitado' || d.isVisibleToClient) && d.status === 'aprobado').length}
                       </div>
-                      <div className="text-[9px] uppercase text-emerald-300 font-bold">Aprobados</div>
+                      <div className="text-xs uppercase text-emerald-300 font-bold">Aprobados</div>
                     </div>
                   </div>
                 </div>
@@ -1695,7 +1695,7 @@ export default function PhaseContent({
 
                   <form onSubmit={handleAddDeliverable} className="grid grid-cols-1 md:grid-cols-12 gap-4">
                     <div className="md:col-span-4 space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Título del Archivo / Pieza</label>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">TÃ­tulo del Archivo / Pieza</label>
                       <input
                         type="text"
                         placeholder="Ej: Wireframe Completo de Landing..."
@@ -1707,7 +1707,7 @@ export default function PhaseContent({
                     </div>
 
                     <div className="md:col-span-3 space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tipo de Entregable</label>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tipo de Entregable</label>
                       <select
                         value={delivType}
                         onChange={(e: any) => setDelivType(e.target.value)}
@@ -1718,13 +1718,13 @@ export default function PhaseContent({
                         <option value="audio">Archivo de Audio</option>
                         <option value="pdf">Documento PDF</option>
                         <option value="word">Documento Word</option>
-                        <option value="image">Fotografía / Imagen</option>
+                        <option value="image">FotografÃ­a / Imagen</option>
                         <option value="markdown">Formato Markdown</option>
                       </select>
                     </div>
 
                     <div className="md:col-span-5 space-y-1">
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">URL del Entregable (Figma, Drive, Staging, etc.)</label>
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">URL del Entregable (Figma, Drive, Staging, etc.)</label>
                       <div className="flex gap-2">
                         <input
                           type="url"
@@ -1780,7 +1780,7 @@ export default function PhaseContent({
                   return (
                     <div className="space-y-4">
                       {visibleList.map((item) => {
-                        const statusColor = 
+                        const statusColor =
                           item.status === 'aprobado'
                             ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                             : item.status === 'rechazado'
@@ -1789,27 +1789,27 @@ export default function PhaseContent({
                             ? 'bg-amber-50 text-amber-800 border-amber-200'
                             : 'bg-slate-100 text-slate-700 border-slate-200';
 
-                        const statusLabel = 
+                        const statusLabel =
                           item.status === 'aprobado'
-                            ? '✔ Aprobado por Cliente'
+                            ? 'âœ” Aprobado por Cliente'
                             : item.status === 'rechazado'
-                            ? '✖ Requiere Corrección'
+                            ? 'âœ– Requiere CorrecciÃ³n'
                             : item.status === 'en_revision'
-                            ? '⏳ En Revisión'
-                            : '○ Pendiente';
+                            ? 'â³ En RevisiÃ³n'
+                            : 'â—‹ Pendiente';
 
                         return (
                           <div key={item.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
                             <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-3">
                               <div className="space-y-1">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                                  <span className="text-xs font-extrabold uppercase px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
                                     {item.type}
                                   </span>
-                                  <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded border ${statusColor}`}>
+                                  <span className={`text-xs font-extrabold uppercase px-2 py-0.5 rounded border ${statusColor}`}>
                                     {statusLabel}
                                   </span>
-                                  <span className="text-[10px] text-slate-400">
+                                  <span className="text-xs text-slate-400">
                                     {new Date(item.createdAt).toLocaleDateString('es-CL')}
                                   </span>
                                 </div>
@@ -1834,7 +1834,7 @@ export default function PhaseContent({
                                 <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200">
                                   <button
                                     onClick={() => handleUpdateDeliverableStatus(item.id, 'aprobado')}
-                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold cursor-pointer transition-all ${
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-extrabold cursor-pointer transition-all ${
                                       item.status === 'aprobado'
                                         ? 'bg-emerald-600 text-white shadow-2xs'
                                         : 'text-slate-600 hover:bg-emerald-100 hover:text-emerald-800'
@@ -1846,7 +1846,7 @@ export default function PhaseContent({
 
                                   <button
                                     onClick={() => handleUpdateDeliverableStatus(item.id, 'rechazado')}
-                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold cursor-pointer transition-all ${
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-extrabold cursor-pointer transition-all ${
                                       item.status === 'rechazado'
                                         ? 'bg-rose-600 text-white shadow-2xs'
                                         : 'text-slate-600 hover:bg-rose-100 hover:text-rose-800'
@@ -1858,14 +1858,14 @@ export default function PhaseContent({
 
                                   <button
                                     onClick={() => handleUpdateDeliverableStatus(item.id, 'en_revision')}
-                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold cursor-pointer transition-all ${
+                                    className={`px-2.5 py-1 rounded-lg text-xs font-extrabold cursor-pointer transition-all ${
                                       item.status === 'en_revision'
                                         ? 'bg-amber-500 text-white shadow-2xs'
                                         : 'text-slate-600 hover:bg-amber-100 hover:text-amber-800'
                                     }`}
-                                    title="En revisión"
+                                    title="En revisiÃ³n"
                                   >
-                                    En Revisión
+                                    En RevisiÃ³n
                                   </button>
                                 </div>
 
@@ -1883,7 +1883,7 @@ export default function PhaseContent({
                                       {item.isVisibleToClient ? (
                                         <>
                                           <Eye className="w-3.5 h-3.5 text-emerald-600" />
-                                          <span>Público</span>
+                                          <span>PÃºblico</span>
                                         </>
                                       ) : (
                                         <>
@@ -1909,23 +1909,23 @@ export default function PhaseContent({
 
                             {/* Annotations / Client Feedback History */}
                             <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-3">
-                              <h5 className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                              <h5 className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
                                 <MessageSquare className="w-3.5 h-3.5 text-indigo-600" />
                                 Observaciones / Comentarios del Cliente ({item.annotations?.length || 0})
                               </h5>
 
                               {(!item.annotations || item.annotations.length === 0) ? (
-                                <p className="text-xs text-slate-400 italic">No se han ingresado observaciones todavía.</p>
+                                <p className="text-xs text-slate-400 italic">No se han ingresado observaciones todavÃ­a.</p>
                               ) : (
                                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                                   {item.annotations.map((ann) => (
                                     <div key={ann.id} className="bg-white border border-slate-200 p-3 rounded-xl flex items-start justify-between gap-4 shadow-2xs">
                                       <div className="space-y-1">
-                                        <div className="flex items-center gap-2 flex-wrap text-[10px] text-slate-400">
+                                        <div className="flex items-center gap-2 flex-wrap text-xs text-slate-400">
                                           <span className="font-extrabold text-slate-700">{ann.authorName}</span>
-                                          <span>•</span>
+                                          <span>â€¢</span>
                                           <span>{ann.date}</span>
-                                          <span>•</span>
+                                          <span>â€¢</span>
                                           <span className={`font-bold uppercase ${ann.status === 'resuelto' ? 'text-emerald-600' : 'text-amber-600'}`}>
                                             {ann.status}
                                           </span>
@@ -1937,13 +1937,13 @@ export default function PhaseContent({
                                       {userRole !== 'invitado' && (
                                         <button
                                           onClick={() => handleToggleAnnotationStatus(item.id, ann.id)}
-                                          className={`px-3 py-1.5 rounded-lg text-[10px] font-extrabold transition-all shrink-0 active:scale-95 cursor-pointer ${
+                                          className={`px-3 py-1.5 rounded-lg text-xs font-extrabold transition-all shrink-0 active:scale-95 cursor-pointer ${
                                             ann.status === 'resuelto'
                                               ? 'bg-slate-100 text-slate-400 border border-slate-200 hover:bg-slate-200 hover:text-slate-600'
                                               : 'bg-lime-500 text-slate-900 hover:bg-lime-600 hover:shadow-xs'
                                           }`}
                                         >
-                                          {ann.status === 'resuelto' ? 'Marcar Pendiente' : '✔ Marcar Resuelto'}
+                                          {ann.status === 'resuelto' ? 'Marcar Pendiente' : 'âœ” Marcar Resuelto'}
                                         </button>
                                       )}
                                     </div>
@@ -1967,7 +1967,7 @@ export default function PhaseContent({
                                 <input
                                   type="text"
                                   name={`comment-${item.id}`}
-                                  placeholder={userRole === 'invitado' ? "Escribe un comentario o ajuste para el equipo..." : "Agregar respuesta u observación interna..."}
+                                  placeholder={userRole === 'invitado' ? "Escribe un comentario o ajuste para el equipo..." : "Agregar respuesta u observaciÃ³n interna..."}
                                   className="flex-1 bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500/30"
                                 />
                                 <button
@@ -1992,10 +1992,10 @@ export default function PhaseContent({
         </div>
       </div>
 
-      {/* 🛑 MODAL DE EXCEPCIÓN AUTORIZADA PARA FINALIZAR FASE INCOMPLETA */}
+      {/* ðŸ›‘ MODAL DE EXCEPCIÃ“N AUTORIZADA PARA FINALIZAR FASE INCOMPLETA */}
       {showExceptionModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-slate-100">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl border border-slate-100">
             <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center font-black">
@@ -2014,24 +2014,24 @@ export default function PhaseContent({
                 onClick={() => setShowExceptionModal(false)}
                 className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 cursor-pointer"
               >
-                ✕
+                âœ•
               </button>
             </div>
 
             <div className="space-y-3 text-xs text-slate-600 leading-relaxed">
               <p className="bg-amber-50 p-3 rounded-2xl border border-amber-200 text-amber-900 font-medium">
-                <strong>Atención:</strong> Para dar por completada la fase <strong>"{activePhase.label}"</strong> sin haber alcanzado el 100% en el checklist ({completedChecklistCount} de {checklistTotal} ítems), se requiere registrar un <strong>Motivo de Excepción Autorizada</strong> en la Bitácora de Auditoría del proyecto.
+                <strong>AtenciÃ³n:</strong> Para dar por completada la fase <strong>"{activePhase.label}"</strong> sin haber alcanzado el 100% en el checklist ({completedChecklistCount} de {checklistTotal} Ã­tems), se requiere registrar un <strong>Motivo de ExcepciÃ³n Autorizada</strong> en la BitÃ¡cora de AuditorÃ­a del proyecto.
               </p>
 
               <div className="space-y-1.5">
-                <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-                  Motivo de la Excepción Autorizada *
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Motivo de la ExcepciÃ³n Autorizada *
                 </label>
                 <textarea
                   rows={3}
                   value={exceptionReason}
                   onChange={(e) => setExceptionReason(e.target.value)}
-                  placeholder="Ej: Aprobado por cliente según adenda v2, o pospuesto para fase posterior..."
+                  placeholder="Ej: Aprobado por cliente segÃºn adenda v2, o pospuesto para fase posterior..."
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs font-medium text-slate-800 outline-none focus:ring-2 focus:ring-amber-500/20 focus:bg-white transition-all"
                 />
               </div>
@@ -2052,7 +2052,7 @@ export default function PhaseContent({
                 className="px-5 py-2.5 rounded-xl text-xs font-black bg-amber-600 hover:bg-amber-700 text-white shadow-md transition-all cursor-pointer flex items-center gap-1.5"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                Autorizar Excepción & Completar
+                Autorizar ExcepciÃ³n & Completar
               </button>
             </div>
           </div>

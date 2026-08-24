@@ -7,8 +7,8 @@ interface StackedHoursBarProps {
   showTitle?: boolean;
 }
 
-export const StackedHoursBar: React.FC<StackedHoursBarProps> = ({ 
-  timeEntries = [], 
+export const StackedHoursBar: React.FC<StackedHoursBarProps> = ({
+  timeEntries = [],
   hoursTotal,
   showTitle = false
 }) => {
@@ -29,7 +29,7 @@ export const StackedHoursBar: React.FC<StackedHoursBarProps> = ({
     <div className="space-y-2.5">
       {showTitle && (
         <div className="flex items-center justify-between text-xs">
-          <span className="font-semibold text-slate-700">⏱ Consumo de horas proyecto</span>
+          <span className="font-semibold text-slate-700">â± Consumo de horas proyecto</span>
           <span className="font-bold text-slate-900">
             {totalUsed}h <span className="text-slate-400 font-normal">/ {hoursTotal}h</span>
           </span>
@@ -63,13 +63,13 @@ export const StackedHoursBar: React.FC<StackedHoursBarProps> = ({
           <div
             style={{ width: `${getPercent(hoursByRole['coordinador'])}%` }}
             className="bg-lime-400 h-full transition-all"
-            title={`Coordinación: ${hoursByRole['coordinador']}h`}
+            title={`CoordinaciÃ³n: ${hoursByRole['coordinador']}h`}
           />
         ) : null}
       </div>
 
       {/* Leyenda */}
-      <div className="grid grid-cols-2 gap-y-1 gap-x-2 text-[10px] text-slate-500 pt-0.5">
+      <div className="grid grid-cols-2 gap-y-1 gap-x-2 text-xs text-slate-500 pt-0.5">
         <div className="flex items-center gap-1.5 min-w-0 truncate">
           <span className="w-2 h-2 rounded-full bg-sky-400 shrink-0" />
           <span className="truncate">SAC ({hoursByRole['sac'] || 0}h)</span>

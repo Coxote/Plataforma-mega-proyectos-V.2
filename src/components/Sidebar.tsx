@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Project, Role, UserSession } from '../types';
 import { TppLogo } from './TppLogo';
-import { 
-  Plus, 
-  Search, 
-  FolderGit, 
-  AlertCircle, 
-  AlertTriangle, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  FolderGit,
+  AlertCircle,
+  AlertTriangle,
+  Trash2,
   X,
   Pin,
   PanelLeftClose,
@@ -86,13 +86,13 @@ export default function Sidebar({
   });
 
   return (
-    <aside 
+    <aside
       className={`bg-white/80 backdrop-blur-xl border-r border-slate-200/80 flex flex-col h-full select-none transition-all duration-300 relative shrink-0 shadow-sm ${
         isCollapsed ? 'w-16' : 'w-72'
       }`}
       id="main-projects-sidebar"
     >
-      {/* 🟢 HEADER SIDEBAR WITH OFFICIAL TPP LOGO */}
+      {/* ðŸŸ¢ HEADER SIDEBAR WITH OFFICIAL TPP LOGO */}
       <div className="p-4 border-b border-slate-100 flex items-center justify-between">
         {!isCollapsed ? (
           <TppLogo size="sm" variant="full" />
@@ -111,7 +111,7 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* 🟢 ACTION ITEM 1: NUEVO PROYECTO */}
+      {/* ðŸŸ¢ ACTION ITEM 1: NUEVO PROYECTO */}
       <div className="p-3">
         {(userRole === 'coordinador' || userRole === 'sac') && (
           <button
@@ -128,7 +128,7 @@ export default function Sidebar({
         )}
       </div>
 
-      {/* 🟢 ACTION ITEM 2: BUSCAR PROYECTO */}
+      {/* ðŸŸ¢ ACTION ITEM 2: BUSCAR PROYECTO */}
       {!isCollapsed ? (
         <div className="px-3 pb-3">
           <div className="relative flex items-center">
@@ -162,12 +162,12 @@ export default function Sidebar({
         </div>
       )}
 
-      {/* 🟢 RECIENTES / LISTA DE PROYECTOS */}
+      {/* ðŸŸ¢ RECIENTES / LISTA DE PROYECTOS */}
       <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-1 scrollbar-none">
         {!isCollapsed && (
-          <div className="px-3 py-1.5 flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          <div className="px-3 py-1.5 flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
             <span>Recientes</span>
-            <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-mono font-semibold">
+            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-mono font-semibold">
               {filteredProjects.length}
             </span>
           </div>
@@ -175,7 +175,7 @@ export default function Sidebar({
 
         {filteredProjects.length === 0 && (
           <div className="p-4 text-center text-xs text-slate-400 font-medium">
-            {!isCollapsed ? 'No se encontraron proyectos' : '—'}
+            {!isCollapsed ? 'No se encontraron proyectos' : 'â€”'}
           </div>
         )}
 
@@ -239,11 +239,11 @@ export default function Sidebar({
                         <span className="truncate">{project.name}</span>
                       </span>
                       {/* Text-only status label as requested */}
-                      <span className={`text-[10px] ${badgeTextStyle} shrink-0`}>
+                      <span className={`text-xs ${badgeTextStyle} shrink-0`}>
                         {statusBadgeText}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-400 truncate block mt-0.5">
+                    <span className="text-xs text-slate-400 truncate block mt-0.5">
                       {project.clientName || 'Cliente no asignado'}
                     </span>
                   </div>
@@ -265,7 +265,7 @@ export default function Sidebar({
                     <Pin className={`w-3 h-3 ${isPinned ? 'fill-slate-600 text-slate-600' : ''}`} />
                   </button>
 
-                  <span className="text-[10px] text-slate-400 font-mono font-medium">
+                  <span className="text-xs text-slate-400 font-mono font-medium">
                     {completedPhases}/{project.phases.length}
                   </span>
 
@@ -288,10 +288,10 @@ export default function Sidebar({
         })}
       </div>
 
-      {/* 🟢 FOOTER BAR */}
+      {/* ðŸŸ¢ FOOTER BAR */}
       {!isCollapsed && (
         <div className="p-3 border-t border-slate-100 bg-slate-50/50 rounded-b-3xl text-center">
-          <p className="text-[10px] text-slate-400 font-medium">
+          <p className="text-xs text-slate-400 font-medium">
             Selecciona un proyecto para abrir su expediente
           </p>
         </div>

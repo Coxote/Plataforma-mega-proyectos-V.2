@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  LayoutDashboard, 
-  CalendarDays, 
-  Users, 
-  LogOut, 
+import {
+  LayoutDashboard,
+  CalendarDays,
+  Users,
+  LogOut,
   Mic,
   Shield,
   Activity,
@@ -50,9 +50,9 @@ interface MainLayoutProps {
   onOpenOnboarding?: () => void;
 }
 
-export const MainLayout: React.FC<MainLayoutProps> = ({ 
-  currentUser, 
-  onLogout, 
+export const MainLayout: React.FC<MainLayoutProps> = ({
+  currentUser,
+  onLogout,
   children,
   currentView,
   onNavigate,
@@ -71,6 +71,62 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     setIsMobileMenuOpen(false);
   };
 
+  const hasDirectionAccess = currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor';
+  const hasAdminAccess = currentUser.role === 'coordinador' || currentUser.role === 'director_financiero';
+  const isActiveNavItem = (view: ViewState) => currentView === view;
+  const navItemClass = (view: ViewState, isCollapsed: boolean) => `w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
+    isActiveNavItem(view)
+      ? 'bg-[#FF5500] text-white shadow-sm shadow-orange-500/20 font-bold'
+      : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
+  }`;
+
+  const navSections: Array<{
+    label: string;
+    items: Array<{
+      view: ViewState;
+      label: string;
+      title?: string;
+      icon: React.ComponentType<{ className?: string }>;
+      show: boolean;
+    }>;
+  }> = [
+    {
+      label: 'Operacion',
+      items: [
+        { view: 'dashboard', label: 'Torre de Control', icon: LayoutDashboard, show: currentUser.role === 'coordinador' },
+        { view: 'planner', label: 'Planner Diario', icon: CalendarDays, show: currentUser.role !== 'proveedor' },
+        { view: 'gantt', label: 'Linea de Tiempo', icon: Layers, show: currentUser.role !== 'proveedor' },
+      ],
+    },
+    {
+      label: 'Proyecto',
+      items: [
+        { view: 'project', label: 'Expediente del Proyecto', icon: Activity, show: true },
+      ],
+    },
+    {
+      label: 'Direccion',
+      items: [
+        { view: 'financial', label: 'Salud Financiera', icon: DollarSign, show: hasDirectionAccess },
+        { view: 'predictive', label: 'Simulador Predictivo', icon: BrainCircuit, show: hasDirectionAccess },
+      ],
+    },
+    {
+      label: 'Administracion',
+      items: [
+        { view: 'team', label: 'Equipo', icon: Users, show: currentUser.role === 'coordinador' },
+        { view: 'clients', label: 'Clientes y Marca IA', icon: Building2, show: hasDirectionAccess },
+        { view: 'integrations', label: 'Integraciones', icon: Plug, show: hasAdminAccess },
+      ],
+    },
+    {
+      label: 'Mi Espacio',
+      items: [
+        { view: 'profile', label: 'Mi Perfil y Horas', icon: User, show: true },
+      ],
+    },
+  ];
+
   const renderSidebarContent = (isCollapsed: boolean) => (
     <div className="flex flex-col h-full justify-between select-none">
       <div className="overflow-y-auto flex-1 scrollbar-none">
@@ -83,9 +139,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <TppLogo size="sm" variant="icon" darkMode={true} />
             )}
           </div>
-          
+
           {/* Collapse/Expand Toggle Button on Desktop */}
-          <button 
+          <button
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
             className="hidden md:flex p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
             title={isCollapsed ? "Expandir barra lateral" : "Minimizar barra lateral"}
@@ -95,7 +151,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           </button>
 
           {isMobileMenuOpen && (
-            <button 
+            <button
               onClick={() => setIsMobileMenuOpen(false)}
               className="md:hidden p-2 text-slate-400 hover:text-white rounded-lg cursor-pointer"
             >
@@ -104,7 +160,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           )}
         </div>
 
-        {/* BOTÓN DE CARGA RÁPIDA DE HORAS GLOBAL */}
+        {/* BOTÃ“N DE CARGA RÃPIDA DE HORAS GLOBAL */}
         <div className={`p-3 pb-1 ${isCollapsed ? 'flex justify-center' : ''}`}>
           <button
             onClick={() => {
@@ -112,7 +168,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               setIsMobileMenuOpen(false);
             }}
             title="Registrar Horas"
-            className={`flex items-center justify-center gap-2 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-2xl transition-all cursor-pointer text-xs font-black shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] ${
+            className={`flex items-center justify-center gap-2 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl transition-all cursor-pointer text-xs font-black shadow-sm shadow-orange-500/20 active:scale-[0.99] ${
               isCollapsed ? 'w-10 h-10 p-0' : 'w-full px-3 py-2.5 min-h-[40px]'
             }`}
           >
@@ -121,200 +177,53 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           </button>
         </div>
 
-        {/* Navegación Principal Agrupada */}
+        {/* Navegacion principal agrupada por intencion operativa */}
         <nav className={`p-3 space-y-4 ${isCollapsed ? 'px-2' : 'sm:p-4'}`} id="sidebar-nav">
-          
-          {/* GRUPO: OPERACIÓN */}
-          <div className="space-y-1">
-            {!isCollapsed ? (
-              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wide">
-                Operación
+          {navSections.map((section) => {
+            const visibleItems = section.items.filter((item) => item.show);
+            if (visibleItems.length === 0) return null;
+
+            return (
+              <div className="space-y-1" key={section.label}>
+                {!isCollapsed ? (
+                  <div className="px-3 mb-1.5 text-xs font-bold text-slate-500 uppercase tracking-wide">
+                    {section.label}
+                  </div>
+                ) : (
+                  <div className="w-8 h-px bg-slate-800 my-2 mx-auto" />
+                )}
+
+                {visibleItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.view}
+                      onClick={() => handleNavClick(item.view)}
+                      title={item.title || item.label}
+                      className={navItemClass(item.view, isCollapsed)}
+                    >
+                      <Icon className="w-4 h-4 shrink-0" />
+                      {!isCollapsed && <span>{item.label}</span>}
+                    </button>
+                  );
+                })}
               </div>
-            ) : (
-              <div className="w-8 h-px bg-slate-800 my-2 mx-auto" />
-            )}
-
-            {currentUser.role === 'coordinador' && (
-              <button 
-                onClick={() => handleNavClick('dashboard')}
-                title="Torre de Control"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
-                  currentView === 'dashboard' 
-                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <LayoutDashboard className="w-4 h-4 shrink-0" />
-                {!isCollapsed && <span>Torre de Control</span>}
-              </button>
-            )}
-            
-            {currentUser.role !== 'proveedor' && (
-              <button 
-                onClick={() => handleNavClick('planner')}
-                title="Planner Diario"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
-                  currentView === 'planner' 
-                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <CalendarDays className="w-4 h-4 shrink-0" />
-                {!isCollapsed && <span>Planner Diario</span>}
-              </button>
-            )}
-
-            {currentUser.role !== 'proveedor' && (
-              <button 
-                onClick={() => handleNavClick('gantt')}
-                title="Línea de Tiempo"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
-                  currentView === 'gantt' 
-                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <Layers className="w-4 h-4 shrink-0" />
-                {!isCollapsed && <span>Línea de Tiempo</span>}
-              </button>
-            )}
-          </div>
-
-          {/* GRUPO: PROYECTO */}
-          <div className="space-y-1">
-            {!isCollapsed ? (
-              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wide">
-                Proyecto
-              </div>
-            ) : (
-              <div className="w-8 h-px bg-slate-800 my-2 mx-auto" />
-            )}
-            <button 
-              onClick={() => handleNavClick('project')}
-              title="Expediente del Proyecto"
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
-                currentView === 'project' 
-                  ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
-                  : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
-              }`}
-            >
-              <Activity className="w-4 h-4 shrink-0" />
-              {!isCollapsed && <span>Expediente del Proyecto</span>}
-            </button>
-          </div>
-
-          {/* GRUPO: ADMINISTRACIÓN & PERFIL */}
-          <div className="space-y-1">
-            {!isCollapsed ? (
-              <div className="px-3 mb-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wide">
-                Mi Espacio
-              </div>
-            ) : (
-              <div className="w-8 h-px bg-slate-800 my-2 mx-auto" />
-            )}
-            <button 
-              onClick={() => handleNavClick('profile')}
-              title="Mi Perfil y Horas"
-              className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
-                currentView === 'profile' 
-                  ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
-                  : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
-              }`}
-            >
-              <User className="w-4 h-4 shrink-0" />
-              {!isCollapsed && <span>Mi Perfil y Horas</span>}
-            </button>
-
-            {currentUser.role === 'coordinador' && (
-              <button 
-                onClick={() => handleNavClick('team')}
-                title="Equipo"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
-                  currentView === 'team' 
-                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <Users className="w-4 h-4 shrink-0" />
-                {!isCollapsed && <span>Equipo</span>}
-              </button>
-            )}
-
-            {(currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') && (
-              <button 
-                onClick={() => handleNavClick('clients')}
-                title="Clientes y Marca IA"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
-                  currentView === 'clients' 
-                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <Building2 className="w-4 h-4 shrink-0" />
-                {!isCollapsed && <span>Clientes y Marca IA</span>}
-              </button>
-            )}
-
-            {(currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') && (
-              <button 
-                onClick={() => handleNavClick('financial')}
-                title="Salud Financiera"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
-                  currentView === 'financial' 
-                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20 font-bold scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <DollarSign className="w-4 h-4 shrink-0 text-emerald-400" />
-                {!isCollapsed && <span>Salud Financiera</span>}
-              </button>
-            )}
-
-            {(currentUser.role === 'coordinador' || currentUser.role === 'director_financiero') && (
-              <button 
-                onClick={() => handleNavClick('integrations')}
-                title="Integraciones"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
-                  currentView === 'integrations' 
-                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <Plug className="w-4 h-4 shrink-0 text-amber-400" />
-                {!isCollapsed && <span>Integraciones</span>}
-              </button>
-            )}
-
-            {(currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') && (
-              <button 
-                onClick={() => handleNavClick('predictive')}
-                title="Simulador IA"
-                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer min-h-[40px] ${
-                  currentView === 'predictive' 
-                    ? 'bg-[#FF5500] text-white shadow-md shadow-orange-500/20 font-bold scale-[1.01]' 
-                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-white'
-                }`}
-              >
-                <BrainCircuit className="w-4 h-4 shrink-0 text-amber-400" />
-                {!isCollapsed && <span>Simulador Predictivo</span>}
-              </button>
-            )}
-          </div>
-
+            );
+          })}
         </nav>
       </div>
 
-      {/* Módulo Inferior: Usuario, Asistente y Salida */}
+      {/* MÃ³dulo Inferior: Usuario, Asistente y Salida */}
       <div className={`p-3 border-t border-slate-800/80 space-y-3 bg-slate-950/20 shrink-0 ${isCollapsed ? 'px-2' : 'sm:p-4'}`}>
-        
-        {/* Botón flotante preparado para el Asistente IA (Dictar Avance) */}
-        <button 
+
+        {/* BotÃ³n flotante preparado para el Asistente IA (Dictar Avance) */}
+        <button
           onClick={() => {
             setIsAIAssistantOpen(true);
             setIsMobileMenuOpen(false);
           }}
           title="Dictar Avance con IA"
-          className={`flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-750 text-lime-400 rounded-full transition-colors border border-slate-700/60 border-dashed text-[10px] font-bold uppercase tracking-wider cursor-pointer ${
+          className={`flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-750 text-lime-400 rounded-full transition-colors border border-slate-700/60 border-dashed text-xs font-bold uppercase tracking-wider cursor-pointer ${
             isCollapsed ? 'w-10 h-10 p-0 mx-auto' : 'w-full px-3 py-2.5 min-h-[38px]'
           }`}
         >
@@ -323,7 +232,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         </button>
 
         {/* Perfil de Usuario */}
-        <div 
+        <div
           onClick={() => handleNavClick('profile')}
           className={`flex items-center gap-3 border-t border-slate-800/40 pt-2.5 cursor-pointer hover:opacity-90 transition-opacity ${
             isCollapsed ? 'justify-center px-0' : 'px-1 py-1'
@@ -331,9 +240,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           title={`Ver Mi Perfil (${currentUser.username})`}
         >
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-700 shadow-xs overflow-hidden shrink-0 bg-slate-800 flex items-center justify-center">
-            <img 
-              src={getUserAvatarUrl(currentUser.username)} 
-              alt={currentUser.username} 
+            <img
+              src={getUserAvatarUrl(currentUser.username)}
+              alt={currentUser.username}
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
             />
@@ -341,7 +250,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           {!isCollapsed && (
             <div className="flex-1 overflow-hidden">
               <div className="text-white font-bold text-xs truncate capitalize leading-tight">{currentUser.username}</div>
-              <div className="text-[10px] text-slate-500 font-medium truncate uppercase tracking-wider mt-0.5">
+              <div className="text-xs text-slate-500 font-medium truncate uppercase tracking-wider mt-0.5">
                 {currentUser.puesto || currentUser.role}
               </div>
             </div>
@@ -361,7 +270,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           </button>
         )}
 
-        <button 
+        <button
           onClick={() => {
             onLogout();
             setIsMobileMenuOpen(false);
@@ -380,14 +289,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
   return (
     <div className="flex flex-col md:flex-row h-screen w-screen bg-slate-50 overflow-hidden font-sans" id="main-layout-container">
-      
-      {/* 📱 MOBILE TOP HEADER BAR */}
-      <header className="md:hidden bg-slate-900 text-white p-3.5 border-b border-slate-800 flex items-center justify-between shrink-0 z-30">
+
+      {/* ðŸ“± MOBILE TOP HEADER BAR */}
+      <header className="md:hidden oa-sidebar text-white p-3.5 border-b border-slate-800 flex items-center justify-between shrink-0 z-30">
         <div className="flex items-center gap-2.5">
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 text-slate-300 hover:text-white rounded-xl bg-slate-800 hover:bg-slate-700 transition-colors cursor-pointer min-w-[40px] min-h-[40px] flex items-center justify-center"
-            aria-label="Abrir menú de navegación"
+            aria-label="Abrir menÃº de navegaciÃ³n"
           >
             <Menu className="w-5 h-5" />
           </button>
@@ -398,19 +307,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsGlobalLogTimeOpen(true)}
-            className="px-2.5 py-1.5 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl text-[11px] font-extrabold transition-all flex items-center gap-1 shadow-md shadow-orange-500/20"
+            className="px-2.5 py-1.5 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl text-xs font-extrabold transition-all flex items-center gap-1 shadow-md shadow-orange-500/20"
           >
             <Plus className="w-3.5 h-3.5 text-white" />
             Horas
           </button>
 
-          <div 
+          <div
             onClick={() => onNavigate('profile')}
             className="w-8 h-8 rounded-full border border-slate-700 overflow-hidden bg-slate-800 cursor-pointer"
           >
-            <img 
-              src={getUserAvatarUrl(currentUser.username)} 
-              alt={currentUser.username} 
+            <img
+              src={getUserAvatarUrl(currentUser.username)}
+              alt={currentUser.username}
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
             />
@@ -418,10 +327,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         </div>
       </header>
 
-      {/* 📱 MOBILE DRAWER SIDEBAR OVERLAY */}
+      {/* ðŸ“± MOBILE DRAWER SIDEBAR OVERLAY */}
       {isMobileMenuOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex animate-fadeIn">
-          <div 
+          <div
             className="absolute inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
             onClick={() => setIsMobileMenuOpen(false)}
           />
@@ -431,22 +340,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         </div>
       )}
 
-      {/* ⬛ ZONA 1: SIDEBAR OSCURO DESKTOP (El Ancla - Collapsible) */}
-      <aside 
-        className={`hidden md:flex bg-slate-900/95 backdrop-blur-xl text-slate-300 flex-col justify-between shrink-0 border-r border-slate-800/80 transition-all duration-300 ${
+      {/* â¬› ZONA 1: SIDEBAR OSCURO DESKTOP (El Ancla - Collapsible) */}
+      <aside
+        className={`hidden md:flex oa-sidebar text-slate-300 flex-col justify-between shrink-0 border-r border-slate-800/80 transition-all duration-300 ${
           isSidebarCollapsed ? 'w-[68px]' : 'w-[240px]'
-        }`} 
+        }`}
         id="dark-sidebar"
       >
         {renderSidebarContent(isSidebarCollapsed)}
       </aside>
 
-      {/* ⬜ ZONA 2: CONTENEDOR PRINCIPAL DINÁMICO (Smooth Ice-Blue Radial Background) */}
-      <main 
-        className="flex-1 flex flex-col min-w-0 relative overflow-hidden" 
-        style={{
-          background: 'radial-gradient(ellipse 140% 100% at 50% -15%, #e0f2fe 0%, #f0f5fa 40%, #f8fafc 70%, #ffffff 100%)'
-        }}
+      {/* â¬œ ZONA 2: CONTENEDOR PRINCIPAL DINÃMICO (Smooth Ice-Blue Radial Background) */}
+      <main
+        className="flex-1 flex flex-col min-w-0 relative overflow-hidden oa-app-surface"
         id="main-content-area"
       >
         <div className="relative z-10 flex-1 flex flex-col h-full min-w-0 overflow-hidden">
@@ -454,9 +360,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         </div>
       </main>
 
-      <AIAssistantModal 
-        isOpen={isAIAssistantOpen} 
-        onClose={() => setIsAIAssistantOpen(false)} 
+      <AIAssistantModal
+        isOpen={isAIAssistantOpen}
+        onClose={() => setIsAIAssistantOpen(false)}
         projects={projects}
         users={users}
       />

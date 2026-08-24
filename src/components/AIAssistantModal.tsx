@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  X, 
-  Mic, 
-  MicOff, 
-  Send, 
-  Sparkles, 
-  Bot, 
-  User, 
-  TrendingUp, 
-  Briefcase, 
-  Users, 
+import {
+  X,
+  Mic,
+  MicOff,
+  Send,
+  Sparkles,
+  Bot,
+  User,
+  TrendingUp,
+  Briefcase,
+  Users,
   AlertCircle,
   HelpCircle
 } from 'lucide-react';
@@ -29,10 +29,10 @@ interface ChatMessage {
 }
 
 const QUICK_SUGGESTIONS = [
-  "¿Quién tiene más carga operativa esta semana?",
-  "¿Cómo va el estado de las fases activas de los proyectos?",
-  "¿Qué colaboradores están disponibles para nuevas tareas?",
-  "Ayúdame a formatear un avance que acabo de terminar"
+  "Â¿QuiÃ©n tiene mÃ¡s carga operativa esta semana?",
+  "Â¿CÃ³mo va el estado de las fases activas de los proyectos?",
+  "Â¿QuÃ© colaboradores estÃ¡n disponibles para nuevas tareas?",
+  "AyÃºdame a formatear un avance que acabo de terminar"
 ];
 
 export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
@@ -46,7 +46,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       sender: 'assistant',
-      text: '¡Hola! Soy tu Asistente Operativo de IA. Puedo responder tus consultas sobre el estado de los proyectos, la carga de trabajo del equipo, la disponibilidad del personal, o ayudarte a estructurar tus dictados de avance. ¿En qué te puedo apoyar hoy?',
+      text: 'Â¡Hola! Soy tu Asistente Operativo de IA. Puedo responder tus consultas sobre el estado de los proyectos, la carga de trabajo del equipo, la disponibilidad del personal, o ayudarte a estructurar tus dictados de avance. Â¿En quÃ© te puedo apoyar hoy?',
       timestamp: new Date()
     }
   ]);
@@ -55,7 +55,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   const [isRecording, setIsRecording] = useState(false);
   const [recordingError, setRecordingError] = useState<string | null>(null);
   const [isSpeechSupported, setIsSpeechSupported] = useState(false);
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
@@ -128,9 +128,9 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
       rec.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         if (event.error === 'not-allowed') {
-          setRecordingError('Permiso de micrófono denegado.');
+          setRecordingError('Permiso de micrÃ³fono denegado.');
         } else if (event.error === 'no-speech') {
-          setRecordingError('No se detectó voz.');
+          setRecordingError('No se detectÃ³ voz.');
         } else {
           setRecordingError('Error al capturar voz.');
         }
@@ -206,7 +206,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
       const data = await response.json();
       const assistantMsg: ChatMessage = {
         sender: 'assistant',
-        text: data.reply || 'No se recibió respuesta válida del asistente.',
+        text: data.reply || 'No se recibiÃ³ respuesta vÃ¡lida del asistente.',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, assistantMsg]);
@@ -214,7 +214,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
       console.error('Error in assistant query:', err);
       setMessages(prev => [...prev, {
         sender: 'assistant',
-        text: `Lo siento, ocurrió un error al consultar al servicio de IA: ${err.message || 'Error desconocido'}.`,
+        text: `Lo siento, ocurriÃ³ un error al consultar al servicio de IA: ${err.message || 'Error desconocido'}.`,
         timestamp: new Date()
       }]);
     } finally {
@@ -223,8 +223,8 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
   };
 
   return (
-    <div 
-      className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6" 
+    <div
+      className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6"
       id="ai-assistant-modal-overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -232,17 +232,17 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
         }
       }}
     >
-      
+
       {/* Container */}
-      <div 
-        className="bg-white/95 backdrop-blur-2xl w-full max-w-2xl h-[600px] rounded-3xl border border-white/80 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200"
+      <div
+        className="bg-white/95 backdrop-blur-2xl w-full max-w-2xl h-[600px] rounded-2xl border border-white/80 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200"
         id="ai-assistant-modal-panel"
       >
-        
+
         {/* Header */}
         <div className="bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-800 relative overflow-hidden shrink-0">
           <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-orange-500/20 to-transparent pointer-events-none" />
-          
+
           <div className="flex items-center gap-3 z-10">
             <div className="w-9 h-9 bg-gradient-to-br from-[#FF5500] to-[#E04B00] rounded-xl flex items-center justify-center shadow-md shadow-orange-500/20">
               <Sparkles className="w-5 h-5 text-white font-black animate-pulse" />
@@ -252,11 +252,11 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                 <span className="w-2 h-2 rounded-full bg-[#84CC16] animate-ping" />
                 <h3 className="font-black text-sm text-white uppercase tracking-wider">Copiloto Operativo IA</h3>
               </div>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Modelo: Gemini 3.6-Flash</p>
+              <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Modelo: Gemini 3.6-Flash</p>
             </div>
           </div>
 
-          <button 
+          <button
             onClick={onClose}
             className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer z-10"
             title="Cerrar Asistente"
@@ -267,23 +267,23 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
 
         {/* Content Wrapper */}
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-          
+
           {/* Main Chat Area */}
           <div className="flex-1 flex flex-col overflow-hidden bg-slate-50/50">
-            
+
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4" id="chat-messages-container">
               {messages.map((msg, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className={`flex gap-3 max-w-[85%] ${
                     msg.sender === 'user' ? 'ml-auto flex-row-reverse' : ''
                   }`}
                 >
                   {/* Icon */}
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${
-                    msg.sender === 'user' 
-                      ? 'bg-slate-900 text-white border-slate-800' 
+                    msg.sender === 'user'
+                      ? 'bg-slate-900 text-white border-slate-800'
                       : 'bg-white text-lime-600 border-slate-200 shadow-xs'
                   }`}>
                     {msg.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
@@ -348,7 +348,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
 
             {/* Bottom Input Area */}
             <div className="p-4 bg-white border-t border-slate-200 shrink-0">
-              <form 
+              <form
                 onSubmit={(e) => {
                   e.preventDefault();
                   handleSend(inputText);
@@ -362,15 +362,15 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                   className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center shrink-0 ${
                     !isSpeechSupported
                       ? 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed opacity-50'
-                      : isRecording 
-                      ? 'bg-red-500 border-red-600 text-white animate-pulse' 
+                      : isRecording
+                      ? 'bg-red-500 border-red-600 text-white animate-pulse'
                       : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100'
                   }`}
                   title={
-                    !isSpeechSupported 
-                      ? 'Tu navegador no soporta dictado por voz (Prueba con Chrome)' 
-                      : isRecording 
-                      ? 'Detener grabación' 
+                    !isSpeechSupported
+                      ? 'Tu navegador no soporta dictado por voz (Prueba con Chrome)'
+                      : isRecording
+                      ? 'Detener grabaciÃ³n'
                       : 'Dictar avance por voz'
                   }
                   disabled={!isSpeechSupported}
@@ -382,7 +382,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Escribe tu consulta o haz clic en el micrófono para dictar..."
+                  placeholder="Escribe tu consulta o haz clic en el micrÃ³fono para dictar..."
                   className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-medium focus:ring-2 focus:ring-lime-400/50 focus:bg-white outline-none transition-all text-slate-800"
                 />
 
@@ -401,15 +401,15 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
           {/* Sidebar Panel with Suggestions */}
           <div className="w-full md:w-[220px] bg-slate-50 border-t md:border-t-0 md:border-l border-slate-200 p-4 space-y-4 shrink-0 overflow-y-auto">
             <div>
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <HelpCircle className="w-3.5 h-3.5 text-lime-600" /> Consultas Rápidas
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <HelpCircle className="w-3.5 h-3.5 text-lime-600" /> Consultas RÃ¡pidas
               </h4>
               <div className="space-y-2">
                 {QUICK_SUGGESTIONS.map((suggestion, idx) => (
                   <button
                     key={idx}
                     onClick={() => handleSend(suggestion)}
-                    className="w-full text-left bg-white hover:bg-slate-100/80 border border-slate-200/80 p-2.5 rounded-xl text-[10px] font-bold text-slate-650 leading-normal transition-colors cursor-pointer"
+                    className="w-full text-left bg-white hover:bg-slate-100/80 border border-slate-200/80 p-2.5 rounded-xl text-xs font-bold text-slate-650 leading-normal transition-colors cursor-pointer"
                   >
                     {suggestion}
                   </button>
@@ -418,12 +418,12 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
             </div>
 
             <div className="bg-white border border-slate-200 p-3 rounded-xl space-y-2">
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Integración Activa</span>
-              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600">
+              <span className="text-xs font-black text-slate-400 uppercase tracking-wider block">IntegraciÃ³n Activa</span>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
                 <Users className="w-3.5 h-3.5 text-lime-600" />
                 <span>{users.length} Colaboradores</span>
               </div>
-              <div className="flex items-center gap-2 text-[10px] font-bold text-slate-600">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
                 <Briefcase className="w-3.5 h-3.5 text-sky-600" />
                 <span>{projects.length} Proyectos</span>
               </div>

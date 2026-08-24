@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import { Project, UserSession, ROLE_LABELS, getUserAvatarUrl } from '../types';
-import { 
-  Sparkles, 
-  Check, 
-  CheckCircle2, 
-  List, 
-  Kanban, 
-  Calendar, 
-  LayoutGrid, 
-  Star, 
-  User, 
-  Building2, 
-  Briefcase, 
-  ChevronRight, 
-  ChevronLeft, 
-  X, 
-  ShieldCheck, 
+import {
+  Sparkles,
+  Check,
+  CheckCircle2,
+  List,
+  Kanban,
+  Calendar,
+  LayoutGrid,
+  Star,
+  User,
+  Building2,
+  Briefcase,
+  ChevronRight,
+  ChevronLeft,
+  X,
+  ShieldCheck,
   Sliders,
   FolderKanban
 } from 'lucide-react';
@@ -82,8 +82,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md transition-all duration-300 flex items-center justify-center p-4 z-50 animate-in fade-in">
-      <div className="bg-white/95 backdrop-blur-xl border border-white/60 rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh] text-slate-800">
-        
+      <div className="bg-white/95 backdrop-blur-xl border border-white/60 rounded-2xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col max-h-[90vh] text-slate-800">
+
         {/* Modal Top Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 text-white">
           <div className="flex items-center gap-3">
@@ -92,8 +92,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             </div>
             <div>
               <h2 className="font-extrabold text-base tracking-tight flex items-center gap-2">
-                <span>Configuración de Perfil Premium</span>
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-white/10 text-amber-300 border border-amber-300/30">
+                <span>ConfiguraciÃ³n de Perfil Premium</span>
+                <span className="text-xs font-black uppercase px-2 py-0.5 rounded-full bg-white/10 text-amber-300 border border-amber-300/30">
                   Onboarding
                 </span>
               </h2>
@@ -114,28 +114,28 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
         {/* Modal Main Content: 2-Column Layout */}
         <div className="p-6 overflow-y-auto flex-1 grid grid-cols-1 md:grid-cols-12 gap-6 bg-slate-50/50">
-          
+
           {/* LEFT COLUMN: Interactive Form (7 Cols) */}
           <div className="md:col-span-7 space-y-5 flex flex-col justify-between">
-            
+
             {/* STEP 1: Datos Operativos y Perfil */}
             {step === 1 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-left-2 duration-300">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#FF5500]">
-                    Paso 1 de 3 • Perfil Operativo
+                  <span className="text-xs font-black uppercase tracking-widest text-[#FF5500]">
+                    Paso 1 de 3 â€¢ Perfil Operativo
                   </span>
                   <h3 className="text-lg font-black text-slate-900 tracking-tight mt-0.5">
-                    ¿Cómo quieres que te identifique el equipo?
+                    Â¿CÃ³mo quieres que te identifique el equipo?
                   </h3>
                   <p className="text-xs text-slate-500">
-                    Tu nombre y rol se mostrarán en la asignación de tareas, bitácora de auditoría y reportes.
+                    Tu nombre y rol se mostrarÃ¡n en la asignaciÃ³n de tareas, bitÃ¡cora de auditorÃ­a y reportes.
                   </p>
                 </div>
 
                 <div className="space-y-3.5 pt-2">
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 block">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                       Nombre a mostrar *
                     </label>
                     <div className="relative">
@@ -151,7 +151,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-700 block">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
                       Puesto Operativo / Cargo *
                     </label>
                     <div className="relative">
@@ -170,7 +170,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <div>
                       <span className="font-bold block text-amber-950">Nivel de Acceso Asignado: {roleLabel}</span>
-                      <p className="text-[11px] text-amber-800 mt-0.5">
+                      <p className="text-xs text-amber-800 mt-0.5">
                         Tu rol principal de sistema es <strong>{currentUser.role}</strong> con capacidad mensual de <strong>{currentUser.capacidadMensualHoras || 176}h</strong>.
                       </p>
                     </div>
@@ -179,18 +179,18 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               </div>
             )}
 
-            {/* STEP 2: Selección de Vista de Planner */}
+            {/* STEP 2: SelecciÃ³n de Vista de Planner */}
             {step === 2 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-left-2 duration-300">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#FF5500]">
-                    Paso 2 de 3 • Modalidad de Trabajo
+                  <span className="text-xs font-black uppercase tracking-widest text-[#FF5500]">
+                    Paso 2 de 3 â€¢ Modalidad de Trabajo
                   </span>
                   <h3 className="text-lg font-black text-slate-900 tracking-tight mt-0.5">
-                    ¿Cómo quieres ver tu trabajo por defecto?
+                    Â¿CÃ³mo quieres ver tu trabajo por defecto?
                   </h3>
                   <p className="text-xs text-slate-500">
-                    No te preocupes, podrás cambiar entre modalidades en cualquier momento desde el Planner.
+                    No te preocupes, podrÃ¡s cambiar entre modalidades en cualquier momento desde el Planner.
                   </p>
                 </div>
 
@@ -215,7 +215,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     </div>
                     <div>
                       <h4 className="font-extrabold text-xs text-slate-900">Tabla / Lista</h4>
-                      <p className="text-[10px] text-slate-500 line-clamp-1">Vista detallada fila a fila</p>
+                      <p className="text-xs text-slate-500 line-clamp-1">Vista detallada fila a fila</p>
                     </div>
                   </button>
 
@@ -239,7 +239,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     </div>
                     <div>
                       <h4 className="font-extrabold text-xs text-slate-900">Tablero Kanban</h4>
-                      <p className="text-[10px] text-slate-500 line-clamp-1">Flujo por columnas de estado</p>
+                      <p className="text-xs text-slate-500 line-clamp-1">Flujo por columnas de estado</p>
                     </div>
                   </button>
 
@@ -263,7 +263,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     </div>
                     <div>
                       <h4 className="font-extrabold text-xs text-slate-900">Calendario</h4>
-                      <p className="text-[10px] text-slate-500 line-clamp-1">Matriz temporal por semanas</p>
+                      <p className="text-xs text-slate-500 line-clamp-1">Matriz temporal por semanas</p>
                     </div>
                   </button>
 
@@ -287,7 +287,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     </div>
                     <div>
                       <h4 className="font-extrabold text-xs text-slate-900">Tarjetas Cards</h4>
-                      <p className="text-[10px] text-slate-500 line-clamp-1">Resumen ejecutivo visual</p>
+                      <p className="text-xs text-slate-500 line-clamp-1">Resumen ejecutivo visual</p>
                     </div>
                   </button>
                 </div>
@@ -298,8 +298,8 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
             {step === 3 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-left-2 duration-300">
                 <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#FF5500]">
-                    Paso 3 de 3 • Proyectos de Interés
+                  <span className="text-xs font-black uppercase tracking-widest text-[#FF5500]">
+                    Paso 3 de 3 â€¢ Proyectos de InterÃ©s
                   </span>
                   <div className="flex items-center justify-between mt-0.5">
                     <h3 className="text-lg font-black text-slate-900 tracking-tight">
@@ -308,13 +308,13 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     <button
                       type="button"
                       onClick={handleSelectAllProjects}
-                      className="text-[11px] font-bold text-[#FF5500] hover:underline cursor-pointer"
+                      className="text-xs font-bold text-[#FF5500] hover:underline cursor-pointer"
                     >
                       {selectedProjectIds.length === projects.length ? 'Desmarcar todos' : 'Marcar todos'}
                     </button>
                   </div>
                   <p className="text-xs text-slate-500">
-                    Los proyectos marcados se destacarán en tu selector rápido con una estrella ⭐.
+                    Los proyectos marcados se destacarÃ¡n en tu selector rÃ¡pido con una estrella â­.
                   </p>
                 </div>
 
@@ -343,12 +343,12 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                           </div>
                           <div className="min-w-0">
                             <h5 className="font-extrabold text-xs text-slate-900 truncate">{proj.name}</h5>
-                            <p className="text-[10px] text-slate-500 truncate">{proj.clientName}</p>
+                            <p className="text-xs text-slate-500 truncate">{proj.clientName}</p>
                           </div>
                         </div>
 
                         <div className="flex items-center gap-2 shrink-0">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
                             Fases: {completedPhases}/{proj.phases.length}
                           </span>
                           <input
@@ -378,7 +378,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     Anterior
                   </button>
                 ) : (
-                  <span className="text-[11px] font-bold text-slate-400">Paso 1 de 3</span>
+                  <span className="text-xs font-bold text-slate-400">Paso 1 de 3</span>
                 )}
               </div>
 
@@ -408,7 +408,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
           </div>
 
           {/* RIGHT COLUMN: Light Schematic / Dynamic Preview (5 Cols) */}
-          <div className="md:col-span-5 bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-3xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden border border-slate-800">
+          <div className="md:col-span-5 bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-2xl p-5 flex flex-col justify-between shadow-xl relative overflow-hidden border border-slate-800">
             {/* Ambient Lighting Orbs */}
             <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#FF5500]/20 rounded-full blur-2xl pointer-events-none" />
             <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-amber-500/20 rounded-full blur-2xl pointer-events-none" />
@@ -417,16 +417,16 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
               <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                  <span className="text-[11px] font-black uppercase tracking-wider text-slate-300">
+                  <span className="text-xs font-black uppercase tracking-wider text-slate-300">
                     Vista Previa en Vivo
                   </span>
                 </div>
-                <span className="text-[10px] font-bold text-slate-500 bg-slate-850 px-2 py-0.5 rounded-md border border-slate-800">
+                <span className="text-xs font-bold text-slate-500 bg-slate-850 px-2 py-0.5 rounded-md border border-slate-800">
                   Wrike Style
                 </span>
               </div>
 
-              {/* PREVIEW STEP 1: Tarjeta de Perfil Estática */}
+              {/* PREVIEW STEP 1: Tarjeta de Perfil EstÃ¡tica */}
               {step === 1 && (
                 <div className="space-y-4 pt-2 animate-in fade-in duration-300">
                   <div className="bg-slate-850/80 border border-slate-750 rounded-2xl p-4 space-y-3 shadow-inner">
@@ -443,19 +443,19 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         <h4 className="font-black text-sm text-white truncate">
                           {displayName || currentUser.username}
                         </h4>
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FF5500]/20 text-[#FF5500] border border-[#FF5500]/30 inline-block mt-0.5">
+                        <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#FF5500]/20 text-[#FF5500] border border-[#FF5500]/30 inline-block mt-0.5">
                           {displayPuesto}
                         </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800 text-[11px]">
+                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800 text-xs">
                       <div className="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
-                        <span className="text-slate-400 block text-[9px] uppercase font-bold">Capacidad</span>
+                        <span className="text-slate-400 block text-xs uppercase font-bold">Capacidad</span>
                         <span className="font-extrabold text-amber-400">{currentUser.capacidadMensualHoras || 176}h / mes</span>
                       </div>
                       <div className="bg-slate-900/90 p-2 rounded-xl border border-slate-800">
-                        <span className="text-slate-400 block text-[9px] uppercase font-bold">Estado</span>
+                        <span className="text-slate-400 block text-xs uppercase font-bold">Estado</span>
                         <span className="font-extrabold text-emerald-400 flex items-center gap-1">
                           <Check className="w-3 h-3" /> Activo
                         </span>
@@ -463,21 +463,21 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     </div>
                   </div>
 
-                  <p className="text-[11px] text-slate-400 leading-relaxed italic bg-slate-900/40 p-3 rounded-2xl border border-slate-800/60">
-                    "Los proyectos y horas registradas por este usuario serán rastreados con sellos de auditoría de alta precisión."
+                  <p className="text-xs text-slate-400 leading-relaxed italic bg-slate-900/40 p-3 rounded-2xl border border-slate-800/60">
+                    "Los proyectos y horas registradas por este usuario serÃ¡n rastreados con sellos de auditorÃ­a de alta precisiÃ³n."
                   </p>
                 </div>
               )}
 
-              {/* PREVIEW STEP 2: Ilustración Ligera de la Vista Seleccionada */}
+              {/* PREVIEW STEP 2: IlustraciÃ³n Ligera de la Vista Seleccionada */}
               {step === 2 && (
                 <div className="space-y-3 pt-1 animate-in fade-in duration-300">
                   <div className="bg-slate-850/80 border border-slate-750 rounded-2xl p-4 min-h-[200px] flex flex-col justify-between">
-                    <div className="flex items-center justify-between text-[11px] font-extrabold text-slate-300 border-b border-slate-800 pb-2">
+                    <div className="flex items-center justify-between text-xs font-extrabold text-slate-300 border-b border-slate-800 pb-2">
                       <span className="capitalize font-black text-[#FF5500]">
                         Modalidad: {selectedView}
                       </span>
-                      <span className="text-[10px] text-slate-500">Esquema Gráfico</span>
+                      <span className="text-xs text-slate-500">Esquema GrÃ¡fico</span>
                     </div>
 
                     {/* Schematics per view */}
@@ -488,21 +488,21 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                             <div className="w-2 h-2 rounded-full bg-emerald-400" />
                             <span className="font-bold text-slate-200">Fase 1: Descubrimiento</span>
                           </div>
-                          <span className="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full">100%</span>
+                          <span className="text-xs bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full">100%</span>
                         </div>
                         <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-amber-400" />
-                            <span className="font-bold text-slate-200">Fase 2: Diseño UX</span>
+                            <span className="font-bold text-slate-200">Fase 2: DiseÃ±o UX</span>
                           </div>
-                          <span className="text-[10px] bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full">65%</span>
+                          <span className="text-xs bg-amber-950 text-amber-300 px-2 py-0.5 rounded-full">65%</span>
                         </div>
                         <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 flex items-center justify-between text-xs">
                           <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-slate-600" />
                             <span className="font-bold text-slate-400">Fase 3: Desarrollo</span>
                           </div>
-                          <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">0%</span>
+                          <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full">0%</span>
                         </div>
                       </div>
                     )}
@@ -510,40 +510,40 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     {selectedView === 'kanban' && (
                       <div className="grid grid-cols-3 gap-2 py-3">
                         <div className="bg-slate-900/90 p-2 rounded-xl border border-slate-800 space-y-1.5">
-                          <span className="text-[9px] font-black text-slate-400 uppercase">Pendiente</span>
-                          <div className="bg-slate-800 p-1.5 rounded-lg text-[10px] font-bold text-slate-300">Briefing</div>
-                          <div className="bg-slate-800 p-1.5 rounded-lg text-[10px] font-bold text-slate-300">Wireframes</div>
+                          <span className="text-xs font-black text-slate-400 uppercase">Pendiente</span>
+                          <div className="bg-slate-800 p-1.5 rounded-lg text-xs font-bold text-slate-300">Briefing</div>
+                          <div className="bg-slate-800 p-1.5 rounded-lg text-xs font-bold text-slate-300">Wireframes</div>
                         </div>
                         <div className="bg-slate-900/90 p-2 rounded-xl border border-slate-800 space-y-1.5">
-                          <span className="text-[9px] font-black text-amber-400 uppercase">En Proceso</span>
-                          <div className="bg-[#FF5500]/20 border border-[#FF5500]/40 p-1.5 rounded-lg text-[10px] font-bold text-orange-200">
+                          <span className="text-xs font-black text-amber-400 uppercase">En Proceso</span>
+                          <div className="bg-[#FF5500]/20 border border-[#FF5500]/40 p-1.5 rounded-lg text-xs font-bold text-orange-200">
                             UI Design
                           </div>
                         </div>
                         <div className="bg-slate-900/90 p-2 rounded-xl border border-slate-800 space-y-1.5">
-                          <span className="text-[9px] font-black text-emerald-400 uppercase">Completado</span>
-                          <div className="bg-emerald-950/60 p-1.5 rounded-lg text-[10px] font-bold text-emerald-300">Research</div>
+                          <span className="text-xs font-black text-emerald-400 uppercase">Completado</span>
+                          <div className="bg-emerald-950/60 p-1.5 rounded-lg text-xs font-bold text-emerald-300">Research</div>
                         </div>
                       </div>
                     )}
 
                     {selectedView === 'calendar' && (
                       <div className="py-2">
-                        <div className="grid grid-cols-5 gap-1.5 text-center text-[9px] font-bold text-slate-400 uppercase mb-2">
-                          <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span>
+                        <div className="grid grid-cols-5 gap-1.5 text-center text-xs font-bold text-slate-400 uppercase mb-2">
+                          <span>Lun</span><span>Mar</span><span>MiÃ©</span><span>Jue</span><span>Vie</span>
                         </div>
                         <div className="grid grid-cols-5 gap-1.5">
-                          <div className="h-10 bg-slate-900 rounded-lg p-1 border border-slate-800 text-[9px]">
-                            <div className="bg-emerald-500/20 text-emerald-300 rounded px-1 text-[8px] truncate">Sprint 1</div>
+                          <div className="h-10 bg-slate-900 rounded-lg p-1 border border-slate-800 text-xs">
+                            <div className="bg-emerald-500/20 text-emerald-300 rounded px-1 text-xs truncate">Sprint 1</div>
                           </div>
-                          <div className="h-10 bg-slate-900 rounded-lg p-1 border border-slate-800 text-[9px]">
-                            <div className="bg-[#FF5500]/30 text-orange-200 rounded px-1 text-[8px] truncate">Entrega</div>
+                          <div className="h-10 bg-slate-900 rounded-lg p-1 border border-slate-800 text-xs">
+                            <div className="bg-[#FF5500]/30 text-orange-200 rounded px-1 text-xs truncate">Entrega</div>
                           </div>
-                          <div className="h-10 bg-slate-900 rounded-lg p-1 border border-slate-800 text-[9px]" />
-                          <div className="h-10 bg-slate-900 rounded-lg p-1 border border-slate-800 text-[9px]">
-                            <div className="bg-purple-500/20 text-purple-300 rounded px-1 text-[8px] truncate">Review</div>
+                          <div className="h-10 bg-slate-900 rounded-lg p-1 border border-slate-800 text-xs" />
+                          <div className="h-10 bg-slate-900 rounded-lg p-1 border border-slate-800 text-xs">
+                            <div className="bg-purple-500/20 text-purple-300 rounded px-1 text-xs truncate">Review</div>
                           </div>
-                          <div className="h-10 bg-slate-900 rounded-lg p-1 border border-slate-800 text-[9px]" />
+                          <div className="h-10 bg-slate-900 rounded-lg p-1 border border-slate-800 text-xs" />
                         </div>
                       </div>
                     )}
@@ -551,18 +551,18 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                     {selectedView === 'cards' && (
                       <div className="grid grid-cols-2 gap-2 py-3">
                         <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 space-y-1">
-                          <span className="text-[10px] font-extrabold text-white block truncate">Proyecto Famosa</span>
-                          <span className="text-[9px] text-emerald-400 font-bold block">80% Completado</span>
+                          <span className="text-xs font-extrabold text-white block truncate">Proyecto Famosa</span>
+                          <span className="text-xs text-emerald-400 font-bold block">80% Completado</span>
                         </div>
                         <div className="bg-slate-900 p-2.5 rounded-xl border border-slate-800 space-y-1">
-                          <span className="text-[10px] font-extrabold text-white block truncate">Proyecto ADOC</span>
-                          <span className="text-[9px] text-amber-400 font-bold block">45% En Proceso</span>
+                          <span className="text-xs font-extrabold text-white block truncate">Proyecto ADOC</span>
+                          <span className="text-xs text-amber-400 font-bold block">45% En Proceso</span>
                         </div>
                       </div>
                     )}
 
-                    <span className="text-[10px] text-slate-400 text-center block pt-1">
-                      Optimizada para rendimiento instantáneo
+                    <span className="text-xs text-slate-400 text-center block pt-1">
+                      Optimizada para rendimiento instantÃ¡neo
                     </span>
                   </div>
                 </div>
@@ -596,7 +596,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
                   <div className="p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-2xl text-xs text-emerald-200 flex items-center gap-2.5">
                     <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                    <span>¡Tu cuenta está lista para operar con máxima eficiencia!</span>
+                    <span>Â¡Tu cuenta estÃ¡ lista para operar con mÃ¡xima eficiencia!</span>
                   </div>
                 </div>
               )}

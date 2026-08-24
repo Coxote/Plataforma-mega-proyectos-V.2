@@ -12,7 +12,7 @@ interface LoginProps {
 const ARTWORK_SLIDES = [
   {
     id: 1,
-    title: "Esferas 3D & Núcleo Naranja",
+    title: "Esferas 3D & NÃºcleo Naranja",
     url: "/src/assets/images/spheres_3d_artwork_1786405864690.jpg",
     fallbackUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop",
     gradient: "from-amber-900/60 to-slate-950/80",
@@ -20,7 +20,7 @@ const ARTWORK_SLIDES = [
   },
   {
     id: 2,
-    title: "Vórtice Líquido Naranja",
+    title: "VÃ³rtice LÃ­quido Naranja",
     url: "/src/assets/images/orange_swirl_vortex_1786405886375.jpg",
     fallbackUrl: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=1200&auto=format&fit=crop",
     gradient: "from-orange-950/70 to-red-950/80",
@@ -28,7 +28,7 @@ const ARTWORK_SLIDES = [
   },
   {
     id: 3,
-    title: "Mano 3D Táctil Peluda",
+    title: "Mano 3D TÃ¡ctil Peluda",
     url: "/src/assets/images/orange_fuzzy_hand_1786405899645.jpg",
     fallbackUrl: "https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?q=80&w=1200&auto=format&fit=crop",
     gradient: "from-amber-600/60 to-orange-950/80",
@@ -36,7 +36,7 @@ const ARTWORK_SLIDES = [
   },
   {
     id: 4,
-    title: "Ilustración Vectorial de Equipo",
+    title: "IlustraciÃ³n Vectorial de Equipo",
     url: "/src/assets/images/team_vector_art_1786405910647.jpg",
     fallbackUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop",
     gradient: "from-orange-600/50 to-blue-900/80",
@@ -50,7 +50,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Pick a random artwork on login load and keep it static
   const [activeSlide] = useState(() => Math.floor(Math.random() * ARTWORK_SLIDES.length));
 
@@ -69,13 +69,13 @@ export default function Login({ onLogin, usersList }: LoginProps) {
     }
 
     if (!password) {
-      setError('Por favor, ingresa tu contraseña.');
+      setError('Por favor, ingresa tu contraseÃ±a.');
       return;
     }
 
     const normalizedUser = username.trim().toLowerCase();
     const existingUser = usersList.find(
-      (u) => u.username.toLowerCase() === normalizedUser || 
+      (u) => u.username.toLowerCase() === normalizedUser ||
              (u.puesto && u.puesto.toLowerCase().includes(normalizedUser))
     );
 
@@ -105,7 +105,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
   const currentSlide = ARTWORK_SLIDES[activeSlide];
 
   return (
-    <div 
+    <div
       className="min-h-screen w-screen flex items-center justify-center p-4 sm:p-6 md:p-10 font-sans relative overflow-hidden"
       style={{
         background: 'radial-gradient(ellipse 140% 100% at 50% -15%, #e0f2fe 0%, #f0f5fa 40%, #f8fafc 70%, #ffffff 100%)'
@@ -113,7 +113,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
       id="login-page-container"
     >
       {/* Tarjeta Principal (Modal con 20px border radius, p-[13px] para separaciones exactas) */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.98, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -121,10 +121,10 @@ export default function Login({ onLogin, usersList }: LoginProps) {
         id="login-card"
       >
 
-        {/* Panel Izquierdo (Composición 3D limpia separada a 13px de los bordes con radio anidado de 7px) */}
+        {/* Panel Izquierdo (ComposiciÃ³n 3D limpia separada a 13px de los bordes con radio anidado de 7px) */}
         <div className="relative w-full aspect-[4/5] md:h-[510px] rounded-[7px] overflow-hidden bg-slate-100 shadow-sm">
-          <img 
-            src={currentSlide.url} 
+          <img
+            src={currentSlide.url}
             alt={currentSlide.title}
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover block"
@@ -137,37 +137,37 @@ export default function Login({ onLogin, usersList }: LoginProps) {
           />
         </div>
 
-        {/* Panel Derecho (UI / Formulario Iniciar Sesión con mayor separación respecto a la imagen) */}
+        {/* Panel Derecho (UI / Formulario Iniciar SesiÃ³n con mayor separaciÃ³n respecto a la imagen) */}
         <div className="w-full h-full flex flex-col justify-start pt-2 md:pt-4 pb-12 md:pb-16 pr-2 sm:pr-6 pl-3 md:pl-6">
           <div className="w-full max-w-[290px] space-y-4">
-          
-          {/* Encabezados - Texto Iniciar Sesión ampliado ~20% */}
+
+          {/* Encabezados - Texto Iniciar SesiÃ³n ampliado ~20% */}
           <div className="space-y-0.5">
             <h1 className="text-2xl sm:text-[30px] font-semibold text-[#18181b] tracking-tight leading-tight">
-              Iniciar Sesión
+              Iniciar SesiÃ³n
             </h1>
-            <p className="text-[11px] sm:text-xs text-[#71717a] font-normal">
+            <p className="text-xs sm:text-xs text-[#71717a] font-normal">
               Ingresa tus credenciales
             </p>
           </div>
 
           {error && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-rose-50 border border-rose-200 text-rose-700 text-[11px] rounded-lg p-2 font-medium flex items-center justify-between"
+              className="bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-lg p-2 font-medium flex items-center justify-between"
             >
               <span>{error}</span>
-              <button onClick={() => setError(null)} className="text-rose-400 hover:text-rose-600 font-bold ml-2">✕</button>
+              <button onClick={() => setError(null)} className="text-rose-400 hover:text-rose-600 font-bold ml-2">âœ•</button>
             </motion.div>
           )}
 
           {/* Formulario */}
           <form onSubmit={handleSubmit} className="space-y-3" id="login-form">
-            
+
             {/* Input 1: Email */}
             <div className="space-y-1">
-              <label className="block text-[11px] sm:text-xs font-semibold text-[#3f3f46]">
+              <label className="block text-xs sm:text-xs font-semibold text-[#3f3f46]">
                 Email
               </label>
               <input
@@ -180,18 +180,18 @@ export default function Login({ onLogin, usersList }: LoginProps) {
               />
             </div>
 
-            {/* Input 2: Contraseña */}
+            {/* Input 2: ContraseÃ±a */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="block text-[11px] sm:text-xs font-semibold text-[#3f3f46]">
-                  Contraseña
+                <label className="block text-xs sm:text-xs font-semibold text-[#3f3f46]">
+                  ContraseÃ±a
                 </label>
-                <a 
-                  href="#forgot" 
-                  onClick={(e) => { e.preventDefault(); setError('Instrucciones de recuperación enviadas a administración.'); }}
-                  className="text-[10px] sm:text-[11px] font-medium text-[#FF5500] hover:underline"
+                <a
+                  href="#forgot"
+                  onClick={(e) => { e.preventDefault(); setError('Instrucciones de recuperaciÃ³n enviadas a administraciÃ³n.'); }}
+                  className="text-xs sm:text-xs font-medium text-[#FF5500] hover:underline"
                 >
-                  ¿Olvidaste tu contraseña?
+                  Â¿Olvidaste tu contraseÃ±a?
                 </a>
               </div>
               <div className="relative">
@@ -199,7 +199,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   className="w-full bg-white border-2 border-[#FF5500] rounded-[7px] px-2.5 py-1.5 text-xs text-[#18181b] outline-none transition-all pr-8"
                   id="login-password"
                 />
@@ -213,7 +213,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
               </div>
             </div>
 
-            {/* Checkbox: Mantener sesión */}
+            {/* Checkbox: Mantener sesiÃ³n */}
             <div className="flex items-center gap-1.5 pt-0.5">
               <input
                 type="checkbox"
@@ -222,32 +222,32 @@ export default function Login({ onLogin, usersList }: LoginProps) {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="w-3 h-3 rounded-[3px] border-[#D1D5DB] text-[#FF5500] focus:ring-[#FF5500] cursor-pointer"
               />
-              <label htmlFor="rememberMe" className="text-[11px] sm:text-xs text-[#3f3f46] font-normal cursor-pointer select-none">
-                Mantener sesión
+              <label htmlFor="rememberMe" className="text-xs sm:text-xs text-[#3f3f46] font-normal cursor-pointer select-none">
+                Mantener sesiÃ³n
               </label>
             </div>
 
-            {/* Botón Principal CTA */}
+            {/* BotÃ³n Principal CTA */}
             <button
               type="submit"
               className="w-full bg-[#FF5500] hover:bg-[#E04B00] text-white font-medium py-2 rounded-[7px] text-xs transition-all shadow-sm cursor-pointer text-center active:scale-[0.99] mt-1"
               id="login-submit-btn"
             >
-              Iniciar Sesión
+              Iniciar SesiÃ³n
             </button>
           </form>
 
-          {/* Accesos rápidos de ejemplo */}
+          {/* Accesos rÃ¡pidos de ejemplo */}
           <div className="pt-1.5 border-t border-slate-100 space-y-1">
-            <span className="text-[10px] font-medium text-slate-400 block">
-              Accesos de prueba rápidos:
+            <span className="text-xs font-medium text-slate-400 block">
+              Accesos de prueba rÃ¡pidos:
             </span>
             <div className="flex flex-wrap gap-1">
               {usersList.slice(0, 4).map((u) => (
                 <button
                   key={u.id}
                   onClick={() => handleSelectPresetUser(u)}
-                  className="px-1.5 py-0.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-md text-[10px] font-medium transition-all cursor-pointer border border-slate-200"
+                  className="px-1.5 py-0.5 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-md text-xs font-medium transition-all cursor-pointer border border-slate-200"
                 >
                   {u.username}
                 </button>
