@@ -204,13 +204,22 @@ export default function Sidebar({
             <div
               key={project.id}
               className={`group relative flex items-center justify-between rounded-xl transition-all duration-200 ${
-                isCollapsed ? 'p-2 justify-center' : 'px-3 py-2'
+                isCollapsed ? 'p-2 justify-center' : 'px-3 py-2 pl-4'
               } ${
                 isActive
                   ? 'bg-orange-50/90 text-[#FF5500] font-bold shadow-2xs border border-orange-200/60'
                   : 'text-slate-700 bg-transparent hover:bg-slate-100/70 hover:text-slate-900 border border-transparent'
               }`}
             >
+              {/* Curved selection bar indicator */}
+              {isActive && (
+                <span
+                  className={`absolute left-0 top-1/2 -translate-y-1/2 bg-[#FF5500] rounded-r-full shadow-xs transition-all duration-200 z-20 ${
+                    isCollapsed ? 'w-1 h-5' : 'w-1.5 h-6'
+                  }`}
+                />
+              )}
+
               <button
                 onClick={() => onSelectProject(project.id)}
                 className={`flex items-center gap-2.5 text-left cursor-pointer min-w-0 ${
