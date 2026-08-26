@@ -37,6 +37,8 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -45,6 +47,15 @@ import {
   Bar,
   Cell
 } from 'recharts';
+import {
+  DollarSign,
+  Wallet,
+  FileText,
+  GitPullRequest,
+  TrendingDown,
+  Percent,
+  PieChart
+} from 'lucide-react';
 import { TeamCard, VitaminizedMember } from './TeamCard';
 import { UserInspectorPanel } from './UserInspectorPanel';
 
@@ -209,6 +220,49 @@ export const CoordinatorDashboard: React.FC<Props> = ({
     }
     return 'Fase Sprint';
   }, [currentProject]);
+
+  // Financial & Scope Health Calculations (EAC vs BAC, S-Curve, Scope Creep)
+  const bacValue = useMemo(() => projectSoldHours * 300, [projectSoldHours]);
+  const acValue = useMemo(() => projectConsumedHours * 300, [projectConsumedHours]);
+  const evValue = useMemo(() => Math.round(bacValue * (globalProgress / 100)), [bacValue, globalProgress]);
+  const cpiNum = useMemo(() => (parseFloat(cpiDisplay) > 0 ? parseFloat(cpiDisplay) : 1.0), [cpiDisplay]);
+  const eacValue = useMemo(() => Math.round(bacValue / cpiNum), [bacValue, cpiNum]);
+  const vacValue = useMemo(() => bacValue - eacValue, [bacValue, eacValue]);
+  const vacPercentage = useMemo(() => ((vacValue / bacValue) * 100).toFixed(1), [vacValue, bacValue]);
+
+  // Gauge needle angle (-160deg to -20deg, -90deg is center at 1.0 ratio)
+  const gaugeRatio = eacValue / (bacValue || 1);
+  const gaugeAngle = Math.min(-20, Math.max(-160, -90 + (gaugeRatio - 1.0) * 220));
+
+  // Curva S Financiera (Burn Rate Trend)
+  const sCurveData = useMemo(() => {
+    return [
+      { stage: 'Kickoff', PV: 6000, AC: 4200, EV: 5800 },
+      { stage: 'Reqs', PV: 14000, AC: 10500, EV: 13200 },
+      { stage: 'Diseño', PV: 24000, AC: 18200, EV: 23500 },
+      { stage: 'Review', PV: 35000, AC: 25500, EV: 32800 },
+      { stage: 'Sprint (Hoy)', PV: 42000, AC: 33000, EV: evValue },
+      { stage: 'QA Proj', PV: 46000, AC: 41000, EV: 44000 },
+      { stage: 'Cierre', PV: bacValue, AC: eacValue, EV: bacValue },
+    ];
+  }, [bacValue, eacValue, evValue]);
+
+  // Scope Creep / Volatilidad del Alcance
+  const scopeCreepData = useMemo(() => {
+    return [
+      { sprint: 'Kickoff', base: 160, extra: 0, total: 160 },
+      { sprint: 'Reqs', base: 160, extra: 4, total: 164 },
+      { sprint: 'Diseño', base: 160, extra: 12, total: 172 },
+      { sprint: 'Review', base: 160, extra: 18, total: 178 },
+      { sprint: 'Sprint (Hoy)', base: 160, extra: 23, total: 183 },
+    ];
+  }, []);
+
+  const changeRequestsList = useMemo(() => [
+    { id: 'CR-04', title: 'Variaciones 3D e interactivos', hours: '+15h', cost: '$4,500', status: 'Aprobada', type: 'approved' },
+    { id: 'CR-05', title: 'Adaptación responsive extra', hours: '+8h', cost: '$2,400', status: 'En revisión', type: 'pending' },
+    { id: 'CR-06', title: 'Módulo multilingüe adicional', hours: '+20h', cost: '$6,000', status: 'Propuesta', type: 'draft' },
+  ], []);
 
   // SLA Rule engine alerts
   const slaAlerts = useMemo(() => runSlaRuleEngine(projects), [projects]);
@@ -557,150 +611,278 @@ export const CoordinatorDashboard: React.FC<Props> = ({
         </div>
 
         {/* ========================================================================= */}
-        {/* BLOQUE 2: DECISIONES Y BLOQUEOS (GRID DE 3 COLUMNAS, MIN-HEIGHT 160PX)    */}
+        {/* BLOQUE 2: SALUD FINANCIERA Y CONTROL DE ALCANCE (FINANZAS & SCOPE)        */}
         {/* ========================================================================= */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
+        <div className="space-y-4" id="financial-scope-health-block">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
             <h2 className="text-xs font-bold text-[#64748B] uppercase tracking-wider flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-[#FF5500]" />
-              Decisiones Pendientes y Acciones Operativas
+              <DollarSign className="w-4 h-4 text-[#12AB51]" />
+              Salud Financiera y Control de Alcance (Finanzas & Scope)
             </h2>
             <span className="text-xs font-medium text-[#64748B]">
-              3 acciones prioritarias
+              Supervisión de Presupuesto, Curva S y Pipeline de Cambios
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-            {/* TARJETA DE DECISIÓN 1 */}
+            {/* TARJETA 1: MÉTRICAS PRESUPUESTARIAS (EAC vs. BAC) (4 COLS) */}
             <div
-              id="decision-card-1"
-              className="bg-white rounded-[16px] p-6 border border-[#E2E8F0] flex flex-col justify-between"
+              id="financial-card-eac-bac"
+              className="lg:col-span-4 bg-white rounded-[16px] p-6 border border-[#E2E8F0] flex flex-col justify-between"
               style={{
-                minHeight: '160px',
                 boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.04)'
               }}
             >
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF5500] bg-[#FF5500]/10 px-2 py-0.5 rounded">
-                    Alcance & Facturación
+                <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-[#E2E8F0]">
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#1E293B] flex items-center gap-2">
+                      <Wallet className="w-4 h-4 text-[#12AB51]" />
+                      Métricas Presupuestarias (EAC vs. BAC)
+                    </h3>
+                    <p className="text-xs text-[#64748B] mt-0.5">
+                      Presupuesto Inicial vs. Proyectado al Cierre.
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold text-[#12AB51] bg-[#12AB51]/10 px-2 py-0.5 rounded">
+                    Eficiente
                   </span>
-                  <span className="text-xs text-[#64748B] font-medium">Hace 2 horas</span>
                 </div>
-                <h3 className="text-sm font-semibold text-[#1E293B] mb-1">
-                  Excedente de Horas en Diseño Visual (+15h)
-                </h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  El cliente solicitó variaciones 3D no estipuladas. Se requiere emitir orden adicional o formalizar ajuste.
-                </p>
+
+                {/* Gauge / Velocímetro semicircular */}
+                <div className="relative flex flex-col items-center justify-center my-2">
+                  <svg viewBox="0 0 200 120" className="w-52 h-32 overflow-visible">
+                    {/* Segmento 1: Verde (Eficiente < 95%) */}
+                    <path
+                      d="M 20 100 A 80 80 0 0 1 88 23"
+                      fill="none"
+                      stroke="#12AB51"
+                      strokeWidth="14"
+                      strokeLinecap="round"
+                    />
+                    {/* Segmento 2: Ámbar (En Plan 95% - 105%) */}
+                    <path
+                      d="M 94 21 A 80 80 0 0 1 122 25"
+                      fill="none"
+                      stroke="#F59E0B"
+                      strokeWidth="14"
+                    />
+                    {/* Segmento 3: Rojo (Sobre Costo > 105%) */}
+                    <path
+                      d="M 128 28 A 80 80 0 0 1 180 100"
+                      fill="none"
+                      stroke="#EF4444"
+                      strokeWidth="14"
+                      strokeLinecap="round"
+                    />
+                    {/* Pivot point */}
+                    <circle cx="100" cy="100" r="7" fill="#1E293B" />
+                    <circle cx="100" cy="100" r="3" fill="#FFFFFF" />
+
+                    {/* Aguja dinámica */}
+                    <g transform={`rotate(${gaugeAngle}, 100, 100)`}>
+                      <polygon points="98,100 102,100 100,26" fill="#1E293B" />
+                    </g>
+                  </svg>
+
+                  {/* Valor proyectado central */}
+                  <div className="text-center -mt-4">
+                    <span className="text-xs text-[#64748B] font-medium block">Proyectado al Cierre (EAC)</span>
+                    <span className="text-2xl font-bold text-slate-900 tracking-tight">
+                      ${eacValue.toLocaleString()} <span className="text-xs font-normal text-slate-500">USD</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Grid comparativa de métricas BAC, VAC, AC */}
+                <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-[#E2E8F0] bg-slate-50/70 p-2.5 rounded-xl">
+                  <div>
+                    <span className="text-[11px] text-[#64748B] block font-medium">Presupuesto Inicial (BAC)</span>
+                    <span className="text-sm font-bold text-slate-800">${bacValue.toLocaleString()} USD</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] text-[#64748B] block font-medium">Varianza al Cierre (VAC)</span>
+                    <span className="text-sm font-bold text-[#12AB51]">
+                      +${vacValue.toLocaleString()} ({vacPercentage}%)
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#E2E8F0] flex items-center justify-between">
-                <button
-                  onClick={() => handleActionNotification('card-1')}
-                  className="btn-action w-full h-[40px] px-4 rounded-lg bg-[#FF5500] text-white text-xs font-medium inline-flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {notificationStatus['card-1'] ? (
-                    <>
-                      <Check className="w-4 h-4 text-white" />
-                      <span>Notificación enviada</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-3.5 h-3.5" />
-                      <span>Notificar a Account Executive</span>
-                    </>
-                  )}
-                </button>
+              <div className="mt-3 pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
+                <span>Costo Real (AC): <strong className="text-slate-800">${acValue.toLocaleString()}</strong></span>
+                <span>Valor Ganado (EV): <strong className="text-slate-800">${evValue.toLocaleString()}</strong></span>
               </div>
             </div>
 
-            {/* TARJETA DE DECISIÓN 2 */}
+            {/* TARJETA 2: CURVA S FINANCIERA (BURN RATE TREND) (4 COLS) */}
             <div
-              id="decision-card-2"
-              className="bg-white rounded-[16px] p-6 border border-[#E2E8F0] flex flex-col justify-between"
+              id="financial-card-s-curve"
+              className="lg:col-span-4 bg-white rounded-[16px] p-6 border border-[#E2E8F0] flex flex-col justify-between"
               style={{
-                minHeight: '160px',
                 boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.04)'
               }}
             >
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded">
-                    Capacidad de Equipo
-                  </span>
-                  <span className="text-xs text-[#64748B] font-medium">Próximo Sprint</span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-[#E2E8F0]">
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#1E293B] flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-[#FF5500]" />
+                      Curva S Financiera (Burn Rate Trend)
+                    </h3>
+                    <p className="text-xs text-[#64748B] mt-0.5">
+                      Evolución acumulada de PV, AC y EV.
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-sm font-semibold text-[#1E293B] mb-1">
-                  Saturación de QA y Validación Cruzada
-                </h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Colaborador asignado tiene 2 proyectos simultáneos alcanzando el 105% de saturación mensual.
-                </p>
+
+                {/* Leyenda de líneas */}
+                <div className="flex items-center justify-between gap-2 text-[11px] font-medium mb-2 px-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-1 rounded-full bg-[#64748B] border-dashed"></span>
+                    <span className="text-[#64748B]">PV (Plan)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-1 rounded-full bg-[#FF5500]"></span>
+                    <span className="text-[#64748B]">AC (Costo Real)</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-3 h-1 rounded-full bg-[#12AB51]"></span>
+                    <span className="text-[#64748B]">EV (Ganado)</span>
+                  </div>
+                </div>
+
+                {/* Gráfico de Líneas Recharts */}
+                <div className="h-44 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={sCurveData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                      <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 3" vertical={false} />
+                      <XAxis
+                        dataKey="stage"
+                        tick={{ fontSize: 10, fill: '#64748B', fontWeight: 500 }}
+                        stroke="#E2E8F0"
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: '#64748B', fontWeight: 500 }}
+                        stroke="#E2E8F0"
+                        tickLine={false}
+                        tickFormatter={(v) => `$${v / 1000}k`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1E1E1E',
+                          color: '#FFFFFF',
+                          borderRadius: '8px',
+                          border: '1px solid #334155',
+                          fontSize: '11px',
+                          padding: '6px 10px'
+                        }}
+                        formatter={(val: number) => [`$${val.toLocaleString()} USD`]}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="PV"
+                        name="Presupuesto Planificado"
+                        stroke="#64748B"
+                        strokeWidth={2}
+                        strokeDasharray="4 4"
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="AC"
+                        name="Costo Real"
+                        stroke="#FF5500"
+                        strokeWidth={2.5}
+                        dot={false}
+                        activeDot={{ r: 5, stroke: '#FFFFFF', strokeWidth: 2, fill: '#FF5500' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="EV"
+                        name="Valor Ganado"
+                        stroke="#12AB51"
+                        strokeWidth={2.5}
+                        dot={false}
+                        activeDot={{ r: 5, stroke: '#FFFFFF', strokeWidth: 2, fill: '#12AB51' }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#E2E8F0] flex items-center justify-between">
-                <button
-                  onClick={() => handleActionNotification('card-2')}
-                  className="btn-action w-full h-[40px] px-4 rounded-lg bg-slate-900 text-white text-xs font-medium inline-flex items-center justify-center gap-2 cursor-pointer hover:bg-slate-800"
-                >
-                  {notificationStatus['card-2'] ? (
-                    <>
-                      <Check className="w-4 h-4 text-white" />
-                      <span>Capacidad Rebalanceada</span>
-                    </>
-                  ) : (
-                    <>
-                      <UserCheck className="w-3.5 h-3.5 text-[#12AB51]" />
-                      <span>Reasignar Horas / Capacidad</span>
-                    </>
-                  )}
-                </button>
+              <div className="mt-3 pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
+                <span>Burn Rate Promedio: <strong className="text-slate-800">18h/semana</strong></span>
+                <span className="text-[#12AB51] font-semibold inline-flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5" /> Gasto Bajo Control
+                </span>
               </div>
             </div>
 
-            {/* TARJETA DE DECISIÓN 3 */}
+            {/* TARJETA 3: VOLATILIDAD DEL ALCANCE (SCOPE CREEP) (4 COLS) */}
             <div
-              id="decision-card-3"
-              className="bg-white rounded-[16px] p-6 border border-[#E2E8F0] flex flex-col justify-between"
+              id="financial-card-scope-creep"
+              className="lg:col-span-4 bg-white rounded-[16px] p-6 border border-[#E2E8F0] flex flex-col justify-between"
               style={{
-                minHeight: '160px',
                 boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.04)'
               }}
             >
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#12AB51] bg-[#12AB51]/10 px-2 py-0.5 rounded">
-                    Hito de Entrega
+                <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-[#E2E8F0]">
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#1E293B] flex items-center gap-2">
+                      <GitPullRequest className="w-4 h-4 text-purple-600" />
+                      Volatilidad del Alcance (Scope Creep)
+                    </h3>
+                    <p className="text-xs text-[#64748B] mt-0.5">
+                      Cambios vs. línea base y pipeline de CRs.
+                    </p>
+                  </div>
+                  <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">
+                    +14.4% Creep
                   </span>
-                  <span className="text-xs text-[#64748B] font-medium">30 Jul 2026</span>
                 </div>
-                <h3 className="text-sm font-semibold text-[#1E293B] mb-1">
-                  Aprobación de Entregable Fase A5 (Sprint)
-                </h3>
-                <p className="text-xs text-[#64748B] leading-relaxed">
-                  Se completaron los 4 entregables principales con firma interna. Listo para liberar al cliente.
-                </p>
+
+                {/* Pipeline de Solicitudes de Cambio (CRs) */}
+                <div className="space-y-2 mb-3">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
+                    Solicitudes de Cambio (CRs) Activas
+                  </div>
+                  {changeRequestsList.map((cr) => (
+                    <div
+                      key={cr.id}
+                      className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-between gap-2"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-bold text-slate-800">{cr.id}</span>
+                          <span className="text-xs text-slate-600 truncate">{cr.title}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-400 mt-0.5">
+                          Impacto: <strong className="text-slate-600">{cr.hours}</strong> • Valor: <strong className="text-slate-600">{cr.cost}</strong>
+                        </div>
+                      </div>
+                      <span
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded shrink-0 ${
+                          cr.type === 'approved'
+                            ? 'text-[#12AB51] bg-[#12AB51]/10'
+                            : cr.type === 'pending'
+                            ? 'text-amber-700 bg-amber-100'
+                            : 'text-blue-700 bg-blue-100'
+                        }`}
+                      >
+                        {cr.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-[#E2E8F0] flex items-center justify-between">
-                <button
-                  onClick={() => handleActionNotification('card-3')}
-                  className="btn-action w-full h-[40px] px-4 rounded-lg bg-[#12AB51] text-white text-xs font-medium inline-flex items-center justify-center gap-2 cursor-pointer hover:bg-[#0f9144]"
-                >
-                  {notificationStatus['card-3'] ? (
-                    <>
-                      <Check className="w-4 h-4 text-white" />
-                      <span>Entregables Aprobados</span>
-                    </>
-                  ) : (
-                    <>
-                      <FileCheck2 className="w-3.5 h-3.5" />
-                      <span>Aprobar y Enviar a Cliente</span>
-                    </>
-                  )}
-                </button>
+              <div className="pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
+                <span>Línea Base: <strong className="text-slate-800">160h</strong></span>
+                <span>Horas Extra Aprobadas: <strong className="text-purple-600">+23h ($6.9k)</strong></span>
               </div>
             </div>
 
