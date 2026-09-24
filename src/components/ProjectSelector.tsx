@@ -1,6 +1,7 @@
 import { Project } from '../types';
 import { FolderKanban, Plus, Trash2, FolderGit, AlertCircle, AlertTriangle, Star } from 'lucide-react';
 import React, { useState } from 'react';
+import { ProjectStatusBadge } from './ProjectStatusBadge';
 
 interface ProjectSelectorProps {
   projects: Project[];
@@ -66,13 +67,13 @@ export default function ProjectSelector({
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-widest block">Proyecto Activo</label>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest block">Proyecto Activo</label>
               {isActiveOverdue && (
-                <span className="text-xs font-black uppercase px-1.5 py-0.2 bg-rose-600 text-white rounded">Vencido</span>
+                <ProjectStatusBadge status="vencido" label="Vencido" />
               )}
               {activeProject && followedProjectIds.includes(activeProject.id) && (
-                <span className="text-xs font-black uppercase px-1.5 py-0.2 bg-amber-100 text-amber-800 border border-amber-300 rounded flex items-center gap-0.5">
-                  <Star className="w-2.5 h-2.5 fill-amber-500 text-amber-500" /> Seguido
+                <span className="text-xs font-semibold px-2 py-0.5 bg-stone-100 text-slate-800 rounded-full flex items-center gap-0.5 border-none">
+                  <Star className="w-2.5 h-2.5 fill-slate-800 text-slate-800" /> Seguido
                 </span>
               )}
             </div>
@@ -147,10 +148,10 @@ export default function ProjectSelector({
                   <div className="flex items-center gap-1.5">
                     <p className="truncate font-semibold">{project.name}</p>
                     {isFollowed && (
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" title="Proyecto Seguido" />
+                      <Star className="w-3 h-3 fill-slate-800 text-slate-800 shrink-0" title="Proyecto Seguido" />
                     )}
                     {isOverdue && (
-                      <span className="text-xs font-black px-1 py-0.2 bg-rose-600 text-white rounded shrink-0">SLA Vencido</span>
+                      <ProjectStatusBadge status="vencido" label="SLA Vencido" />
                     )}
                   </div>
                   <p className="text-xs text-slate-400 truncate font-medium">{project.clientName}</p>

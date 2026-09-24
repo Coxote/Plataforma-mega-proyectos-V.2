@@ -26,6 +26,7 @@ import {
   FileCheck
 } from 'lucide-react';
 import { getRetrabajoStats, getRetrabajoBadgeStyle } from '../dashboardUtils';
+import { CustomModal } from './CustomModal';
 
 interface PerfilGeneralProps {
   project: Project;
@@ -139,13 +140,22 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
     setIsAddingOv(false);
   };
 
+  const [ovRestrictionModal, setOvRestrictionModal] = useState(false);
+  const [ovToDelete, setOvToDelete] = useState<string | null>(null);
+
   const handleDeleteOV = (ovId: string) => {
     if (ordenesVentaList.length <= 1) {
-      alert('El proyecto debe mantener al menos una Orden de Venta.');
+      setOvRestrictionModal(true);
       return;
     }
-    const updated = ordenesVentaList.filter(o => o.id !== ovId);
+    setOvToDelete(ovId);
+  };
+
+  const confirmDeleteOV = () => {
+    if (!ovToDelete) return;
+    const updated = ordenesVentaList.filter(o => o.id !== ovToDelete);
     saveUpdatedOVs(updated);
+    setOvToDelete(null);
   };
 
   const handleQuickStatusChange = (ovId: string, newStatus: EstadoOV) => {
@@ -187,7 +197,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6 my-2" id="project-expediente-wrapper">
 
-      {/* ðŸš€ DOSSIER HERO BANNER */}
+      {/* 🚀 DOSSIER HERO BANNER */}
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl p-6 shadow-md border border-slate-700/60 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -198,45 +208,45 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
               <span className="text-xs font-extrabold uppercase tracking-widest text-orange-400 bg-orange-900/50 px-2.5 py-1 rounded-md border border-orange-500/30 flex items-center gap-1">
                 <FileCheck className="w-3 h-3" /> Expediente del Proyecto
               </span>
-              <span className="text-slate-500">â€¢</span>
+              <span className="text-slate-500">•</span>
               <span className="text-xs font-bold text-slate-300">
                 Cliente: <strong className="text-white">{project.clientName || 'GLOBEX S.A.'}</strong>
               </span>
             </div>
 
-            <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-semibold text-white tracking-tight">
               {project.name || 'Sin nombre asignado'}
             </h1>
 
             <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed font-normal">
-              {project.description || 'Ficha oficial de control tÃ©cnico, Ã³rdenes comerciales de venta y presupuesto presupuestado.'}
+              {project.description || 'Ficha oficial de control técnico, órdenes comerciales de venta y presupuesto presupuestado.'}
             </p>
           </div>
 
           {/* Quick Metrics Strip */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 shrink-0">
             <div className="bg-slate-800/80 border border-slate-700/80 p-3 rounded-2xl text-left">
-              <span className="text-xs font-bold uppercase text-slate-400 block mb-0.5">Monto Total OV</span>
-              <span className="text-base font-black text-emerald-400 font-mono">
+              <span className="text-xs font-semibold uppercase text-slate-400 block mb-0.5">Monto Total OV</span>
+              <span className="text-xl font-semibold font-display text-white font-mono">
                 ${(project.totalIncome || 0).toLocaleString('es-CL')}
               </span>
-              <span className="text-xs text-slate-400 block">{activeOVs.length} OV Activa(s)</span>
+              <span className="text-xs text-slate-400 font-normal block">{activeOVs.length} OV Activa(s)</span>
             </div>
 
             <div className="bg-slate-800/80 border border-slate-700/80 p-3 rounded-2xl text-left">
-              <span className="text-xs font-bold uppercase text-slate-400 block mb-0.5">Presupuesto Horas</span>
-              <span className="text-base font-black text-white">
+              <span className="text-xs font-semibold uppercase text-slate-400 block mb-0.5">Presupuesto Horas</span>
+              <span className="text-xl font-semibold font-display text-white">
                 {totalConsumedHours}h <span className="text-xs text-slate-400 font-normal">/ {totalHours}h</span>
               </span>
-              <span className="text-xs text-amber-300 block font-semibold">{availableHours}h disponibles</span>
+              <span className="text-xs text-stone-300 block font-normal">{availableHours}h disponibles</span>
             </div>
 
             <div className="bg-slate-800/80 border border-slate-700/80 p-3 rounded-2xl text-left col-span-2 sm:col-span-1">
-              <span className="text-xs font-bold uppercase text-slate-400 block mb-0.5">Tasa Retrabajo</span>
-              <span className={`text-base font-black ${retrabajoStats.porcentajeRetrabajo > 5 ? 'text-amber-400' : 'text-emerald-400'}`}>
+              <span className="text-xs font-semibold uppercase text-slate-400 block mb-0.5">Tasa Retrabajo</span>
+              <span className="text-xl font-semibold font-display text-white">
                 {retrabajoStats.porcentajeRetrabajo.toFixed(1)}%
               </span>
-              <span className="text-xs text-slate-400 block">{retrabajoStats.horasRetrabajo}h registradas</span>
+              <span className="text-xs text-slate-400 font-normal block">{retrabajoStats.horasRetrabajo}h registradas</span>
             </div>
           </div>
 
@@ -277,7 +287,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             }`}
           >
             <Target className="w-3.5 h-3.5 text-blue-400" />
-            <span>Ficha TÃ©cnica & Scope</span>
+            <span>Ficha Técnica & Scope</span>
           </button>
 
           <button
@@ -294,20 +304,20 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
         </div>
       </div>
 
-      {/* ðŸ”´ SECCIÃ“N 1: DATOS COMERCIALES & Ã“RDENES DE VENTA */}
+      {/* ðŸ”´ SECCIÓN 1: DATOS COMERCIALES & ÓRDENES DE VENTA */}
       {(activeSection === 'all' || activeSection === 'comercial') && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6" id="section-comercial">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
-                <Building2 className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-xl bg-stone-100 border border-slate-200 flex items-center justify-center text-slate-800">
+                <Building2 className="w-4 h-4 text-slate-800" />
               </div>
               <div>
-                <h2 className="text-sm font-black text-slate-900 tracking-tight uppercase">
-                  InformaciÃ³n Comercial & Ã“rdenes de Venta
+                <h2 className="text-sm font-semibold text-slate-900 tracking-tight uppercase">
+                  Información Comercial & Órdenes de Venta
                 </h2>
-                <p className="text-xs text-slate-500 font-medium">
-                  Datos del cliente, contactos autorizados y vinculaciÃ³n de OVs facturables.
+                <p className="text-xs text-slate-500 font-normal">
+                  Datos del cliente, contactos autorizados y vinculación de OVs facturables.
                 </p>
               </div>
             </div>
@@ -316,8 +326,8 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Nombre Cliente */}
             <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1">
-              <label className="block text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <User className="w-3 h-3 text-slate-600" /> Nombre de la Empresa / Cliente
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <User className="w-3 h-3 text-slate-800" /> Nombre de la Empresa / Cliente
               </label>
               <input
                 type="text"
@@ -325,14 +335,14 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                 value={project.clientName || ''}
                 onChange={(e) => handleInputChange('clientName', e.target.value)}
                 placeholder="Ej: Globex S.A."
-                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 font-bold text-slate-900 text-sm focus:ring-2 focus:ring-slate-900/10 outline-none disabled:bg-slate-100 disabled:text-slate-600"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 font-medium text-slate-900 text-sm focus:ring-2 focus:ring-slate-900/10 outline-none disabled:bg-slate-100 disabled:text-slate-600"
               />
             </div>
 
             {/* Contacto Principal */}
             <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1">
-              <label className="block text-xs font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                <Phone className="w-3 h-3 text-slate-600" /> Contacto Principal / TelÃ©fono / Mail
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                <Phone className="w-3 h-3 text-slate-800" /> Contacto Principal / Teléfono / Mail
               </label>
               <input
                 type="text"
@@ -340,26 +350,26 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                 value={project.clientContact || ''}
                 onChange={(e) => handleInputChange('clientContact', e.target.value)}
                 placeholder="Ej: Ricardo Toro (CTO) - ricardo@globex.com"
-                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 font-bold text-slate-900 text-sm focus:ring-2 focus:ring-slate-900/10 outline-none disabled:bg-slate-100 disabled:text-slate-600"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 font-medium text-slate-900 text-sm focus:ring-2 focus:ring-slate-900/10 outline-none disabled:bg-slate-100 disabled:text-slate-600"
               />
             </div>
           </div>
 
-          {/* CONTENEDOR MULTI-OV CON DISEÃ‘O DE ALTO IMPACTO */}
+          {/* CONTENEDOR MULTI-OV CON DISEÑO DE ALTO IMPACTO */}
           <div className="p-5 bg-slate-900 text-white rounded-2xl space-y-4 shadow-md" id="multi-ov-container">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
               <div>
                 <div className="flex items-center gap-2">
-                  <Hash className="w-4 h-4 text-emerald-400" />
-                  <h3 className="text-xs font-black text-emerald-400 uppercase tracking-wider">
-                    Ã“rdenes de Venta Vinculadas ({ordenesVentaList.length})
+                  <Hash className="w-4 h-4 text-stone-300" />
+                  <h3 className="text-xs font-semibold text-white uppercase tracking-wider">
+                    Órdenes de Venta Vinculadas ({ordenesVentaList.length})
                   </h3>
-                  <span className="text-xs bg-emerald-500/20 text-emerald-300 font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  <span className="text-xs bg-slate-800 text-stone-200 font-medium px-2 py-0.5 rounded-full border border-slate-700">
                     {activeOVs.length} Activa(s)
                   </span>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Consolidado total: <strong className="text-white font-mono font-bold">${(project.totalIncome || 0).toLocaleString('es-CL')} {project.currency || 'CLP'}</strong>
+                <p className="text-xs text-slate-400 font-normal mt-0.5">
+                  Consolidado total: <strong className="text-white font-mono font-semibold">${(project.totalIncome || 0).toLocaleString('es-CL')} {project.currency || 'CLP'}</strong>
                 </p>
               </div>
 
@@ -370,9 +380,9 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                     setNewOvNumber(`OV-${String(ordenesVentaList.length + 1).padStart(3, '0')}`);
                     setIsAddingOv(true);
                   }}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs hover:bg-emerald-400 transition-all cursor-pointer shadow-xs self-start sm:self-auto"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white text-slate-900 font-semibold text-xs hover:bg-stone-100 transition-all cursor-pointer shadow-xs self-start sm:self-auto"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <Plus className="w-3.5 h-3.5 text-slate-900" />
                   Agregar Nueva OV
                 </button>
               )}
@@ -394,12 +404,12 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <span className="px-3 py-1 rounded-xl bg-slate-950 font-mono font-extrabold text-xs text-emerald-400 border border-slate-800 shrink-0">
+                      <span className="px-3 py-1 rounded-xl bg-slate-950 font-mono font-semibold text-xs text-stone-200 border border-slate-800 shrink-0">
                         {ov.numero}
                       </span>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-mono font-black text-sm text-white">
+                          <span className="font-mono font-semibold text-sm text-white">
                             ${(ov.monto || 0).toLocaleString('es-CL')} {ov.moneda || 'CLP'}
                           </span>
                           {ov.horasAsociadas ? (
@@ -521,12 +531,12 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">DescripciÃ³n / Detalle</label>
+                  <label className="block text-xs font-bold text-slate-400 uppercase mb-1">Descripción / Detalle</label>
                   <input
                     type="text"
                     value={newOvDesc}
                     onChange={(e) => setNewOvDesc(e.target.value)}
-                    placeholder="Ej: AmpliaciÃ³n de alcance para fase de pruebas QA"
+                    placeholder="Ej: Ampliación de alcance para fase de pruebas QA"
                     className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-emerald-500"
                   />
                 </div>
@@ -535,13 +545,13 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                   <button
                     type="button"
                     onClick={() => setIsAddingOv(false)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs hover:bg-slate-700 transition-colors cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 font-medium text-xs hover:bg-slate-700 transition-colors cursor-pointer"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-1.5 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs hover:bg-emerald-400 transition-colors cursor-pointer shadow-xs"
+                    className="px-4 py-1.5 rounded-xl bg-white text-slate-900 font-semibold text-xs hover:bg-stone-100 transition-colors cursor-pointer shadow-xs"
                   >
                     Guardar OV
                   </button>
@@ -552,20 +562,20 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
         </div>
       )}
 
-      {/* ðŸŸ¢ SECCIÃ“N 2: FICHA TÃ‰CNICA, OBJETIVO Y ALCANCE */}
+      {/* SECCIÓN 2: FICHA TÉCNICA, OBJETIVO Y ALCANCE */}
       {(activeSection === 'all' || activeSection === 'tecnica') && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6" id="section-tecnica">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
-                <Briefcase className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-xl bg-stone-100 border border-slate-200 flex items-center justify-center text-slate-800">
+                <Briefcase className="w-4 h-4 text-slate-800" />
               </div>
               <div>
-                <h2 className="text-sm font-black text-slate-900 tracking-tight uppercase">
-                  Ficha TÃ©cnica, Objetivo y Scope Lock
+                <h2 className="text-sm font-semibold text-slate-900 tracking-tight uppercase">
+                  Ficha Técnica, Objetivo y Scope Lock
                 </h2>
-                <p className="text-xs text-slate-500 font-medium">
-                  DefiniciÃ³n formal del proyecto, metas de negocio y restricciones de alcance.
+                <p className="text-xs text-slate-500 font-normal">
+                  Definición formal del proyecto, metas de negocio y restricciones de alcance.
                 </p>
               </div>
             </div>
@@ -574,7 +584,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
           <div className="space-y-4">
             {/* Nombre del Proyecto */}
             <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1">
-              <label className="block text-xs font-extrabold text-slate-400 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
                 Nombre del Proyecto
               </label>
               <input
@@ -582,52 +592,52 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
                 disabled={!isCoordinador}
                 value={project.name || ''}
                 onChange={(e) => handleInputChange('name', e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 font-black text-slate-900 text-base focus:ring-2 focus:ring-slate-900/10 outline-none disabled:bg-slate-100 disabled:text-slate-600"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 font-semibold text-slate-900 text-base focus:ring-2 focus:ring-slate-900/10 outline-none disabled:bg-slate-100 disabled:text-slate-600"
               />
             </div>
 
-            {/* DescripciÃ³n General */}
+            {/* Descripción General */}
             <div className="p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-1">
-              <label className="block text-xs font-extrabold text-slate-400 uppercase tracking-wider">
-                Resumen Ejecutivo / DescripciÃ³n del Servicio
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Resumen Ejecutivo / Descripción del Servicio
               </label>
               <textarea
                 rows={2}
                 disabled={!isCoordinador}
                 value={project.description || ''}
                 onChange={(e) => handleInputChange('description', e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-slate-800 text-xs focus:ring-2 focus:ring-slate-900/10 outline-none resize-none disabled:bg-slate-100 disabled:text-slate-600 leading-relaxed font-medium"
+                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-slate-800 text-xs focus:ring-2 focus:ring-slate-900/10 outline-none resize-none disabled:bg-slate-100 disabled:text-slate-600 leading-relaxed font-normal"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Objetivo de Negocio */}
-              <div className="p-4 bg-emerald-50/40 rounded-2xl border border-emerald-200/60 space-y-2">
-                <label className="text-xs font-bold text-emerald-900 uppercase flex items-center gap-1.5">
-                  <Target className="w-4 h-4 text-emerald-600" /> Objetivo de Negocio
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+                <label className="text-xs font-semibold text-slate-800 uppercase flex items-center gap-1.5">
+                  <Target className="w-4 h-4 text-slate-800" /> Objetivo de Negocio
                 </label>
                 <textarea
                   rows={3}
                   disabled={!isCoordinador}
                   value={project.objective || ''}
                   onChange={(e) => handleInputChange('objective', e.target.value)}
-                  className="w-full bg-white border border-emerald-200/80 rounded-xl p-3 text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500/20 outline-none resize-none disabled:bg-slate-100 disabled:text-slate-600 leading-relaxed font-medium"
+                  className="w-full bg-white border border-stone-200 rounded-xl p-3 text-xs text-slate-800 focus:ring-2 focus:ring-slate-900/10 outline-none resize-none disabled:bg-slate-100 disabled:text-slate-600 leading-relaxed font-normal"
                   placeholder="Especifica los KPIs y metas que el cliente busca lograr con este proyecto..."
                 />
               </div>
 
               {/* Scope Lock (Alcance) */}
-              <div className="p-4 bg-amber-50/40 rounded-2xl border border-amber-200/60 space-y-2">
-                <label className="text-xs font-bold text-amber-900 uppercase flex items-center gap-1.5">
-                  <ShieldAlert className="w-4 h-4 text-amber-600" /> Alcance Lock (LÃ­mites Contractuales)
+              <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+                <label className="text-xs font-semibold text-slate-800 uppercase flex items-center gap-1.5">
+                  <ShieldAlert className="w-4 h-4 text-slate-800" /> Alcance Lock (Límites Contractuales)
                 </label>
                 <textarea
                   rows={3}
                   disabled={!isCoordinador}
                   value={project.alcance || ''}
                   onChange={(e) => handleInputChange('alcance', e.target.value)}
-                  className="w-full bg-white border border-amber-200/80 rounded-xl p-3 text-xs text-slate-800 focus:ring-2 focus:ring-amber-500/20 outline-none resize-none disabled:bg-slate-100 disabled:text-slate-600 leading-relaxed font-medium"
-                  placeholder="Define claramente los lÃ­mites para prevenir solicitudes fuera de alcance..."
+                  className="w-full bg-white border border-stone-200 rounded-xl p-3 text-xs text-slate-800 focus:ring-2 focus:ring-slate-900/10 outline-none resize-none disabled:bg-slate-100 disabled:text-slate-600 leading-relaxed font-normal"
+                  placeholder="Define claramente los límites para prevenir solicitudes fuera de alcance..."
                 />
               </div>
             </div>
@@ -635,25 +645,25 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
         </div>
       )}
 
-      {/* ðŸŸ¡ SECCIÃ“N 3: PRESUPUESTO & HORAS POR ROL */}
+      {/* SECCIÓN 3: PRESUPUESTO & HORAS POR ROL */}
       {(activeSection === 'all' || activeSection === 'horas') && (
         <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6" id="section-horas">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600">
-                <Clock className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-xl bg-stone-100 border border-slate-200 flex items-center justify-center text-slate-800">
+                <Clock className="w-4 h-4 text-slate-800" />
               </div>
               <div>
-                <h2 className="text-sm font-black text-slate-900 tracking-tight uppercase">
+                <h2 className="text-sm font-semibold text-slate-900 tracking-tight uppercase">
                   Desglose de Horas Presupuestadas vs. Ejecutadas
                 </h2>
-                <p className="text-xs text-slate-500 font-medium">
-                  Control de asignaciÃ³n por rol y monitoreo de consumo en tiempo real.
+                <p className="text-xs text-slate-500 font-normal">
+                  Control de asignación por rol y monitoreo de consumo en tiempo real.
                 </p>
               </div>
             </div>
 
-            <span className="text-xs font-black bg-slate-900 text-white px-3.5 py-1.5 rounded-xl self-start sm:self-auto">
+            <span className="text-xs font-semibold bg-slate-900 text-white px-3.5 py-1.5 rounded-xl self-start sm:self-auto">
               Presupuesto Total: {totalHours} hrs
             </span>
           </div>
@@ -704,7 +714,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             {/* ContentD */}
             <RoleCard
               roleKey="contentd"
-              label="ContentD (DiseÃ±o)"
+              label="ContentD (Diseño)"
               allocated={roleHours.contentd}
               consumed={consumedByRole.contentd}
               isCoordinador={isCoordinador}
@@ -731,6 +741,28 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
         </div>
       )}
 
+      {/* Modal Confirmación Eliminación OV */}
+      <CustomModal
+        isOpen={!!ovToDelete}
+        onClose={() => setOvToDelete(null)}
+        type="danger"
+        isDestructive={true}
+        title="¿Eliminar Orden de Venta?"
+        description="Esta acción eliminará la Orden de Venta seleccionada del proyecto. No se puede deshacer."
+        confirmLabel="Eliminar OV"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDeleteOV}
+      />
+
+      {/* Modal Restricción Mínimo 1 OV */}
+      <CustomModal
+        isOpen={ovRestrictionModal}
+        onClose={() => setOvRestrictionModal(false)}
+        type="info"
+        title="Acción Restringida"
+        description="El proyecto debe mantener al menos una Orden de Venta activa en todo momento para asegurar la trazabilidad comercial."
+        confirmLabel="Entendido"
+      />
     </div>
   );
 };
@@ -769,9 +801,9 @@ const RoleCard: React.FC<RoleCardProps> = ({ label, allocated, consumed, isCoord
           disabled={!isCoordinador}
           value={allocated}
           onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
-          className="text-xl font-black text-slate-900 w-20 bg-white border border-slate-200 rounded-lg px-2 py-0.5 focus:ring-2 focus:ring-slate-900/10 outline-none disabled:bg-transparent disabled:border-none disabled:p-0"
+          className="text-xl font-semibold font-display text-slate-900 w-20 bg-white border border-slate-200 rounded-lg px-2 py-0.5 focus:ring-2 focus:ring-slate-900/10 outline-none disabled:bg-transparent disabled:border-none disabled:p-0"
         />
-        <span className="text-xs font-bold text-slate-400">hrs vendidas</span>
+        <span className="text-xs font-semibold text-slate-400">hrs vendidas</span>
       </div>
 
       <div className="space-y-1 pt-1 border-t border-slate-200/60">

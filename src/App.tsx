@@ -20,7 +20,16 @@ import { Sparkles, Shield, Users, LogOut, Activity, Briefcase } from 'lucide-rea
 import { generatePhasesForTemplate } from './projectTemplates';
 import { NewProjectWizard } from './components/NewProjectWizard';
 import { OnboardingModal } from './components/OnboardingModal';
+import { CustomModal } from './components/CustomModal';
 import { useDeliverableMonitoring } from './hooks/useDeliverableMonitoring';
+import {
+  subscribeProjects,
+  saveProjectToFirestore,
+  deleteProjectFromFirestore,
+  subscribeClients,
+  saveClientToFirestore,
+  seedFirestoreIfEmpty
+} from './services/firebaseDb';
 
 const DEMO_VERSION_KEY = 'saas_phase_system_demo_v5_clean';
 const STORAGE_KEY = 'saas_phase_system_projects_v5';
@@ -77,7 +86,7 @@ const DEFAULT_CLIENTS: Client[] = [
   {
     id: 'c-impelsa',
     nombreComercial: 'Impelsa',
-    categoria: 'DistribuciÃ³n',
+    categoria: 'Distribución',
     contactoPrincipal: 'Contacto Impelsa',
     email: 'contacto@impelsa.com',
     telefono: '+502 2222-1005',
@@ -102,9 +111,9 @@ const DEFAULT_USERS: UserSession[] = [
   { id: 'u-rodrigo', username: 'rodrigo', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-lourdes', username: 'lourdes', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-maylin', username: 'maylin', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-eduardo', username: 'eduardo', puesto: 'DiseÃ±ador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-edgar', username: 'edgar', puesto: 'DiseÃ±ador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-jeremy', username: 'jeremy', puesto: 'DiseÃ±ador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-eduardo', username: 'eduardo', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-edgar', username: 'edgar', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
+  { id: 'u-jeremy', username: 'jeremy', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-noemi', username: 'noemi', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-alejandra', username: 'alejandra', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
   { id: 'u-fabiola', username: 'fabiola', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
@@ -130,6 +139,21 @@ export default function App() {
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const isInitialized = useRef(false);
 
+  // Modales de confirmación destructiva y advertencia de bloqueo (Paso 3 UX Modales)
+  const [blockedPhaseModal, setBlockedPhaseModal] = useState<{
+    isOpen: boolean;
+    phaseLabel: string;
+    pendingCount: number;
+    pendingTasks: string[];
+  }>({
+    isOpen: false,
+    phaseLabel: '',
+    pendingCount: 0,
+    pendingTasks: [],
+  });
+  const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
+  const [singleProjectRestrictionModal, setSingleProjectRestrictionModal] = useState(false);
+
   // Trigger Onboarding modal if logged-in user hasn't completed onboarding preferences
   useEffect(() => {
     if (currentUser && !currentUser.preferences?.onboardingCompletedAt) {
@@ -140,7 +164,7 @@ export default function App() {
   // Hook de monitoreo de entregables y SLAs del sistema
   const deliverableMonitoring = useDeliverableMonitoring(projects);
 
-  // Normalizador de proyectos para migraciÃ³n automÃ¡tica Fase 0
+  // Normalizador de proyectos para migración automática Fase 0
   const normalizeProject = (p: any): Project => {
     const timeEntries = (p.timeEntries || []).map((e: any) => ({
       ...e,
@@ -281,6 +305,31 @@ export default function App() {
     isInitialized.current = true;
   }, []);
 
+  // Sincronización en tiempo real con Cloud Firestore (Base de datos en la nube)
+  useEffect(() => {
+    const defaults = INITIAL_PROJECTS.map(normalizeProject);
+    seedFirestoreIfEmpty(defaults, DEFAULT_CLIENTS, DEFAULT_USERS);
+
+    const unsubProjects = subscribeProjects((cloudProjects) => {
+      if (cloudProjects && cloudProjects.length > 0) {
+        const normalized = cloudProjects.map(normalizeProject);
+        setProjects(normalized);
+      }
+    });
+
+    const unsubClients = subscribeClients((cloudClients) => {
+      if (cloudClients && cloudClients.length > 0) {
+        const normalized = cloudClients.map(normalizeClient);
+        setClients(normalized);
+      }
+    });
+
+    return () => {
+      unsubProjects();
+      unsubClients();
+    };
+  }, []);
+
   // Centralized local storage synchronization (Single Source of Truth)
   useEffect(() => {
     if (isInitialized.current && projects.length > 0) {
@@ -307,6 +356,7 @@ export default function App() {
         ? prevClients.map((c) => (c.id === newClient.id ? newClient : c))
         : [newClient, ...prevClients];
     });
+    saveClientToFirestore(newClient).catch(err => console.warn('Cloud sync note (Client):', err));
   };
 
   const handleUpdateClientStatus = (clientId: string, nuevoEstado: 'activo' | 'inactivo' | 'pausado') => {
@@ -401,10 +451,13 @@ export default function App() {
       prevProjects.map((p) => (p.id === updated.id ? updated : p))
     );
 
-    // Actualizar actividad del cliente si cambiÃ³
+    // Actualizar actividad del cliente si cambió
     if (updated.clientName) {
       updateClientLastActivity(updated.clientName);
     }
+
+    // Sincronizar con Cloud Firestore
+    saveProjectToFirestore(updated).catch(err => console.warn('Cloud sync note (Project):', err));
   };
 
   // Create new project
@@ -430,7 +483,7 @@ export default function App() {
       startDate: data.startDate,
       endDate: data.endDate,
       deliverablesCount: data.deliverablesCount,
-      description: data.description || 'Breve descripciÃ³n del proyecto...',
+      description: data.description || 'Breve descripción del proyecto...',
       tags: data.tags || [],
       members: data.members || [],
       currency: data.currency || 'USD',
@@ -443,7 +496,7 @@ export default function App() {
       health: 100,
       createdAt: new Date().toISOString(),
       objective: 'Definir el objetivo principal...',
-      alcance: 'Definir el alcance tÃ©cnico inicial...',
+      alcance: 'Definir el alcance técnico inicial...',
       riesgos: 'Definir riesgos conocidos...',
       phases: data.phases || [],
       budget: customBudget,
@@ -469,14 +522,29 @@ export default function App() {
       updateClientLastActivity(data.clientName);
     }
 
+    // Sincronizar nuevo proyecto con Cloud Firestore
+    saveProjectToFirestore(newProject).catch(err => console.warn('Cloud sync note (New Project):', err));
+
     // Flash toast
     handleSave();
   };
 
-  // Delete project
+  // Delete project with confirmation modal
   const handleDeleteProject = (id: string) => {
-    if (projects.length <= 1) return;
+    if (projects.length <= 1) {
+      setSingleProjectRestrictionModal(true);
+      return;
+    }
+    const target = projects.find((p) => p.id === id);
+    setProjectToDelete({
+      id,
+      name: target?.name || 'este proyecto',
+    });
+  };
 
+  const confirmDeleteProject = () => {
+    if (!projectToDelete) return;
+    const id = projectToDelete.id;
     setProjects((prevProjects) => {
       const filtered = prevProjects.filter((p) => p.id !== id);
       if (activeProjectId === id && filtered.length > 0) {
@@ -485,6 +553,12 @@ export default function App() {
       }
       return filtered;
     });
+
+    // Eliminar en Cloud Firestore
+    deleteProjectFromFirestore(id).catch(err => console.warn('Cloud sync note (Delete Project):', err));
+
+    setProjectToDelete(null);
+    handleSave();
   };
 
   // Temporary save indicator
@@ -504,7 +578,12 @@ export default function App() {
     const pendingTasks = (currentPhase.checklist || []).filter(item => !item.completed);
 
     if (pendingTasks.length > 0) {
-      alert(`âš ï¸ No se puede cerrar la fase "${currentPhase.label}" porque existen ${pendingTasks.length} tarea(s) sin completar en la checklist de la fase.\n\nCompleta todas las tareas para habilitar el cierre.`);
+      setBlockedPhaseModal({
+        isOpen: true,
+        phaseLabel: currentPhase.label || currentPhase.id,
+        pendingCount: pendingTasks.length,
+        pendingTasks: pendingTasks.map(t => t.text || 'Tarea pendiente'),
+      });
       return;
     }
 
@@ -540,7 +619,7 @@ export default function App() {
         userRole: currentUser ? currentUser.role : 'coordinador' as const,
         action: 'Cierre de Fase',
         entityType: 'Fase',
-        details: `CerrÃ³ fase ${activeProject.activePhaseId} exitosamente. Nueva fase: ${nextPhaseId}`,
+        details: `Cerró fase ${activeProject.activePhaseId} exitosamente. Nueva fase: ${nextPhaseId}`,
       },
       ...(activeProject.auditLog || [])
     ];
@@ -596,7 +675,7 @@ export default function App() {
         userRole: currentUser ? currentUser.role : 'invitado' as const,
         action: 'Feedback de Cliente',
         entityType: 'Entregable',
-        details: `AnotÃ³ comentario en entregable: "${(comment || '').substring(0, 40)}..."`,
+        details: `Anotó comentario en entregable: "${(comment || '').substring(0, 40)}..."`,
       },
       ...(activeProject.auditLog || [])
     ];
@@ -667,10 +746,10 @@ export default function App() {
   // Loading Screen
   if (!activeProject) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
+      <div className="h-screen w-screen flex items-center justify-center bg-[#F4F5F0]">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-lime-400 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs text-slate-500 font-semibold">Cargando Sistema de Fases...</p>
+          <p className="text-xs text-slate-500 font-bold">Cargando Sistema de Fases...</p>
         </div>
       </div>
     );
@@ -750,7 +829,7 @@ export default function App() {
       onOpenOnboarding={() => setIsOnboardingOpen(true)}
     >
       {currentView === 'profile' ? (
-        <div className="flex-1 overflow-y-auto h-full">
+        <div className="view-container">
           <MyProfileView
             currentUser={currentUser}
             projects={visibleProjects}
@@ -758,7 +837,7 @@ export default function App() {
           />
         </div>
       ) : currentView === 'dashboard' && currentUser.role === 'coordinador' ? (
-        <div className="flex-1 overflow-hidden h-full">
+        <div className="view-container">
           <CoordinatorDashboard
             projects={projects}
             users={usersList}
@@ -767,7 +846,7 @@ export default function App() {
           />
         </div>
       ) : currentView === 'team' && currentUser.role === 'coordinador' ? (
-        <div className="flex-1 overflow-hidden h-full">
+        <div className="view-container">
           <TeamManagement
             usersList={usersList}
             projects={projects}
@@ -778,7 +857,7 @@ export default function App() {
           />
         </div>
       ) : currentView === 'planner' ? (
-        <div className="flex-1 overflow-y-auto h-full">
+        <div className="view-container">
           <PlannerGrid
             projects={visibleProjects}
             users={usersList}
@@ -786,14 +865,14 @@ export default function App() {
           />
         </div>
       ) : currentView === 'gantt' ? (
-        <div className="flex-1 overflow-y-auto h-full">
+        <div className="view-container">
           <GanttView
             projects={visibleProjects}
             users={usersList}
           />
         </div>
       ) : currentView === 'clients' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') ? (
-        <div className="flex-1 overflow-y-auto h-full">
+        <div className="view-container">
           <ClientsManagement
             clients={clients}
             projects={projects}
@@ -802,7 +881,7 @@ export default function App() {
           />
         </div>
       ) : currentView === 'financial' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') ? (
-        <div className="flex-1 overflow-y-auto h-full">
+        <div className="view-container">
           <FinancialDashboard
             projects={projects}
             clients={clients}
@@ -811,11 +890,11 @@ export default function App() {
           />
         </div>
       ) : currentView === 'integrations' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero') ? (
-        <div className="flex-1 overflow-y-auto h-full">
+        <div className="view-container">
           <IntegrationsPanel currentUser={currentUser} />
         </div>
       ) : currentView === 'predictive' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') ? (
-        <div className="flex-1 overflow-y-auto h-full">
+        <div className="view-container">
           <PredictiveAnalyticsPanel
             projects={projects}
             users={usersList}
@@ -823,7 +902,7 @@ export default function App() {
           />
         </div>
       ) : (
-        <div className="flex-1 flex overflow-hidden h-full relative" id="workspace-columns">
+        <div className="flex-1 flex overflow-hidden h-full min-h-0 relative" id="workspace-columns">
 
           {/* LEFT SIDEBAR: PROJECTS & SEARCH */}
           <Sidebar
@@ -841,15 +920,15 @@ export default function App() {
           />
 
           {/* MAIN WORKSPACE */}
-          <div className="flex-1 h-full overflow-hidden flex flex-col min-w-0">
+          <div className="flex-1 h-full min-h-0 overflow-hidden flex flex-col min-w-0">
             {visibleProjects.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50/50">
-                <div className="w-16 h-16 bg-amber-100 text-amber-700 rounded-2xl flex items-center justify-center mb-4 border border-amber-200 shadow-sm">
-                  <Briefcase className="w-8 h-8" />
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#F4F5F0]">
+                <div className="w-16 h-16 bg-stone-100 text-slate-800 rounded-3xl flex items-center justify-center mb-4 shadow-xs">
+                  <Briefcase className="w-8 h-8 text-slate-800" />
                 </div>
-                <h3 className="text-lg font-black text-slate-800 mb-2">Sin Proyectos Asignados</h3>
-                <p className="text-xs text-slate-500 max-w-md font-medium leading-relaxed">
-                  Hola <strong className="text-slate-800 capitalize">{currentUser.username}</strong>, actualmente no tienes proyectos asociados a tu perfil de <span className="text-amber-600 font-bold">Proveedor Externo</span>. Solicita a tu Coordinador que te asigne a los proyectos correspondientes.
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">Sin Proyectos Asignados</h3>
+                <p className="text-xs text-slate-500 max-w-md font-normal leading-relaxed">
+                  Hola <strong className="text-slate-800 font-semibold capitalize">{currentUser.username}</strong>, actualmente no tienes proyectos asociados a tu perfil de <span className="text-slate-800 font-semibold">Proveedor Externo</span>. Solicita a tu Coordinador que te asigne a los proyectos correspondientes.
                 </p>
               </div>
             ) : (
@@ -896,6 +975,51 @@ export default function App() {
         currentUser={currentUser}
         projects={visibleProjects}
         onSavePreferences={handleUpdateUser}
+      />
+
+      {/* MODAL ADVERTENCIA DE FASE BLOQUEADA (PASO 3 UX MODALES) */}
+      <CustomModal
+        isOpen={blockedPhaseModal.isOpen}
+        onClose={() => setBlockedPhaseModal(prev => ({ ...prev, isOpen: false }))}
+        type="warning"
+        title={`Fase "${blockedPhaseModal.phaseLabel}" bloqueada`}
+        description={`No se puede cerrar la fase porque existen ${blockedPhaseModal.pendingCount} tarea(s) sin completar en la checklist de la fase.`}
+        confirmLabel="Entendido, revisar tareas"
+      >
+        <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-100 max-h-48 overflow-y-auto space-y-2">
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+            Tareas pendientes por completar:
+          </p>
+          {blockedPhaseModal.pendingTasks.map((task, idx) => (
+            <div key={idx} className="flex items-start gap-2 text-xs text-slate-700">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+              <span>{task}</span>
+            </div>
+          ))}
+        </div>
+      </CustomModal>
+
+      {/* MODAL CONFIRMACIÓN DESTRUCTIVA - ELIMINAR PROYECTO */}
+      <CustomModal
+        isOpen={!!projectToDelete}
+        onClose={() => setProjectToDelete(null)}
+        type="danger"
+        isDestructive={true}
+        title="¿Eliminar este proyecto?"
+        description={`¿Estás seguro de que deseas eliminar permanentemente el proyecto "${projectToDelete?.name}"? Esta acción borrará sus fases, métricas y órdenes de venta asociadas y no se puede deshacer.`}
+        confirmLabel="Eliminar proyecto"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDeleteProject}
+      />
+
+      {/* MODAL RESTRICCIÓN UN SOLO PROYECTO */}
+      <CustomModal
+        isOpen={singleProjectRestrictionModal}
+        onClose={() => setSingleProjectRestrictionModal(false)}
+        type="info"
+        title="Acción Restringida"
+        description="El sistema requiere mantener al menos un proyecto activo en el portafolio. No es posible eliminar el único proyecto disponible."
+        confirmLabel="Entendido"
       />
     </MainLayout>
   );

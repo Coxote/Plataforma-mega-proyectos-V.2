@@ -31,6 +31,7 @@ import {
   Laptop
 } from 'lucide-react';
 import { EFFECTIVE_MONTHLY_CAPACITY } from '../dashboardUtils';
+import { CustomModal } from './CustomModal';
 
 interface MyProfileViewProps {
   currentUser: UserSession;
@@ -212,15 +213,15 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
 
     if (skillsSet.size < 3) {
       if (currentUser.role === 'coordinador' || currentUser.puesto?.toLowerCase().includes('coordin')) {
-        skillsSet.add('GestiÃ³n de Proyectos');
+        skillsSet.add('Gestión de Proyectos');
         skillsSet.add('Control de Fases');
         skillsSet.add('QA & Entregables');
-        skillsSet.add('EstimaciÃ³n de Horas');
+        skillsSet.add('Estimación de Horas');
       } else {
-        skillsSet.add('DiseÃ±o UI/UX');
+        skillsSet.add('Diseño UI/UX');
         skillsSet.add('Desarrollo Web');
         skillsSet.add('Control de Entregables');
-        skillsSet.add('OptimizaciÃ³n de Tiempos');
+        skillsSet.add('Optimización de Tiempos');
       }
     }
 
@@ -311,10 +312,10 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
     setIsModalOpen(false);
   };
 
+  const [leaveToDelete, setLeaveToDelete] = useState<string | null>(null);
+
   const handleDeleteLeave = (id: string) => {
-    if (window.confirm('Â¿EstÃ¡s seguro de eliminar este registro de licencia o vacaciÃ³n?')) {
-      updateLeaves(leaves.filter(l => l.id !== id));
-    }
+    setLeaveToDelete(id);
   };
 
   // Helper for formatting date-time range matching Image 1
@@ -350,17 +351,17 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
   };
 
   return (
-    <div className="flex-1 overflow-y-auto flex flex-col h-full bg-slate-50/80" id="my-profile-view">
+    <div className="flex-1 overflow-y-auto flex flex-col h-full bg-[#F4F5F0]" id="my-profile-view">
 
-      {/* SUB-TABS NAVIGATION BAR (REPLICATING REFERENCE BAR EXACTLY) */}
-      <div className="border-b border-slate-200 bg-white px-4 sm:px-8 pt-3 pb-0 flex items-center gap-6 overflow-x-auto scrollbar-none shrink-0 shadow-2xs">
+      {/* SUB-TABS NAVIGATION BAR (WARM CANVAS) */}
+      <div className="bg-white px-4 sm:px-8 py-3 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0 shadow-xs">
         <button
           type="button"
           onClick={() => setActiveTab('generales')}
-          className={`pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-4 py-2 text-xs sm:text-sm rounded-full transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'generales'
-              ? 'border-slate-900 text-slate-900 font-extrabold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-slate-900 text-white shadow-xs font-semibold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-[#F4F5F0] font-medium'
           }`}
         >
           Datos generales
@@ -368,10 +369,10 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
         <button
           type="button"
           onClick={() => setActiveTab('empleado')}
-          className={`pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-4 py-2 text-xs sm:text-sm rounded-full transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'empleado'
-              ? 'border-slate-900 text-slate-900 font-extrabold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-slate-900 text-white shadow-xs font-semibold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-[#F4F5F0] font-medium'
           }`}
         >
           Datos de empleado
@@ -379,10 +380,10 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
         <button
           type="button"
           onClick={() => setActiveTab('adicionales')}
-          className={`pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-4 py-2 text-xs sm:text-sm rounded-full transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'adicionales'
-              ? 'border-slate-900 text-slate-900 font-extrabold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-slate-900 text-white shadow-xs font-semibold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-[#F4F5F0] font-medium'
           }`}
         >
           Datos adicionales
@@ -390,15 +391,17 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
         <button
           type="button"
           onClick={() => setActiveTab('vacaciones')}
-          className={`pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap relative ${
+          className={`px-4 py-2 text-xs sm:text-sm rounded-full transition-all cursor-pointer whitespace-nowrap relative ${
             activeTab === 'vacaciones'
-              ? 'border-teal-700 text-teal-950 font-black'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-slate-900 text-white shadow-xs font-semibold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-[#F4F5F0] font-medium'
           }`}
         >
           <span>Vacaciones y Licencias</span>
           {leaves.length > 0 && (
-            <span className="ml-1.5 px-1.5 py-0.5 bg-teal-100 text-teal-900 text-xs font-black rounded-full">
+            <span className={`ml-1.5 px-2 py-0.5 text-xs font-semibold rounded-full ${
+              activeTab === 'vacaciones' ? 'bg-slate-800 text-white' : 'bg-stone-200 text-slate-800'
+            }`}>
               {leaves.length}
             </span>
           )}
@@ -406,10 +409,10 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
         <button
           type="button"
           onClick={() => setActiveTab('integraciones')}
-          className={`pb-3 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+          className={`px-4 py-2 text-xs sm:text-sm rounded-full transition-all cursor-pointer whitespace-nowrap ${
             activeTab === 'integraciones'
-              ? 'border-slate-900 text-slate-900 font-extrabold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-slate-900 text-white shadow-xs font-semibold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-[#F4F5F0] font-medium'
           }`}
         >
           Integraciones
@@ -418,13 +421,13 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
 
       <div className="p-4 sm:p-8 space-y-6 flex-1 overflow-y-auto">
 
-        {/* TAB 1: VACACIONES Y LICENCIAS (EXACT REPLICATION OF USER SCREENSHOT 1 & 2) */}
+        {/* TAB 1: VACACIONES Y LICENCIAS */}
         {activeTab === 'vacaciones' && (
-          <div className="bg-white rounded-xl border border-slate-200/90 p-6 shadow-sm space-y-6 animate-in fade-in">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-4">
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                <h2 className="text-xl font-semibold text-slate-900 tracking-tight">
                   Vacaciones y Licencias
                 </h2>
                 <button
@@ -432,69 +435,70 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                   title="Ayuda sobre licencias y permisos"
                   className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                 >
-                  <HelpCircle className="w-4 h-4" />
+                  <HelpCircle className="w-4 h-4 text-slate-800" />
                 </button>
               </div>
 
               <button
                 type="button"
                 onClick={handleOpenNewModal}
-                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer hover:shadow-md"
+                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
               >
-                <span>Agregar</span>
+                <Plus className="w-4 h-4" />
+                <span>Agregar Licencia</span>
               </button>
             </div>
 
             {/* List of Leaves */}
             {leaves.length === 0 ? (
-              <div className="p-12 text-center text-xs text-slate-400 font-medium bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-                No tienes licencias o vacaciones registradas. Haz clic en "Agregar" para registrar una nueva.
+              <div className="p-12 text-center text-xs text-slate-400 font-medium bg-[#F4F5F0] rounded-2xl">
+                No tienes licencias o vacaciones registradas. Haz clic en "Agregar Licencia" para registrar una nueva.
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {leaves.map((leave) => {
                   const isVacaciones = leave.motivo.toLowerCase().includes('vacacion');
                   const isFeriado = leave.motivo.toLowerCase().includes('feriado');
                   const isConferencia = leave.motivo.toLowerCase().includes('conferencia') || leave.motivo.toLowerCase().includes('taller');
-                  const isMedica = leave.motivo.toLowerCase().includes('mÃ©dic') || leave.motivo.toLowerCase().includes('salud');
+                  const isMedica = leave.motivo.toLowerCase().includes('médic') || leave.motivo.toLowerCase().includes('salud');
 
                   return (
                     <div
                       key={leave.id}
-                      className="bg-slate-50/90 hover:bg-slate-100/80 rounded-lg p-3 sm:p-4 flex items-center justify-between transition-colors border border-transparent hover:border-slate-200"
+                      className="bg-[#F4F5F0] hover:bg-stone-200/70 rounded-2xl p-4 flex items-center justify-between transition-colors shadow-2xs"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-white border border-slate-200/80 flex items-center justify-center shrink-0 shadow-2xs">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shrink-0 shadow-2xs">
                           {isVacaciones ? (
-                            <Plane className="w-4 h-4 text-slate-600" />
+                            <Plane className="w-5 h-5 text-indigo-600" />
                           ) : isFeriado ? (
-                            <Calendar className="w-4 h-4 text-slate-600" />
+                            <Calendar className="w-5 h-5 text-amber-600" />
                           ) : isConferencia ? (
-                            <GraduationCap className="w-4 h-4 text-slate-600" />
+                            <GraduationCap className="w-5 h-5 text-sky-600" />
                           ) : isMedica ? (
-                            <HeartPulse className="w-4 h-4 text-slate-600" />
+                            <HeartPulse className="w-5 h-5 text-rose-600" />
                           ) : (
-                            <FileText className="w-4 h-4 text-slate-600" />
+                            <FileText className="w-5 h-5 text-slate-600" />
                           )}
                         </div>
 
                         <div className="space-y-0.5 truncate">
-                          <h4 className="text-sm font-bold text-slate-800 tracking-tight truncate">
+                          <h4 className="text-sm font-bold text-slate-900 tracking-tight truncate">
                             {leave.motivo}
                           </h4>
-                          <p className="text-xs text-slate-500 font-normal truncate">
+                          <p className="text-xs text-slate-500 font-medium truncate">
                             {formatLeaveDateRange(leave)}
                           </p>
                         </div>
                       </div>
 
                       {/* Action Icons */}
-                      <div className="flex items-center gap-1 shrink-0 ml-3">
+                      <div className="flex items-center gap-1.5 shrink-0 ml-3">
                         <button
                           type="button"
                           onClick={() => handleOpenEditModal(leave)}
                           title="Editar licencia"
-                          className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 rounded-md transition-colors cursor-pointer"
+                          className="p-2 text-slate-400 hover:text-slate-800 bg-white hover:bg-stone-100 rounded-full transition-colors cursor-pointer shadow-2xs"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
@@ -502,7 +506,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                           type="button"
                           onClick={() => handleDeleteLeave(leave.id)}
                           title="Eliminar licencia"
-                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-slate-200/60 rounded-md transition-colors cursor-pointer"
+                          className="p-2 text-slate-400 hover:text-rose-600 bg-white hover:bg-rose-50 rounded-full transition-colors cursor-pointer shadow-2xs"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -522,12 +526,12 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
 
               {/* LEFT COLUMN: PHOTO CARD */}
-              <div className="lg:col-span-5 relative rounded-[32px] overflow-hidden shadow-lg border border-slate-200/90 bg-teal-50/20 min-h-[520px] flex flex-col justify-between group">
+              <div className="lg:col-span-5 relative rounded-3xl overflow-hidden shadow-xs bg-white min-h-[520px] flex flex-col justify-between group">
 
                 {/* Top Floating Actions */}
                 <div className="relative z-20 p-5 flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200/80 text-slate-800 text-xs font-black uppercase tracking-wider shadow-xs">
-                    <User className="w-3.5 h-3.5 text-indigo-600" />
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/95 backdrop-blur-xs text-slate-800 text-xs font-semibold uppercase tracking-wider shadow-xs">
+                    <User className="w-3.5 h-3.5 text-slate-800" />
                     <span>{currentUser.puesto || currentUser.role}</span>
                   </div>
 
@@ -535,7 +539,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                     {onOpenOnboarding && (
                       <button
                         onClick={onOpenOnboarding}
-                        className="px-3 py-1.5 rounded-full bg-gradient-to-r from-[#FF5500] to-amber-500 hover:opacity-95 text-white font-black text-xs backdrop-blur-md shadow-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105"
+                        className="px-3.5 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
                         title="Configurar preferencias de perfil"
                       >
                         <Sparkles className="w-3.5 h-3.5 text-white" />
@@ -545,10 +549,10 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
 
                     <button
                       onClick={() => setIsChangingPhoto(!isChangingPhoto)}
-                      className="px-3 py-1.5 rounded-full bg-slate-900/90 hover:bg-slate-900 text-white font-extrabold text-xs backdrop-blur-md shadow-md flex items-center gap-1.5 transition-all cursor-pointer hover:scale-105"
+                      className="px-3.5 py-1.5 rounded-full bg-slate-900/90 hover:bg-slate-900 text-white font-semibold text-xs shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
                       title="Cambiar foto de perfil"
                     >
-                      <Camera className="w-3.5 h-3.5 text-lime-400" />
+                      <Camera className="w-3.5 h-3.5 text-white" />
                       <span>{isChangingPhoto ? 'Cerrar' : 'Cambiar Foto'}</span>
                     </button>
                   </div>
@@ -556,16 +560,16 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
 
                 {/* Change Photo Drawer */}
                 {isChangingPhoto && (
-                  <div className="absolute inset-x-4 top-16 z-30 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-xl space-y-3 animate-in fade-in slide-in-from-top-2">
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
+                  <div className="absolute inset-x-4 top-16 z-30 bg-white/95 backdrop-blur-xs p-5 rounded-3xl shadow-xl space-y-3 animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                      <span className="text-xs font-semibold text-slate-800 uppercase tracking-wider">
                         Cambiar Foto de Perfil
                       </span>
                       <button
                         onClick={() => setIsChangingPhoto(false)}
-                        className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                        className="text-slate-400 hover:text-slate-600 cursor-pointer p-1 rounded-full hover:bg-stone-100"
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-4 h-4 text-slate-800" />
                       </button>
                     </div>
 
@@ -578,7 +582,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                         value={tempPhotoUrl}
                         onChange={(e) => setTempPhotoUrl(e.target.value)}
                         placeholder="https://ejemplo.com/mi-foto.jpg"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-indigo-400"
+                        className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-indigo-400"
                       />
                     </div>
 
@@ -591,7 +595,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                           <button
                             key={i}
                             onClick={() => setTempPhotoUrl(url)}
-                            className="w-9 h-9 rounded-full overflow-hidden border-2 border-slate-200 hover:border-indigo-500 transition-all shrink-0 cursor-pointer"
+                            className="w-10 h-10 rounded-full overflow-hidden border-2 border-stone-200 hover:border-indigo-500 transition-all shrink-0 cursor-pointer shadow-2xs"
                           >
                             <img src={url} alt={`Preset ${i}`} className="w-full h-full object-cover" />
                           </button>
@@ -599,7 +603,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-between pt-2 border-t border-stone-100">
                       <button
                         onClick={handleResetAvatar}
                         className="text-xs font-bold text-rose-600 hover:underline cursor-pointer"
@@ -608,7 +612,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                       </button>
                       <button
                         onClick={handleSaveAvatar}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1 cursor-pointer transition-all"
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-full text-xs flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
                       >
                         <Check className="w-3.5 h-3.5" /> Guardar Foto
                       </button>
@@ -627,34 +631,34 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                 </div>
 
                 {/* Floating Summary Card */}
-                <div className="relative z-10 m-4 p-4 rounded-2xl bg-white/90 backdrop-blur-md border border-white/80 shadow-xl space-y-3 text-slate-800">
-                  <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                <div className="relative z-10 m-4 p-5 rounded-2xl bg-white/95 backdrop-blur-xs shadow-xs space-y-3 text-slate-800">
+                  <div className="flex items-center justify-between border-b border-stone-100 pb-2">
                     <div>
-                      <h2 className="text-lg font-black text-slate-900 tracking-tight capitalize leading-tight">
+                      <h2 className="text-lg font-semibold text-slate-900 tracking-tight capitalize leading-tight">
                         {currentUser.username}
                       </h2>
-                      <p className="text-xs text-slate-500 font-semibold capitalize">
+                      <p className="text-xs text-slate-500 font-medium capitalize">
                         {currentUser.puesto || currentUser.role}
                       </p>
                     </div>
-                    <span className="text-xs bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full border border-emerald-200">
-                      â€¢ Activo
+                    <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-3 py-1 rounded-full">
+                      • Activo
                     </span>
                   </div>
 
                   <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                    <div className="flex items-center justify-between text-xs font-medium text-slate-700">
                       <span className="flex items-center gap-1 text-xs uppercase tracking-wider text-slate-600">
-                        <Clock className="w-3.5 h-3.5 text-indigo-600" /> Horas del Mes
+                        <Clock className="w-3.5 h-3.5 text-slate-800" /> Horas del Mes
                       </span>
-                      <span className="font-mono text-slate-900 font-extrabold text-xs">
+                      <span className="font-mono text-slate-900 font-semibold text-xs">
                         {totalLoggedHours}h / {targetCapacity}h ({loadPercentage}%)
                       </span>
                     </div>
-                    <div className="h-2 w-full bg-slate-200/80 rounded-full overflow-hidden p-0.5 border border-slate-300/60">
+                    <div className="h-2 w-full bg-[#F4F5F0] rounded-full overflow-hidden p-0.5">
                       <div
                         className={`h-full transition-all duration-500 rounded-full ${
-                          loadPercentage > 100 ? 'bg-rose-500' : loadPercentage > 85 ? 'bg-amber-500' : 'bg-lime-500'
+                          loadPercentage > 100 ? 'bg-rose-500' : loadPercentage > 85 ? 'bg-amber-500' : 'bg-slate-900'
                         }`}
                         style={{ width: `${Math.min(100, loadPercentage)}%` }}
                       />
@@ -662,14 +666,14 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                   </div>
 
                   <div className="space-y-1 pt-1">
-                    <span className="flex items-center gap-1 text-xs font-black text-slate-400 uppercase tracking-widest">
-                      <Wrench className="w-3 h-3 text-amber-500" /> Habilidades por Proyectos
+                    <span className="flex items-center gap-1 text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                      <Wrench className="w-3 h-3 text-slate-800" /> Habilidades por Proyectos
                     </span>
                     <div className="flex items-center gap-1.5 whitespace-nowrap overflow-x-auto scrollbar-none py-1">
                       {derivedSkills.map((skill, idx) => (
                         <span
                           key={idx}
-                          className="inline-block px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 shrink-0"
+                          className="inline-block px-3 py-1 rounded-full bg-[#F4F5F0] text-xs font-medium text-slate-700 shrink-0"
                         >
                           {skill}
                         </span>
@@ -683,43 +687,43 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
               {/* RIGHT COLUMN: MAIN KPI CARDS & PROYECTOS ASIGNADOS */}
               <div className="lg:col-span-7 space-y-6 flex flex-col justify-between">
 
-                <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-5">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xs space-y-5">
+                  <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                     <div>
-                      <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                        MÃ©tricas Clave de DesempeÃ±o
+                      <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                        Métricas Clave de Desempeño
                       </h3>
-                      <p className="text-base font-black text-slate-900 tracking-tight">
+                      <p className="text-base font-semibold text-slate-900 tracking-tight">
                         Resumen Mensual de Mi Trabajo
                       </p>
                     </div>
-                    <span className="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-full text-xs font-bold">
+                    <span className="px-3.5 py-1.5 bg-stone-100 text-slate-800 rounded-full text-xs font-semibold">
                       {currentUser.username}
                     </span>
                   </div>
 
                   {currentUser.role === 'proveedor' && (
-                    <div className="p-4 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-amber-500/10 border border-amber-300/80 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="p-4 bg-stone-100 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="px-2.5 py-0.5 bg-amber-500 text-slate-950 font-black text-xs uppercase rounded-full tracking-wider">
+                          <span className="px-2.5 py-0.5 bg-slate-900 text-white font-semibold text-xs uppercase rounded-full tracking-wider">
                             Proveedor Externo
                           </span>
                           {currentUser.empresaProveedor && (
-                            <span className="text-xs font-bold text-amber-900">
+                            <span className="text-xs font-semibold text-slate-800">
                               {currentUser.empresaProveedor}
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-slate-600 font-medium">
+                        <p className="text-xs text-slate-600 font-normal">
                           Tarifa acordada por hora: <strong className="font-mono text-slate-900">${currentUser.tarifaHoraProveedor || 0} USD/h</strong>
                         </p>
                       </div>
 
-                      <div className="bg-white px-4 py-2.5 rounded-xl border border-amber-200 shadow-sm flex items-center gap-3">
+                      <div className="bg-white px-4 py-2.5 rounded-2xl shadow-xs flex items-center gap-3">
                         <div className="text-right">
-                          <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Facturable Acumulado</div>
-                          <div className="text-lg font-mono font-black text-amber-600">
+                          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Facturable Acumulado</div>
+                          <div className="text-xl font-mono font-semibold font-display text-slate-900">
                             ${((currentUser.tarifaHoraProveedor || 0) * totalLoggedHours).toLocaleString('es-CL', { minimumFractionDigits: 2 })}
                           </div>
                         </div>
@@ -728,41 +732,41 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                   )}
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div className="bg-slate-900 text-white p-4 rounded-2xl border border-slate-800 space-y-1.5 shadow-xs">
+                    <div className="bg-slate-900 text-white p-4 rounded-2xl space-y-1.5 shadow-xs">
                       <div className="flex items-center justify-between text-slate-400">
-                        <span className="text-xs font-bold uppercase tracking-wider">Horas Registradas</span>
-                        <Clock className="w-4 h-4 text-lime-400" />
+                        <span className="text-xs font-semibold uppercase tracking-wider">Horas Registradas</span>
+                        <Clock className="w-4 h-4 text-white" />
                       </div>
-                      <div className="text-2xl font-black text-white">{totalLoggedHours}h</div>
-                      <div className="text-xs text-slate-400 font-medium">
+                      <div className="text-3xl font-semibold font-display text-white">{totalLoggedHours}h</div>
+                      <div className="text-xs text-slate-400 font-normal">
                         {loadPercentage}% de la meta ({targetCapacity}h)
                       </div>
                     </div>
 
-                    <div className={`p-4 rounded-2xl border space-y-1.5 shadow-xs ${
+                    <div className={`p-4 rounded-2xl space-y-1.5 shadow-xs ${
                       retrabajoPercentage > 15
-                        ? 'bg-rose-50 border-rose-200 text-rose-900'
+                        ? 'bg-rose-50 text-rose-900'
                         : retrabajoPercentage > 5
-                        ? 'bg-amber-50 border-amber-200 text-amber-900'
-                        : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                        ? 'bg-amber-50 text-amber-900'
+                        : 'bg-stone-100 text-slate-900'
                     }`}>
                       <div className="flex items-center justify-between opacity-80">
-                        <span className="text-xs font-bold uppercase tracking-wider">Retrabajo Imputado</span>
-                        <RotateCcw className="w-4 h-4" />
+                        <span className="text-xs font-semibold uppercase tracking-wider">Retrabajo Imputado</span>
+                        <RotateCcw className="w-4 h-4 text-slate-800" />
                       </div>
-                      <div className="text-2xl font-black">{totalRetrabajoHours}h</div>
-                      <div className="text-xs font-extrabold">
+                      <div className="text-3xl font-semibold font-display text-slate-900">{totalRetrabajoHours}h</div>
+                      <div className="text-xs font-medium text-slate-600">
                         {retrabajoPercentage.toFixed(1)}% de tus horas registradas
                       </div>
                     </div>
 
-                    <div className="bg-indigo-50 border border-indigo-200/80 p-4 rounded-2xl text-indigo-950 space-y-1.5 shadow-xs">
-                      <div className="flex items-center justify-between text-indigo-600">
-                        <span className="text-xs font-bold uppercase tracking-wider">Proyectos Activos</span>
-                        <Briefcase className="w-4 h-4 text-indigo-600" />
+                    <div className="bg-stone-100 p-4 rounded-2xl text-slate-900 space-y-1.5 shadow-xs">
+                      <div className="flex items-center justify-between text-slate-800">
+                        <span className="text-xs font-semibold uppercase tracking-wider">Proyectos Activos</span>
+                        <Briefcase className="w-4 h-4 text-slate-800" />
                       </div>
-                      <div className="text-2xl font-black text-indigo-900">{assignedProjects.length}</div>
-                      <div className="text-xs text-indigo-700 font-medium">
+                      <div className="text-3xl font-semibold font-display text-slate-900">{assignedProjects.length}</div>
+                      <div className="text-xs text-slate-600 font-normal">
                         Asignaciones activas
                       </div>
                     </div>
@@ -770,21 +774,21 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                 </div>
 
                 {/* PROYECTOS ASIGNADOS DETALLADOS */}
-                <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4 flex-1">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-xs space-y-4 flex-1">
+                  <div className="flex items-center justify-between border-b border-stone-100 pb-3">
                     <div className="flex items-center gap-2">
-                      <FolderKanban className="w-5 h-5 text-indigo-600" />
-                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                      <FolderKanban className="w-5 h-5 text-slate-800" />
+                      <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">
                         Proyectos Asignados ({assignedProjects.length})
                       </h3>
                     </div>
-                    <span className="text-xs text-slate-500 font-bold">
+                    <span className="text-xs text-slate-500 font-semibold">
                       Carga de horas por proyecto
                     </span>
                   </div>
 
                   {assignedProjects.length === 0 ? (
-                    <div className="p-8 text-center text-xs text-slate-400 italic bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <div className="p-8 text-center text-xs text-slate-400 italic bg-[#F4F5F0] rounded-2xl">
                       No tienes proyectos asignados actualmente en tu perfil.
                     </div>
                   ) : (
@@ -801,41 +805,41 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                         return (
                           <div
                             key={p.id}
-                            className="p-4 rounded-2xl border border-slate-200/90 bg-slate-50/50 hover:bg-white hover:border-indigo-300 transition-all space-y-3 shadow-2xs group"
+                            className="p-4 rounded-2xl bg-[#F4F5F0] hover:bg-stone-200/70 transition-all space-y-3 shadow-2xs group"
                           >
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-200/60 pb-2.5">
                               <div className="space-y-0.5">
-                                <h4 className="text-sm font-black text-slate-900 group-hover:text-indigo-600 transition-colors">
+                                <h4 className="text-sm font-semibold text-slate-900 group-hover:text-slate-700 transition-colors">
                                   {p.name}
                                 </h4>
-                                <p className="text-xs text-slate-500 font-medium">
+                                <p className="text-xs text-slate-500 font-normal">
                                   Cliente: <strong className="text-slate-700">{p.clientName}</strong>
                                 </p>
                               </div>
 
                               {currentPhase && (
-                                <span className="px-2.5 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-extrabold self-start sm:self-auto">
-                                  â€¢ Fase: {currentPhase.label}
+                                <span className="px-3 py-1 rounded-full bg-white text-slate-800 text-xs font-semibold self-start sm:self-auto shadow-2xs">
+                                  • Fase: {currentPhase.label}
                                 </span>
                               )}
                             </div>
 
                             <div className="grid grid-cols-3 gap-2 text-xs">
-                              <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 text-center">
-                                <span className="text-xs font-bold text-slate-400 uppercase block">Mis Horas</span>
-                                <span className="text-sm font-black text-slate-900">{myProjHours}h</span>
+                              <div className="bg-white p-3 rounded-2xl text-center shadow-2xs">
+                                <span className="text-xs font-semibold text-slate-400 uppercase block">Mis Horas</span>
+                                <span className="text-base font-semibold font-display text-slate-900">{myProjHours}h</span>
                               </div>
 
-                              <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 text-center">
-                                <span className="text-xs font-bold text-slate-400 uppercase block">Mi Retrabajo</span>
-                                <span className={`text-sm font-black ${myRetrabajoHours > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
+                              <div className="bg-white p-3 rounded-2xl text-center shadow-2xs">
+                                <span className="text-xs font-semibold text-slate-400 uppercase block">Mi Retrabajo</span>
+                                <span className="text-base font-semibold font-display text-slate-900">
                                   {myRetrabajoHours}h
                                 </span>
                               </div>
 
-                              <div className="bg-white p-2.5 rounded-xl border border-slate-200/80 text-center">
-                                <span className="text-xs font-bold text-slate-400 uppercase block">Avance Fases</span>
-                                <span className="text-sm font-black text-indigo-700">{phaseProgress}%</span>
+                              <div className="bg-white p-3 rounded-2xl text-center shadow-2xs">
+                                <span className="text-xs font-semibold text-slate-400 uppercase block">Avance Fases</span>
+                                <span className="text-base font-semibold font-display text-slate-900">{phaseProgress}%</span>
                               </div>
                             </div>
                           </div>
@@ -849,20 +853,20 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
             </div>
 
             {/* HISTORIAL DETALLADO DE REGISTROS DE HORAS IMPUTADAS */}
-            <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-4">
                 <div>
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-lime-600" /> Historial de Horas Imputadas ({filteredEntries.length})
+                  <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-slate-800" /> Historial de Horas Imputadas ({filteredEntries.length})
                   </h3>
-                  <p className="text-xs text-slate-500 mt-0.5">Listado cronolÃ³gico de tus registros de tiempo en todos tus proyectos</p>
+                  <p className="text-xs text-slate-500 font-normal mt-0.5">Listado cronológico de tus registros de tiempo en todos tus proyectos</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
                   <select
                     value={filterProject}
                     onChange={(e) => setFilterProject(e.target.value)}
-                    className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none"
+                    className="px-3.5 py-2 bg-[#F4F5F0] rounded-full text-xs font-bold text-slate-800 focus:outline-none"
                   >
                     <option value="all">Todos los proyectos</option>
                     {assignedProjects.map(p => (
@@ -873,7 +877,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                   <select
                     value={filterType}
                     onChange={(e) => setFilterType(e.target.value)}
-                    className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none"
+                    className="px-3.5 py-2 bg-[#F4F5F0] rounded-full text-xs font-bold text-slate-800 focus:outline-none"
                   >
                     <option value="all">Todos los tipos</option>
                     <option value="normal">Normal</option>
@@ -884,47 +888,47 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
               </div>
 
               {filteredEntries.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400 font-medium">
+                <div className="p-8 text-center text-xs text-slate-400 font-medium bg-[#F4F5F0] rounded-2xl">
                   No hay registros de horas guardados con los filtros seleccionados.
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-200 text-xs font-black text-slate-400 uppercase tracking-wider bg-slate-50/50">
-                        <th className="py-2.5 px-3">Fecha</th>
-                        <th className="py-2.5 px-3">Proyecto</th>
-                        <th className="py-2.5 px-3">Tipo</th>
-                        <th className="py-2.5 px-3">DescripciÃ³n / Motivo</th>
-                        <th className="py-2.5 px-3 text-right">Horas</th>
+                      <tr className="border-b border-stone-200 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-[#F4F5F0]">
+                        <th className="py-3 px-4 rounded-l-2xl">Fecha</th>
+                        <th className="py-3 px-4">Proyecto</th>
+                        <th className="py-3 px-4">Tipo</th>
+                        <th className="py-3 px-4">Descripción / Motivo</th>
+                        <th className="py-3 px-4 text-right rounded-r-2xl">Horas</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-stone-100">
                       {filteredEntries.map(entry => (
-                        <tr key={entry.id} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="py-3 px-3 font-mono text-slate-500 text-xs whitespace-nowrap">
+                        <tr key={entry.id} className="hover:bg-[#F4F5F0]/60 transition-colors">
+                          <td className="py-3 px-4 font-mono text-slate-500 text-xs whitespace-nowrap">
                             {entry.date}
                           </td>
-                          <td className="py-3 px-3 font-bold text-slate-800 whitespace-nowrap">
+                          <td className="py-3 px-4 font-semibold text-slate-800 whitespace-nowrap">
                             {entry.projectName}
                             <span className="block text-xs font-normal text-slate-400">{entry.clientName}</span>
                           </td>
-                          <td className="py-3 px-3 whitespace-nowrap">
+                          <td className="py-3 px-4 whitespace-nowrap">
                             {entry.type === 'retrabajo' ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-extrabold text-xs">
-                                âš ï¸ Retrabajo ({entry.retrabajoOrigen || 'cliente'})
+                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-800 font-semibold text-xs">
+                                ⚠️ Retrabajo ({entry.retrabajoOrigen || 'cliente'})
                               </span>
                             ) : entry.type === 'no_facturable' ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold text-xs">
+                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#F4F5F0] text-slate-700 font-medium text-xs">
                                 No Facturable
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">
+                              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-medium text-xs">
                                 Normal
                               </span>
                             )}
                           </td>
-                          <td className="py-3 px-3 text-slate-700 font-medium max-w-md">
+                          <td className="py-3 px-4 text-slate-700 font-normal max-w-md">
                             {entry.description}
                             {entry.retrabajoMotivo && entry.retrabajoMotivo !== entry.description && (
                               <span className="block text-xs text-amber-700 font-semibold italic mt-0.5">
@@ -932,7 +936,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                               </span>
                             )}
                           </td>
-                          <td className="py-3 px-3 text-right font-mono font-black text-slate-900 text-sm whitespace-nowrap">
+                          <td className="py-3 px-4 text-right font-mono font-semibold text-slate-900 text-sm whitespace-nowrap">
                             {entry.hours}h
                           </td>
                         </tr>
@@ -947,55 +951,55 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
 
         {/* TAB 3: DATOS DE EMPLEADO */}
         {activeTab === 'empleado' && (
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-6 animate-in fade-in">
-            <div className="border-b border-slate-100 pb-3">
-              <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-indigo-600" /> InformaciÃ³n Contractual y de Empleado
+          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
+            <div className="border-b border-stone-100 pb-3">
+              <h3 className="text-base font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-slate-800" /> Información Contractual y de Empleado
               </h3>
-              <p className="text-xs text-slate-500">ParÃ¡metros operativos de tu perfil profesional en el Hub</p>
+              <p className="text-xs text-slate-500 font-normal">Parámetros operativos de tu perfil profesional en el Hub</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
               <div className="space-y-4">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Nombre de Usuario</span>
-                  <p className="text-sm font-bold text-slate-800 capitalize">{currentUser.username}</p>
+                <div className="bg-[#F4F5F0] p-4 rounded-2xl space-y-1">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Nombre de Usuario</span>
+                  <p className="text-sm font-semibold text-slate-800 capitalize">{currentUser.username}</p>
                 </div>
 
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Puesto / Cargo</span>
-                  <p className="text-sm font-bold text-slate-800">{currentUser.puesto || currentUser.role}</p>
+                <div className="bg-[#F4F5F0] p-4 rounded-2xl space-y-1">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Puesto / Cargo</span>
+                  <p className="text-sm font-semibold text-slate-800">{currentUser.puesto || currentUser.role}</p>
                 </div>
 
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Rol de Sistema</span>
-                  <p className="text-sm font-bold text-indigo-600 uppercase tracking-wider">{currentUser.role}</p>
+                <div className="bg-[#F4F5F0] p-4 rounded-2xl space-y-1">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Rol de Sistema</span>
+                  <p className="text-sm font-semibold text-slate-800 uppercase tracking-wider">{currentUser.role}</p>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Capacidad Mensual</span>
-                  <p className="text-sm font-bold text-slate-800">{currentUser.capacidadMensualHoras || EFFECTIVE_MONTHLY_CAPACITY} horas / mes</p>
+                <div className="bg-[#F4F5F0] p-4 rounded-2xl space-y-1">
+                  <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Capacidad Mensual</span>
+                  <p className="text-sm font-semibold text-slate-800">{currentUser.capacidadMensualHoras || EFFECTIVE_MONTHLY_CAPACITY} horas / mes</p>
                 </div>
 
                 {currentUser.role === 'proveedor' && (
                   <>
-                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-1">
-                      <span className="text-xs font-bold text-amber-900/80 uppercase tracking-wider">Tarifa por Hora</span>
-                      <p className="text-sm font-black text-amber-900">${currentUser.tarifaHoraProveedor || 0} USD/h</p>
+                    <div className="bg-stone-100 p-4 rounded-2xl space-y-1">
+                      <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Tarifa por Hora</span>
+                      <p className="text-sm font-semibold text-slate-900">${currentUser.tarifaHoraProveedor || 0} USD/h</p>
                     </div>
 
-                    <div className="bg-amber-50 p-4 rounded-xl border border-amber-200 space-y-1">
-                      <span className="text-xs font-bold text-amber-900/80 uppercase tracking-wider">Empresa / Agencia</span>
-                      <p className="text-sm font-bold text-amber-900">{currentUser.empresaProveedor || 'No especificada'}</p>
+                    <div className="bg-stone-100 p-4 rounded-2xl space-y-1">
+                      <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Empresa / Agencia</span>
+                      <p className="text-sm font-semibold text-slate-800">{currentUser.empresaProveedor || 'No especificada'}</p>
                     </div>
                   </>
                 )}
 
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-1">
+                <div className="bg-[#F4F5F0] p-4 rounded-2xl space-y-1">
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Estado de Cuenta</span>
-                  <span className="inline-block px-2.5 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold text-xs rounded-full">
+                  <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 font-extrabold text-xs rounded-full">
                     Activo
                   </span>
                 </div>
@@ -1006,34 +1010,34 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
 
         {/* TAB 4: DATOS ADICIONALES */}
         {activeTab === 'adicionales' && (
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-6 animate-in fade-in">
-            <div className="border-b border-slate-100 pb-3">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
+            <div className="border-b border-stone-100 pb-3">
               <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                <Award className="w-4 h-4 text-amber-500" /> Habilidades y Preferencias Personalizadas
+                <Award className="w-5 h-5 text-amber-500" /> Habilidades y Preferencias Personalizadas
               </h3>
-              <p className="text-xs text-slate-500">ConfiguraciÃ³n avanzada de tu perfil de usuario</p>
+              <p className="text-xs text-slate-500">Configuración avanzada de tu perfil de usuario</p>
             </div>
 
             <div className="space-y-4">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <div className="bg-[#F4F5F0] p-4 rounded-2xl space-y-2">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                   Habilidades Activas
                 </span>
                 <div className="flex flex-wrap gap-2">
                   {derivedSkills.map((skill, idx) => (
-                    <span key={idx} className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-700 shadow-2xs">
+                    <span key={idx} className="px-3.5 py-1.5 bg-white rounded-full text-xs font-bold text-slate-700 shadow-2xs">
                       {skill}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <div className="bg-[#F4F5F0] p-4 rounded-2xl space-y-2">
                 <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                  Preferencias de NotificaciÃ³n
+                  Preferencias de Notificación
                 </span>
-                <p className="text-xs text-slate-600">
-                  Notificaciones automÃ¡ticas por correo para alertas de entregables, asignaciÃ³n de nuevas fases y vencimiento de hitos.
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Notificaciones automáticas por correo para alertas de entregables, asignación de nuevas fases y vencimiento de hitos.
                 </p>
               </div>
             </div>
@@ -1042,29 +1046,29 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
 
         {/* TAB 5: INTEGRACIONES */}
         {activeTab === 'integraciones' && (
-          <div className="bg-white rounded-2xl border border-slate-200/90 p-6 shadow-sm space-y-6 animate-in fade-in">
-            <div className="border-b border-slate-100 pb-3">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
+            <div className="border-b border-stone-100 pb-3">
               <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
-                <Laptop className="w-4 h-4 text-sky-600" /> Conexiones e Integraciones Externas
+                <Laptop className="w-5 h-5 text-sky-600" /> Conexiones e Integraciones Externas
               </h3>
-              <p className="text-xs text-slate-500">Vincula tu calendario y servicios de colaboraciÃ³n</p>
+              <p className="text-xs text-slate-500">Vincula tu calendario y servicios de colaboración</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 flex items-center justify-between">
+              <div className="p-5 rounded-2xl bg-[#F4F5F0] flex items-center justify-between">
                 <div className="space-y-1">
                   <h4 className="text-xs font-bold text-slate-800">Google Calendar</h4>
                   <p className="text-xs text-slate-500">Sincroniza tus vacaciones y licencias registradas.</p>
                 </div>
-                <span className="px-2 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-md">Conectado</span>
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full">Conectado</span>
               </div>
 
-              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 flex items-center justify-between">
+              <div className="p-5 rounded-2xl bg-[#F4F5F0] flex items-center justify-between">
                 <div className="space-y-1">
                   <h4 className="text-xs font-bold text-slate-800">Google Drive</h4>
                   <p className="text-xs text-slate-500">Acceso a entregables y carpetas de proyecto.</p>
                 </div>
-                <span className="px-2 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-md">Conectado</span>
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-full">Conectado</span>
               </div>
             </div>
           </div>
@@ -1072,21 +1076,21 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
 
       </div>
 
-      {/* MODAL: NUEVA LICENCIA / EDITAR LICENCIA (REPLICATING IMAGE 2 EXACTLY) */}
+      {/* MODAL: NUEVA LICENCIA / EDITAR LICENCIA */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95">
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95">
             {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
               <h3 className="text-base font-bold text-slate-900">
                 {editingLeave ? 'Editar licencia' : 'Nueva licencia'}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1 rounded-lg hover:bg-slate-100"
+                className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-1.5 rounded-full hover:bg-stone-100"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -1101,16 +1105,16 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                   <select
                     value={formMotivo}
                     onChange={(e) => setFormMotivo(e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2.5 text-xs font-semibold text-slate-800 appearance-none focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 cursor-pointer"
+                    className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 text-xs font-semibold text-slate-800 appearance-none focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer"
                   >
-                    <option value="Conferencias/Talleres">ðŸŽ“ Conferencias/Talleres</option>
-                    <option value="Vacaciones">âœˆï¸ Vacaciones</option>
-                    <option value="Feriado">ðŸ“… Feriado</option>
-                    <option value="Licencia MÃ©dica">ðŸ¥ Licencia MÃ©dica</option>
-                    <option value="Permiso Personal">ðŸ‘¤ Permiso Personal</option>
-                    <option value="Otro">ðŸ“ Otro</option>
+                    <option value="Conferencias/Talleres">🎓 Conferencias/Talleres</option>
+                    <option value="Vacaciones">✈️ Vacaciones</option>
+                    <option value="Feriado">📅 Feriado</option>
+                    <option value="Licencia Médica">🏥 Licencia Médica</option>
+                    <option value="Permiso Personal">👤 Permiso Personal</option>
+                    <option value="Otro">📝 Otro</option>
                   </select>
-                  <span className="absolute right-3 top-3.5 text-slate-400 pointer-events-none text-xs">â–¼</span>
+                  <span className="absolute right-4 top-3 text-slate-400 pointer-events-none text-xs">▼</span>
                 </div>
               </div>
 
@@ -1124,7 +1128,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                     type="date"
                     value={formFechaDesde}
                     onChange={(e) => setFormFechaDesde(e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     required
                   />
                 </div>
@@ -1137,13 +1141,13 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                     type="date"
                     value={formFechaHasta}
                     onChange={(e) => setFormFechaHasta(e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
+                    className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     required
                   />
                 </div>
               </div>
 
-              {/* Switch: Todo el dÃ­a */}
+              {/* Switch: Todo el día */}
               <div className="flex items-center gap-3 pt-1">
                 <button
                   type="button"
@@ -1151,7 +1155,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                   aria-checked={formTodoElDia}
                   onClick={() => setFormTodoElDia(!formTodoElDia)}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
-                    formTodoElDia ? 'bg-slate-400' : 'bg-slate-200'
+                    formTodoElDia ? 'bg-sky-600' : 'bg-stone-300'
                   }`}
                 >
                   <span
@@ -1161,7 +1165,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                   />
                 </button>
                 <span className="text-xs font-medium text-slate-700 select-none">
-                  Todo el dÃ­a
+                  Todo el día
                 </span>
               </div>
 
@@ -1176,8 +1180,8 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                     value={formHoraInicio}
                     onChange={(e) => setFormHoraInicio(e.target.value)}
                     disabled={formTodoElDia}
-                    className={`w-full bg-white border rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${
-                      formTodoElDia ? 'border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed' : 'border-slate-300'
+                    className={`w-full rounded-2xl px-4 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                      formTodoElDia ? 'bg-stone-200 text-slate-400 cursor-not-allowed' : 'bg-[#F4F5F0]'
                     }`}
                   />
                 </div>
@@ -1191,27 +1195,27 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
                     value={formHoraFin}
                     onChange={(e) => setFormHoraFin(e.target.value)}
                     disabled={formTodoElDia}
-                    className={`w-full bg-white border rounded-lg px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500 ${
-                      formTodoElDia ? 'border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed' : 'border-slate-300'
+                    className={`w-full rounded-2xl px-4 py-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                      formTodoElDia ? 'bg-stone-200 text-slate-400 cursor-not-allowed' : 'bg-[#F4F5F0]'
                     }`}
                   />
                 </div>
               </div>
 
               {/* Footer Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                  className="px-5 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-800 bg-[#F4F5F0] hover:bg-stone-200 rounded-full transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs rounded-lg transition-colors cursor-pointer shadow-xs"
+                  className="px-6 py-2.5 bg-slate-900 hover:bg-slate-850 text-white font-bold text-xs rounded-full transition-colors cursor-pointer shadow-xs"
                 >
-                  {editingLeave ? 'Guardar' : 'Agregar'}
+                  {editingLeave ? 'Guardar Cambios' : 'Agregar Licencia'}
                 </button>
               </div>
             </form>
@@ -1219,6 +1223,23 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
         </div>
       )}
 
+      {/* Modal Confirmación Eliminación Licencia */}
+      <CustomModal
+        isOpen={!!leaveToDelete}
+        onClose={() => setLeaveToDelete(null)}
+        type="danger"
+        isDestructive={true}
+        title="¿Eliminar registro de licencia o vacación?"
+        description="Esta acción eliminará permanentemente este registro del calendario. No se puede deshacer."
+        confirmLabel="Eliminar registro"
+        cancelLabel="Cancelar"
+        onConfirm={() => {
+          if (leaveToDelete) {
+            updateLeaves(leaves.filter(l => l.id !== leaveToDelete));
+            setLeaveToDelete(null);
+          }
+        }}
+      />
     </div>
   );
 };

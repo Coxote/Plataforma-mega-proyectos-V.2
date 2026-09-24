@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Project, Role, UserSession } from '../types';
 import { TppLogo } from './TppLogo';
+import { ProjectStatusBadge } from './ProjectStatusBadge';
 import {
   Plus,
   Search,
@@ -87,13 +88,13 @@ export default function Sidebar({
 
   return (
     <aside
-      className={`bg-white/80 backdrop-blur-xl border-r border-slate-200/80 flex flex-col h-full select-none transition-all duration-300 relative shrink-0 shadow-sm ${
+      className={`bg-white flex flex-col h-full select-none transition-all duration-300 relative shrink-0 shadow-xs ${
         isCollapsed ? 'w-16' : 'w-72'
       }`}
       id="main-projects-sidebar"
     >
-      {/* ðŸŸ¢ HEADER SIDEBAR WITH OFFICIAL TPP LOGO */}
-      <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+      {/* HEADER SIDEBAR WITH OFFICIAL TPP LOGO */}
+      <div className="p-4 flex items-center justify-between">
         {!isCollapsed ? (
           <TppLogo size="sm" variant="full" />
         ) : (
@@ -103,7 +104,7 @@ export default function Sidebar({
         {/* MINIMIZE / COLLAPSE BUTTON */}
         <button
           onClick={onToggleCollapse}
-          className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer ml-1"
+          className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-stone-100 transition-colors cursor-pointer ml-1"
           title={isCollapsed ? 'Expandir barra lateral' : 'Minimizar barra lateral'}
           aria-label={isCollapsed ? 'Expandir barra lateral' : 'Minimizar barra lateral'}
         >
@@ -111,24 +112,24 @@ export default function Sidebar({
         </button>
       </div>
 
-      {/* ðŸŸ¢ ACTION ITEM 1: NUEVO PROYECTO */}
+      {/* ACTION ITEM 1: NUEVO PROYECTO */}
       <div className="p-3">
         {(userRole === 'coordinador' || userRole === 'sac') && (
           <button
             onClick={onAddProject}
-            className={`w-full flex items-center justify-center gap-2 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl py-2.5 px-3 transition-all cursor-pointer font-bold text-xs shadow-sm active:scale-[0.99] ${
+            className={`w-full flex items-center justify-center gap-2 bg-[#c6ef4e] hover:bg-[#b4df3b] text-black rounded-2xl py-2.5 px-3 transition-all cursor-pointer font-semibold text-xs shadow-xs border-none active:scale-[0.99] ${
               isCollapsed ? 'p-2.5' : ''
             }`}
             title="Nuevo Proyecto"
             id="btn-add-new-project-sidebar"
           >
-            <Plus className="w-4 h-4 shrink-0 text-white" />
+            <Plus className="w-4 h-4 shrink-0 text-black" />
             {!isCollapsed && <span className="truncate">Nuevo proyecto</span>}
           </button>
         )}
       </div>
 
-      {/* ðŸŸ¢ ACTION ITEM 2: BUSCAR PROYECTO */}
+      {/* ACTION ITEM 2: BUSCAR PROYECTO */}
       {!isCollapsed ? (
         <div className="px-3 pb-3">
           <div className="relative flex items-center">
@@ -138,12 +139,13 @@ export default function Sidebar({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar proyectos..."
-              className="w-full bg-slate-50 border border-slate-200/90 rounded-xl pl-9 pr-8 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#FF5500] focus:border-[#FF5500] focus:bg-white transition-all"
+              className="w-full bg-[#F4F5F0] rounded-2xl pl-9 pr-8 py-2 text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-slate-400 focus:bg-white transition-all shadow-2xs"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
                 className="absolute right-2.5 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                aria-label="Limpiar búsqueda"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -154,7 +156,7 @@ export default function Sidebar({
         <div className="px-3 pb-2 flex justify-center">
           <button
             onClick={onToggleCollapse}
-            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
+            className="p-2 text-slate-400 hover:text-slate-700 hover:bg-stone-100 rounded-xl transition-colors cursor-pointer"
             title="Buscar proyecto"
           >
             <Search className="w-4 h-4" />
@@ -162,12 +164,12 @@ export default function Sidebar({
         </div>
       )}
 
-      {/* ðŸŸ¢ RECIENTES / LISTA DE PROYECTOS */}
+      {/* RECIENTES / LISTA DE PROYECTOS */}
       <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-1 scrollbar-none">
         {!isCollapsed && (
           <div className="px-3 py-1.5 flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider">
             <span>Recientes</span>
-            <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-mono font-semibold">
+            <span className="text-xs bg-stone-100 text-slate-600 px-2 py-0.5 rounded-full font-mono font-semibold">
               {filteredProjects.length}
             </span>
           </div>
@@ -175,7 +177,7 @@ export default function Sidebar({
 
         {filteredProjects.length === 0 && (
           <div className="p-4 text-center text-xs text-slate-400 font-medium">
-            {!isCollapsed ? 'No se encontraron proyectos' : 'â€”'}
+            {!isCollapsed ? 'No se encontraron proyectos' : '—'}
           </div>
         )}
 
@@ -203,18 +205,18 @@ export default function Sidebar({
           return (
             <div
               key={project.id}
-              className={`group relative flex items-center justify-between rounded-xl transition-all duration-200 ${
-                isCollapsed ? 'p-2 justify-center' : 'px-3 py-2 pl-4'
+              className={`group relative flex items-center justify-between rounded-2xl transition-all duration-200 ${
+                isCollapsed ? 'p-2 justify-center' : 'px-3 py-2 pl-3.5'
               } ${
                 isActive
-                  ? 'bg-orange-50/90 text-[#FF5500] font-bold shadow-2xs border border-orange-200/60'
-                  : 'text-slate-700 bg-transparent hover:bg-slate-100/70 hover:text-slate-900 border border-transparent'
+                  ? 'bg-[#edf9c7] text-slate-900 font-semibold shadow-2xs'
+                  : 'text-slate-700 bg-transparent hover:bg-stone-100/70 hover:text-slate-900'
               }`}
             >
               {/* Curved selection bar indicator */}
               {isActive && (
                 <span
-                  className={`absolute left-0 top-1/2 -translate-y-1/2 bg-[#FF5500] rounded-r-full shadow-xs transition-all duration-200 z-20 ${
+                  className={`absolute left-0 top-1/2 -translate-y-1/2 bg-[#c6ef4e] rounded-r-full shadow-xs transition-all duration-200 z-20 ${
                     isCollapsed ? 'w-1 h-5' : 'w-1.5 h-6'
                   }`}
                 />
@@ -243,14 +245,15 @@ export default function Sidebar({
                     <div className="flex items-center justify-between gap-1.5">
                       <span className={`text-xs truncate flex items-center gap-1 ${isActive ? 'text-slate-900 font-bold' : 'font-semibold text-slate-800'}`}>
                         {currentUser?.preferences?.followedProjectIds?.includes(project.id) && (
-                          <Star className="w-3 h-3 fill-amber-400 text-amber-400 shrink-0" title="Proyecto Seguido" />
+                          <Star className="w-3 h-3 fill-slate-800 text-slate-800 shrink-0" title="Proyecto Seguido" />
                         )}
                         <span className="truncate">{project.name}</span>
                       </span>
-                      {/* Text-only status label as requested */}
-                      <span className={`text-xs ${badgeTextStyle} shrink-0`}>
-                        {statusBadgeText}
-                      </span>
+                      {/* Standardized ProjectStatusBadge */}
+                      <ProjectStatusBadge
+                        status={isOverdue ? 'vencido' : isApproaching ? 'por_vencer' : project.activePhaseId ? 'activo' : 'en_tiempo'}
+                        label={statusBadgeText}
+                      />
                     </div>
                     <span className="text-xs text-slate-400 truncate block mt-0.5">
                       {project.clientName || 'Cliente no asignado'}

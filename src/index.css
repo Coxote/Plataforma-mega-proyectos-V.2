@@ -1,25 +1,88 @@
 @import "tailwindcss";
 
+@theme {
+  --color-accent: #c6ef4e;
+  --color-accent-hover: #b4df3b;
+  --color-accent-light: #edf9c7;
+  --color-accent-foreground: #000000;
+}
+
+:root {
+  --accent-color: #c6ef4e;
+  --accent-hover: #b4df3b;
+  --accent-light: #edf9c7;
+}
+
+/* Restrictive single accent system for primary CTAs and progress bars */
+.bg-accent {
+  background-color: #c6ef4e !important;
+}
+.hover\:bg-accent-hover:hover {
+  background-color: #b4df3b !important;
+}
+.text-accent-foreground {
+  color: #000000 !important;
+}
+.bg-accent-pastel {
+  background-color: #edf9c7 !important;
+}
+
+/* Primary CTA: exclusively vibrant lime background (#c6ef4e) with black text for high contrast */
+.btn-primary-cta {
+  background-color: #c6ef4e !important;
+  color: #000000 !important;
+  font-weight: 600 !important;
+  border: none !important;
+  transition: background-color 150ms ease, transform 100ms ease;
+}
+.btn-primary-cta:hover {
+  background-color: #b4df3b !important;
+}
+
+/* Secondary Button: white with black text and no border, or subtle gray */
+.btn-secondary-subtle {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border: none !important;
+  font-weight: 600 !important;
+  transition: background-color 150ms ease;
+}
+.btn-secondary-subtle:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Progress bar standardized classes */
+.progress-bar-track {
+  background-color: #f1f5f9 !important; /* bg-slate-100 */
+  border-radius: 9999px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  background-color: #c6ef4e !important;
+  border-radius: 9999px;
+  transition: width 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 @layer base {
   body {
     font-family: 'Aptos', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: #f8fafc;
+    background: #F4F5F0;
   }
 
   .font-playfair {
     font-family: 'Playfair Display', Georgia, Cambria, serif;
   }
+
+  .font-display {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
-/* Operations Atelier: restrained product surfaces inspired by the TPP login */
+/* Operations Atelier: restrained warm canvas #F4F5F0 */
 .oa-app-surface {
-  background:
-    linear-gradient(90deg, rgba(132, 204, 22, 0.045) 1px, transparent 1px),
-    linear-gradient(rgba(132, 204, 22, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 0% 0%, rgba(132, 204, 22, 0.16), transparent 23rem),
-    radial-gradient(circle at 100% 100%, rgba(255, 85, 0, 0.14), transparent 26rem),
-    radial-gradient(ellipse 140% 100% at 50% -15%, #e0f2fe 0%, #f0f5fa 40%, #f8fafc 70%, #ffffff 100%);
-  background-size: 28px 28px, 28px 28px, auto, auto, auto;
+  background: #F4F5F0;
 }
 
 .oa-sidebar {
@@ -146,10 +209,15 @@ h1.project-title {
   letter-spacing: -0.01em;
 }
 
-.kpi-value {
-  font-size: 40px;
-  font-weight: 700;
-  letter-spacing: -0.02em; /* Compresión para números grandes */
+.kpi-value,
+.kpi-display-num {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 2.25rem; /* text-4xl */
+  line-height: 2.5rem;
+  font-weight: 600; /* font-semibold */
+  color: #0f172a; /* text-slate-900 */
+  letter-spacing: -0.03em; /* Compresión para números grandes */
+  font-variant-numeric: tabular-nums;
 }
 
 /* Transición fluida de los botones en las tarjetas de Decisión */
@@ -192,4 +260,36 @@ h1.project-title {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(156, 163, 175, 0.5);
 }
+
+/* ==========================================================================
+   VIEW CONTAINERS & SCROLL ENFORCEMENT (FLEX COLUMN + OVERFLOW-Y AUTO)
+   Garantiza que todos los contenedores de vistas utilicen correctamente
+   'flex-direction: column', 'overflow-y: auto' y 'min-height: 0', evitando
+   conflictos o bloqueos de scroll con contenedores padre que tengan 'overflow-hidden'.
+   ========================================================================== */
+
+.view-container,
+.app-view-container,
+.view-scroll-container {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0% !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Regla defensiva para evitar el colapso de min-height en elementos hijos de flex */
+#main-content-area,
+#main-content-area > div,
+.view-container > div,
+.app-view-container > div {
+  min-width: 0;
+}
+
 

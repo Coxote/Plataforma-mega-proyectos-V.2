@@ -362,7 +362,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                       {/* BARRA LATERAL CURVA PARA MOSTRAR LA OPCIÓN SELECCIONADA */}
                       {active && (
                         <span
-                          className={`absolute left-0 top-1/2 -translate-y-1/2 bg-[#FF5500] rounded-r-full shadow-xs transition-all duration-200 z-20 ${
+                          className={`absolute left-0 top-1/2 -translate-y-1/2 bg-[#c6ef4e] rounded-r-full shadow-xs transition-all duration-200 z-20 ${
                             isCollapsed ? 'w-1 h-5' : 'w-1 h-5'
                           }`}
                         />
@@ -448,7 +448,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   );
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-screen bg-slate-50 overflow-hidden font-sans" id="main-layout-container">
+    <div className="flex flex-col md:flex-row h-screen w-screen bg-[#F4F5F0] overflow-hidden font-sans" id="main-layout-container">
 
       {/* 📱 MOBILE TOP HEADER BAR */}
       <header className="md:hidden oa-sidebar text-white p-3.5 border-b border-slate-800 flex items-center justify-between shrink-0 z-30">
@@ -468,7 +468,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           {/* Botón Cargar Horas en móvil */}
           <button
             onClick={() => setIsGlobalLogTimeOpen(true)}
-            className="px-3 py-1.5 bg-[#E6F4FE] text-[#0284C7] hover:bg-[#D4EDFD] rounded-full text-xs font-bold transition-all flex items-center gap-1.5 border border-[#BAE6FD]/60 shadow-xs"
+            className="px-3 py-1.5 bg-[#E6F4FE] text-[#0284C7] hover:bg-[#D4EDFD] rounded-full text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs"
           >
             <Clock className="w-3.5 h-3.5 text-[#0284C7]" />
             Cargar horas
@@ -517,39 +517,39 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
       {/* ⬜ ZONA 2: CONTENEDOR PRINCIPAL DINÁMICO CON TOPBAR DE REFERENCIA (CARGAR HORAS, PROGRESO DE HOY, BUSCAR) */}
       <main
-        className="flex-1 flex flex-col min-w-0 relative overflow-hidden oa-app-surface"
+        className="flex-1 flex flex-col min-w-0 min-h-0 relative overflow-hidden bg-[#F4F5F0]"
         id="main-content-area"
       >
         {/* BARRA SUPERIOR DE LA PLATAFORMA (COMO LA REFERENCIA COMPARTIDA) */}
-        <header className="hidden md:flex items-center justify-between px-5 py-2.5 bg-white border-b border-slate-200/90 shadow-2xs z-20 shrink-0">
+        <header className="hidden md:flex items-center justify-between px-5 py-2.5 bg-white shadow-xs z-20 shrink-0">
           <div className="flex items-center gap-3.5">
             {/* Botón para colapsar/expandir barra lateral (afuera a la par de la foto de perfil) */}
             <button
               onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-              className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-stone-100 rounded-lg transition-colors cursor-pointer"
               title={isSidebarCollapsed ? "Expandir barra lateral" : "Minimizar barra lateral"}
               aria-label={isSidebarCollapsed ? "Expandir barra lateral" : "Minimizar barra lateral"}
             >
               {isSidebarCollapsed ? <ChevronRight className="w-4 h-4 text-slate-700" /> : <ChevronLeft className="w-4 h-4 text-slate-700" />}
             </button>
 
-            {/* BOTÓN CARGAR HORAS (Píldora celeste / azul suave) */}
+            {/* BOTÓN CARGAR HORAS (Acento único vibrante y alto contraste) */}
             <button
               onClick={() => setIsGlobalLogTimeOpen(true)}
-              className="flex items-center gap-2 px-3.5 py-1.5 bg-[#E6F4FE] hover:bg-[#D4EDFD] text-[#0284C7] rounded-full text-xs font-semibold shadow-2xs transition-all cursor-pointer border border-[#BAE6FD]/60 active:scale-[0.98]"
+              className="flex items-center gap-2 px-3.5 py-1.5 bg-[#c6ef4e] hover:bg-[#b4df3b] text-black rounded-full text-xs font-semibold shadow-xs border-none transition-all cursor-pointer active:scale-[0.98]"
               title="Cargar horas de trabajo"
             >
-              <Clock className="w-3.5 h-3.5 text-[#0284C7]" />
+              <Clock className="w-3.5 h-3.5 text-black" />
               <span>Cargar horas</span>
             </button>
 
-            {/* PROGRESO DE HOY (Barra delgada con % calculado) */}
-            <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
+            {/* PROGRESO DE HOY (Barra estandarizada sobre fondo gris pálido) */}
+            <div className="flex items-center gap-3 pl-3 border-l border-stone-200">
               <span className="text-xs font-semibold text-slate-500">Progreso de hoy</span>
               <span className="text-xs font-extrabold text-slate-700">{todayProgressPct}%</span>
-              <div className="w-28 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+              <div className="w-28 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-sky-500 rounded-full transition-all duration-500"
+                  className="h-full bg-[#c6ef4e] rounded-full transition-all duration-500"
                   style={{ width: `${todayProgressPct}%` }}
                 />
               </div>
@@ -563,9 +563,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <input
                 type="text"
                 placeholder="Buscar"
-                className="pl-8 pr-14 py-1.5 bg-slate-50 hover:bg-slate-100/80 focus:bg-white text-xs text-slate-700 rounded-full border border-slate-200 focus:border-orange-500 focus:outline-hidden transition-all w-48 lg:w-64 placeholder:text-slate-400"
+                className="pl-8 pr-14 py-1.5 bg-[#F4F5F0] hover:bg-stone-100/90 focus:bg-white text-xs text-slate-700 rounded-full focus:outline-hidden transition-all w-48 lg:w-64 placeholder:text-slate-400 shadow-2xs"
               />
-              <div className="absolute right-2.5 flex items-center gap-0.5 text-[10px] font-semibold text-slate-400 bg-white px-1.5 py-0.5 rounded-md border border-slate-200 shadow-2xs pointer-events-none">
+              <div className="absolute right-2.5 flex items-center gap-0.5 text-[10px] font-semibold text-slate-400 bg-white px-1.5 py-0.5 rounded-md shadow-2xs pointer-events-none">
                 <span>Ctrl</span>
                 <span>K</span>
               </div>
@@ -573,7 +573,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           </div>
         </header>
 
-        <div className="relative z-10 flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+        <div className="relative z-10 flex-1 flex flex-col h-full min-w-0 min-h-0 overflow-hidden bg-[#F4F5F0]">
           {children}
         </div>
       </main>

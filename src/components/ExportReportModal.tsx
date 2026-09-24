@@ -118,17 +118,17 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
         {/* MODAL HEADER */}
         <div className="bg-slate-900 text-white p-6 flex items-center justify-between border-b border-slate-800 relative overflow-hidden shrink-0">
           <div className="flex items-center gap-3 z-10">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#FF5500] to-[#E04B00] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-              <Download className="w-5 h-5" />
+            <div className="w-10 h-10 bg-slate-800 rounded-2xl flex items-center justify-center text-white shadow-xs">
+              <Download className="w-5 h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-black text-base text-white tracking-tight uppercase">Exportar Reporte Ejecutivo</h3>
-                <span className="px-2 py-0.5 rounded-md text-xs font-black uppercase tracking-wider bg-[#84CC16] text-slate-950">
+                <h3 className="font-semibold text-base text-white tracking-tight uppercase">Exportar Reporte Ejecutivo</h3>
+                <span className="px-2 py-0.5 rounded-md text-xs font-semibold uppercase tracking-wider bg-stone-700 text-stone-100">
                   Fase 3
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-medium">{project.name} Â· {project.clientName}</p>
+              <p className="text-xs text-slate-400 font-normal">{project.name} · {project.clientName}</p>
             </div>
           </div>
 
@@ -136,7 +136,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
             onClick={onClose}
             className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-slate-400 hover:text-white" />
           </button>
         </div>
 
@@ -145,8 +145,8 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
 
           {/* FORMAT SELECTION */}
           <div>
-            <label className="text-xs font-black uppercase tracking-wider text-slate-500 block mb-2.5">
-              1. Formato de ExportaciÃ³n
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block mb-2.5">
+              1. Formato de Exportación
             </label>
             <div className="grid grid-cols-3 gap-3">
               <button
@@ -154,11 +154,11 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                 onClick={() => setExportFormat('pdf')}
                 className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                   exportFormat === 'pdf'
-                    ? 'border-[#FF5500] bg-orange-500/10 text-[#FF5500] font-black shadow-sm'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'border-slate-900 bg-stone-100 text-slate-900 font-semibold shadow-xs'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50 font-normal'
                 }`}
               >
-                <Printer className="w-5 h-5" />
+                <Printer className="w-5 h-5 text-slate-800" />
                 <span className="text-xs">PDF Imprimible</span>
               </button>
 
@@ -167,11 +167,11 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                 onClick={() => setExportFormat('csv')}
                 className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                   exportFormat === 'csv'
-                    ? 'border-[#FF5500] bg-orange-500/10 text-[#FF5500] font-black shadow-sm'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'border-slate-900 bg-stone-100 text-slate-900 font-semibold shadow-xs'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50 font-normal'
                 }`}
               >
-                <FileText className="w-5 h-5" />
+                <FileText className="w-5 h-5 text-slate-800" />
                 <span className="text-xs">CSV Formateado</span>
               </button>
 
@@ -180,11 +180,11 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                 onClick={() => setExportFormat('excel')}
                 className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center gap-2 transition-all cursor-pointer ${
                   exportFormat === 'excel'
-                    ? 'border-[#FF5500] bg-orange-500/10 text-[#FF5500] font-black shadow-sm'
-                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                    ? 'border-slate-900 bg-stone-100 text-slate-900 font-semibold shadow-xs'
+                    : 'border-slate-200 text-slate-600 hover:bg-slate-50 font-normal'
                 }`}
               >
-                <FileSpreadsheet className="w-5 h-5" />
+                <FileSpreadsheet className="w-5 h-5 text-slate-800" />
                 <span className="text-xs">Excel Matrix</span>
               </button>
             </div>
@@ -192,8 +192,8 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
 
           {/* ADVANCED FILTERS */}
           <div className="bg-slate-50/80 rounded-2xl p-4 border border-slate-200/80 space-y-3">
-            <div className="flex items-center gap-2 text-xs font-black uppercase text-slate-800 tracking-wider">
-              <Filter className="w-4 h-4 text-[#FF5500]" />
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase text-slate-800 tracking-wider">
+              <Filter className="w-4 h-4 text-slate-800" />
               2. Filtros de Datos
             </div>
 
@@ -223,10 +223,10 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                   onChange={(e) => setDateRangeFilter(e.target.value)}
                   className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5500]/50"
                 >
-                  <option value="all">Todo el HistÃ³rico</option>
+                  <option value="all">Todo el Histórico</option>
                   <option value="month">Este Mes</option>
                   <option value="quarter">Este Trimestre</option>
-                  <option value="year">Este AÃ±o</option>
+                  <option value="year">Este Año</option>
                 </select>
               </div>
             </div>
@@ -234,7 +234,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
 
           {/* WATERMARK & OPTIONS */}
           <div className="space-y-3 border-t border-slate-100 pt-4">
-            <label className="text-xs font-black uppercase tracking-wider text-slate-500 block">
+            <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 block">
               3. Opciones de Marca y Secciones
             </label>
 
@@ -244,13 +244,13 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                   type="checkbox"
                   checked={includeWatermark}
                   onChange={(e) => setIncludeWatermark(e.target.checked)}
-                  className="w-4 h-4 accent-[#FF5500] rounded"
+                  className="w-4 h-4 accent-slate-900 rounded"
                 />
                 <div className="flex-1 min-w-0">
-                  <span className="text-xs font-black text-slate-900 block">Marca de Agua TPP Hub Digital</span>
-                  <span className="text-xs text-slate-500 font-medium">Incluye sello oficial de confidencialidad en el encabezado y pie</span>
+                  <span className="text-xs font-semibold text-slate-900 block">Marca de Agua TPP Hub Digital</span>
+                  <span className="text-xs text-slate-500 font-normal">Incluye sello oficial de confidencialidad en el encabezado y pie</span>
                 </div>
-                <ShieldCheck className="w-5 h-5 text-[#84CC16] shrink-0" />
+                <ShieldCheck className="w-5 h-5 text-slate-800 shrink-0" />
               </label>
 
               <label className="flex items-center gap-3 p-3 bg-white border border-slate-200/80 rounded-2xl cursor-pointer hover:bg-slate-50 transition-colors">
@@ -258,11 +258,11 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                   type="checkbox"
                   checked={includeFinancials}
                   onChange={(e) => setIncludeFinancials(e.target.checked)}
-                  className="w-4 h-4 accent-[#FF5500] rounded"
+                  className="w-4 h-4 accent-slate-900 rounded"
                 />
                 <div className="flex-1 min-w-0">
-                  <span className="text-xs font-black text-slate-900 block">Desglose Financiero y Tarifas</span>
-                  <span className="text-xs text-slate-500 font-medium">Costos presupuestados vs ejecutados</span>
+                  <span className="text-xs font-semibold text-slate-900 block">Desglose Financiero y Tarifas</span>
+                  <span className="text-xs text-slate-500 font-normal">Costos presupuestados vs ejecutados</span>
                 </div>
               </label>
             </div>
@@ -273,7 +273,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
             <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-3 text-white flex items-center justify-between border border-slate-700">
               <TppLogo size="sm" variant="full" darkMode={true} />
               <div className="text-right">
-                <span className="text-xs font-black uppercase tracking-widest text-[#84CC16] block">INFORME OFICIAL CONFIDENCIAL</span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-slate-300 block">INFORME OFICIAL CONFIDENCIAL</span>
                 <span className="text-xs text-slate-400 font-mono">TPP-HUB-REPORT-{new Date().toISOString().slice(0,10)}</span>
               </div>
             </div>
@@ -286,7 +286,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 rounded-2xl text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-2xl text-xs font-medium text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
           >
             Cancelar
           </button>
@@ -295,9 +295,9 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
             <button
               type="button"
               onClick={handlePrintPDF}
-              className="px-6 py-2.5 bg-[#FF5500] hover:bg-[#E04B00] text-white text-xs font-black rounded-2xl transition-all cursor-pointer shadow-lg shadow-orange-500/20 flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+              className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-2xl transition-all cursor-pointer shadow-xs flex items-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
             >
-              <Printer className="w-4 h-4 text-[#84CC16]" />
+              <Printer className="w-4 h-4 text-white" />
               Generar y Vista Previa PDF
             </button>
           ) : (
@@ -305,11 +305,11 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
               type="button"
               onClick={handleExportCSV}
               disabled={isExporting}
-              className="px-6 py-2.5 bg-[#FF5500] hover:bg-[#E04B00] text-white text-xs font-black rounded-2xl transition-all cursor-pointer shadow-lg shadow-orange-500/20 flex items-center gap-2 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
+              className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-2xl transition-all cursor-pointer shadow-xs flex items-center gap-2 disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98]"
             >
               {isExporting ? (
                 <>
-                  <Sparkles className="w-4 h-4 animate-spin text-[#84CC16]" />
+                  <Sparkles className="w-4 h-4 animate-spin text-white" />
                   Generando Archivo...
                 </>
               ) : (

@@ -63,7 +63,7 @@ export const StackedHoursBar: React.FC<StackedHoursBarProps> = ({
           <div
             style={{ width: `${getPercent(hoursByRole['coordinador'])}%` }}
             className="bg-lime-400 h-full transition-all"
-            title={`CoordinaciÃ³n: ${hoursByRole['coordinador']}h`}
+            title={`Coordinación: ${hoursByRole['coordinador']}h`}
           />
         ) : null}
       </div>

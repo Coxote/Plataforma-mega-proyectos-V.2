@@ -54,7 +54,7 @@ export const RoleTimeTracker: React.FC<Props> = ({
         <div className="flex items-start gap-2.5 text-xs bg-red-50 text-red-700 p-3 rounded-xl border border-red-200">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500 animate-bounce" />
           <div>
-            <strong className="font-bold">Consumo CrÃ­tico:</strong> Has gastado el {percentage.toFixed(0)}% de tu presupuesto ({userBudget.consumed} de {userBudget.allocated} horas).
+            <strong className="font-bold">Consumo Crítico:</strong> Has gastado el {percentage.toFixed(0)}% de tu presupuesto ({userBudget.consumed} de {userBudget.allocated} horas).
           </div>
         </div>
       );
@@ -287,7 +287,7 @@ export const RoleTimeTracker: React.FC<Props> = ({
             />
             <input
               type="text"
-              placeholder={entryType === 'retrabajo' ? 'Â¿QuÃ© ajuste o correcciÃ³n realizaste?' : 'Â¿QuÃ© actividades realizaste?'}
+              placeholder={entryType === 'retrabajo' ? '¿Qué ajuste o corrección realizaste?' : '¿Qué actividades realizaste?'}
               className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-lime-400 focus:border-lime-400"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -321,7 +321,7 @@ export const RoleTimeTracker: React.FC<Props> = ({
                     className="w-full bg-white border border-amber-200 text-xs text-slate-800 rounded-lg p-1.5 font-medium outline-none"
                   >
                     <option value="cliente">Cliente (Cambio de brief / nuevas solicitudes)</option>
-                    <option value="interno">Interno (Error de diseÃ±o/dev / re-trabajo interno)</option>
+                    <option value="interno">Interno (Error de diseño/dev / re-trabajo interno)</option>
                     <option value="proveedor">Proveedor / Tercero</option>
                   </select>
                 </div>
@@ -344,10 +344,10 @@ export const RoleTimeTracker: React.FC<Props> = ({
               </div>
 
               <div>
-                <label className="text-xs font-bold text-amber-800 block mb-1">Motivo EspecÃ­fico</label>
+                <label className="text-xs font-bold text-amber-800 block mb-1">Motivo Específico</label>
                 <input
                   type="text"
-                  placeholder="Ej: Cambio de brief del cliente, ajuste de maquetaciÃ³n..."
+                  placeholder="Ej: Cambio de brief del cliente, ajuste de maquetación..."
                   value={retrabajoMotivo}
                   onChange={(e) => setRetrabajoMotivo(e.target.value)}
                   className="w-full bg-white border border-amber-200 text-xs text-slate-800 rounded-lg px-2.5 py-1.5 outline-none font-medium"

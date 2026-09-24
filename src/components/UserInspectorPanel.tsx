@@ -9,8 +9,10 @@ import {
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Tooltip
 } from 'recharts';
+import { MinimalChartTooltip } from './MinimalChartTooltip';
 
 interface UserInspectorPanelProps {
   member: VitaminizedMember | null;
@@ -41,28 +43,28 @@ const getRoleHexColor = (role: string): string => {
 const getSkillsData = (role: string, skills: string[]) => {
   const skillValues: Record<string, number> = {
     // Coordinador
-    'GestiÃ³n': 95,
+    'Gestión': 95,
     'Finanzas': 90,
     'Liderazgo': 92,
-    'PlanificaciÃ³n': 88,
-    'ComunicaciÃ³n': 85,
+    'Planificación': 88,
+    'Comunicación': 85,
     // SAC
     'Cuentas': 92,
     'Figma Inspect': 85,
     'Copywriting': 80,
     'Soporte': 95,
-    'NegociaciÃ³n': 88,
+    'Negociación': 88,
     // ContentS
     'Social Media': 94,
     'Estrategia': 90,
     'SEO': 85,
-    'RedacciÃ³n': 88,
-    'AnalÃ­tica': 80,
+    'Redacción': 88,
+    'Analítica': 80,
     // ContentD
     'UI/UX Refactor': 92,
     'Illustrator': 95,
     'Branding': 90,
-    'AnimaciÃ³n': 80,
+    'Animación': 80,
     'Prototipado': 85,
     // Other / Dynamic
     'Game Dev': 75,
@@ -75,15 +77,15 @@ const getSkillsData = (role: string, skills: string[]) => {
 
   let defaultRoleSkills: string[] = [];
   if (role === 'coordinador') {
-    defaultRoleSkills = ['GestiÃ³n', 'Finanzas', 'Liderazgo', 'PlanificaciÃ³n', 'ComunicaciÃ³n'];
+    defaultRoleSkills = ['Gestión', 'Finanzas', 'Liderazgo', 'Planificación', 'Comunicación'];
   } else if (role === 'sac') {
-    defaultRoleSkills = ['Cuentas', 'Figma Inspect', 'Copywriting', 'Soporte', 'NegociaciÃ³n'];
+    defaultRoleSkills = ['Cuentas', 'Figma Inspect', 'Copywriting', 'Soporte', 'Negociación'];
   } else if (role === 'contents') {
-    defaultRoleSkills = ['Social Media', 'Estrategia', 'SEO', 'RedacciÃ³n', 'AnalÃ­tica'];
+    defaultRoleSkills = ['Social Media', 'Estrategia', 'SEO', 'Redacción', 'Analítica'];
   } else if (role === 'contentd') {
-    defaultRoleSkills = ['UI/UX Refactor', 'Illustrator', 'Branding', 'AnimaciÃ³n', 'Prototipado'];
+    defaultRoleSkills = ['UI/UX Refactor', 'Illustrator', 'Branding', 'Animación', 'Prototipado'];
   } else {
-    defaultRoleSkills = ['Feedback', 'RevisiÃ³n', 'ColaboraciÃ³n', 'PriorizaciÃ³n', 'Validaciones'];
+    defaultRoleSkills = ['Feedback', 'Revisión', 'Colaboración', 'Priorización', 'Validaciones'];
   }
 
   const allSkillsSet = new Set([...baseSkills, ...defaultRoleSkills]);
@@ -134,17 +136,15 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
 
   return (
     <div
-      className="fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white border-l border-slate-200/80 shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300"
+      className="fixed inset-y-0 right-0 w-full sm:w-[480px] bg-white shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300"
       id="team-inspector-panel"
     >
       {/* Header del Inspector - Estilo Centrado con Foto de Perfil Grande */}
-      <div className="p-8 border-b border-slate-200 bg-slate-50 text-slate-900 flex flex-col items-center relative overflow-hidden text-center" id="team-inspector-header">
-        <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-slate-100 to-transparent pointer-events-none" />
-
+      <div className="p-8 bg-[#ECEEE9] text-slate-900 flex flex-col items-center relative overflow-hidden text-center" id="team-inspector-header">
         {/* Close button top-right */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-full transition-all cursor-pointer z-10 border border-slate-200 bg-white shadow-xs"
+          className="absolute top-4 right-4 p-2 hover:bg-stone-200 text-slate-500 hover:text-slate-800 rounded-full transition-all cursor-pointer z-10 bg-white shadow-xs"
           title="Cerrar inspector"
         >
           <X className="w-4 h-4" />
@@ -165,95 +165,99 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
         </div>
 
         <div className="z-10 mt-4">
-          <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-1">Ficha Inspector Operativo</p>
-          <h2 className="font-black text-2xl capitalize text-slate-900 tracking-tight leading-tight">{member.username}</h2>
-          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider mt-1">{member.puesto || member.role}</p>
+          <p className="text-xs text-slate-500 font-semibold uppercase tracking-widest mb-1">Ficha Inspector Operativo</p>
+          <h2 className="font-semibold text-2xl capitalize text-slate-900 tracking-tight leading-tight">{member.username}</h2>
+          <p className="text-xs text-slate-500 font-normal uppercase tracking-wider mt-1">{member.puesto || member.role}</p>
         </div>
       </div>
 
       {/* Contenido Desglosado */}
-      <div className="flex-1 p-6 overflow-y-auto space-y-6">
+      <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-[#F4F5F0]">
 
         {/* Bloque de Capacidad, Horas y Retrabajo */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70">
+          <div className="bg-white p-4 rounded-2xl shadow-xs">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Capacidad Mensual</span>
-              <span className="text-xs bg-indigo-50 text-indigo-700 font-extrabold px-1.5 py-0.5 rounded border border-indigo-100">
-                192h Brutas
+              <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Capacidad</span>
+              <span className="text-xs bg-stone-100 text-slate-800 font-semibold px-2 py-0.5 rounded-full">
+                192h
               </span>
             </div>
             <div className="flex items-baseline gap-1">
-              <span className="text-xl font-black text-slate-900">{member.effectiveCapacity || 153.6}</span>
-              <span className="text-xs text-slate-400 font-bold">h efectivas (80%)</span>
+              <span className="text-3xl font-semibold font-display text-slate-900">{member.effectiveCapacity || 153.6}</span>
+              <span className="text-xs text-slate-500 font-normal">h efectivas</span>
             </div>
-            <span className="text-xs text-slate-400 block mt-1">
-              Margen de ocio (20%): <strong className="text-slate-600">{member.idleBuffer || 38.4}h</strong>
+            <span className="text-xs text-slate-500 font-normal block mt-1">
+              Buffer (20%): <strong className="text-slate-700 font-semibold">{member.idleBuffer || 38.4}h</strong>
             </span>
           </div>
 
-          <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70">
-            <span className="text-xs text-slate-400 font-bold block mb-1 uppercase tracking-wider">Horas Ejecutadas</span>
+          <div className="bg-white p-4 rounded-2xl shadow-xs">
+            <span className="text-xs text-slate-500 font-semibold block mb-1 uppercase tracking-wider">Horas Ejecutadas</span>
             <div className="flex items-baseline gap-1">
-              <span className="text-xl font-black text-emerald-600">{member.loadedHours}</span>
-              <span className="text-xs text-emerald-500 font-bold">h / {member.assignedHours}h asig.</span>
+              <span className="text-3xl font-semibold font-display text-slate-900">{member.loadedHours}</span>
+              <span className="text-xs text-slate-500 font-normal">h / {member.assignedHours}h</span>
             </div>
-            <span className="text-xs text-slate-400 block mt-1">
-              SaturaciÃ³n Objetivo: <strong className={member.loadedHours > (member.effectiveCapacity || 153.6) ? 'text-rose-600' : 'text-slate-700'}>
+            <span className="text-xs text-slate-500 font-normal block mt-1">
+              Saturación: <strong className={member.loadedHours > (member.effectiveCapacity || 153.6) ? 'text-rose-600 font-semibold' : 'text-slate-700 font-semibold'}>
                 {(((member.loadedHours) / (member.effectiveCapacity || 153.6)) * 100).toFixed(0)}%
               </strong>
             </span>
           </div>
 
-          <div className={`p-3.5 rounded-2xl border ${retrabajoBadge.bg} ${retrabajoBadge.border}`}>
-            <span className={`text-xs font-bold block mb-1 uppercase tracking-wider ${retrabajoBadge.text}`}>Retrabajo Reg.</span>
+          <div className={`p-4 rounded-2xl shadow-xs ${retrabajoBadge.bg}`}>
+            <span className="text-xs font-semibold block mb-1 uppercase tracking-wider text-slate-700">Retrabajo</span>
             <div className="flex items-baseline gap-1">
-              <span className={`text-xl font-black ${retrabajoBadge.text}`}>{userRetrabajo.retrabajo}</span>
-              <span className={`text-xs font-bold ${retrabajoBadge.text}`}>h ({userRetrabajo.percent.toFixed(0)}%)</span>
+              <span className="text-3xl font-semibold font-display text-slate-900">{userRetrabajo.retrabajo}</span>
+              <span className="text-xs font-normal text-slate-600">h ({userRetrabajo.percent.toFixed(0)}%)</span>
             </div>
-            <span className="text-xs text-slate-500 block mt-1 truncate">
+            <span className="text-xs text-slate-500 font-normal block mt-1 truncate">
               {retrabajoBadge.label}
             </span>
           </div>
         </div>
 
-        {/* Especialidades Asignadas - Representadas en un GrÃ¡fico Radial */}
-        <div className="bg-slate-50/50 p-5 rounded-2xl border border-slate-200/60" id="specialties-radar-container">
+        {/* Especialidades Asignadas - Representadas en un Gráfico Radial */}
+        <div className="bg-white p-5 rounded-3xl shadow-xs" id="specialties-radar-container">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
             <Award className="w-4 h-4 text-slate-500" /> Especialidades y Perfil Radar
           </h3>
 
           <div className="w-full h-[220px] flex items-center justify-center mb-3">
             <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="70%" data={getSkillsData(member.role, member.skills)}>
-                <PolarGrid stroke="#e2e8f0" />
+              <RadarChart cx="50%" cy="50%" outerRadius="75%" data={getSkillsData(member.role, member.skills)}>
+                <PolarGrid stroke="none" />
                 <PolarAngleAxis
                   dataKey="subject"
-                  tick={{ fill: '#475569', fontSize: 9, fontWeight: 700 }}
+                  tick={false}
+                  axisLine={false}
                 />
                 <PolarRadiusAxis
-                  angle={30}
                   domain={[0, 100]}
                   tick={false}
                   axisLine={false}
                 />
+                <Tooltip
+                  content={<MinimalChartTooltip valueFormatter={(val) => `${val}%`} />}
+                />
                 <Radar
                   name={member.username}
                   dataKey="value"
-                  stroke={getRoleHexColor(member.role)}
-                  fill={getRoleHexColor(member.role)}
-                  fillOpacity={0.15}
+                  stroke="#000000"
+                  strokeWidth={2}
+                  fill="#c6ef4e"
+                  fillOpacity={1}
                 />
               </RadarChart>
             </ResponsiveContainer>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 justify-center pt-3 border-t border-slate-200/40">
+          <div className="flex flex-wrap gap-1.5 justify-center pt-3 border-t border-stone-100">
             {member.skills.length === 0 ? (
-              <span className="text-xs text-slate-400 font-medium italic">Sin habilidades registradas en este perÃ­odo.</span>
+              <span className="text-xs text-slate-400 font-medium italic">Sin habilidades registradas en este período.</span>
             ) : (
               member.skills.map((skill) => (
-                <span key={skill} className="text-xs bg-white text-slate-700 px-2.5 py-1 rounded-full font-bold border border-slate-200 flex items-center gap-1 uppercase tracking-wider transition-all hover:bg-slate-50 shadow-2xs">
+                <span key={skill} className="text-xs bg-[#F4F5F0] text-slate-700 px-2.5 py-1 rounded-full font-bold flex items-center gap-1 uppercase tracking-wider transition-all hover:bg-stone-200">
                   <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
                   {skill}
                 </span>
@@ -270,7 +274,7 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
 
           <div className="space-y-3">
             {assignedProjects.length === 0 ? (
-              <div className="p-6 bg-slate-50/60 rounded-xl border border-dashed border-slate-200 text-center text-xs text-slate-400 font-medium">
+              <div className="p-6 bg-white rounded-3xl text-center text-xs text-slate-400 font-medium shadow-xs">
                 No tiene presupuestos asignados en proyectos actuales.
               </div>
             ) : (
@@ -281,7 +285,7 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
                 const progressPercent = allocated > 0 ? (consumed / allocated) * 100 : 0;
 
                 return (
-                  <div key={p.id} className="p-4 bg-white rounded-xl border border-slate-150 hover:shadow-xs transition-shadow flex flex-col gap-2.5">
+                  <div key={p.id} className="p-4 bg-white rounded-2xl shadow-xs hover:shadow-sm transition-shadow flex flex-col gap-2.5">
                     <div className="flex justify-between items-start text-xs">
                       <div>
                         <span className="font-extrabold text-slate-800 text-sm block">{p.name}</span>
@@ -289,10 +293,10 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
                           Fase: {activePhase?.label || 'Sin Fase'}
                         </span>
                       </div>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-md uppercase ${
+                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full uppercase ${
                         activePhase?.status === 'completed'
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-100/50'
-                          : 'bg-amber-50 text-amber-700 border border-amber-100/50'
+                          ? 'bg-emerald-50 text-emerald-700'
+                          : 'bg-amber-50 text-amber-700'
                       }`}>
                         {activePhase?.status === 'completed' ? 'Completado' : 'En Curso'}
                       </span>
@@ -305,7 +309,7 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
                           {progressPercent.toFixed(0)}%
                         </span>
                       </div>
-                      <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <div className="w-full bg-[#F4F5F0] h-2 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full transition-all duration-300 ${
                             progressPercent > 100 ? 'bg-rose-500' : progressPercent > 80 ? 'bg-amber-500' : 'bg-slate-900'
@@ -326,13 +330,13 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-emerald-600" /> Desglose Temporal de Carga
           </h3>
-          <div className="p-4 bg-slate-50/70 rounded-xl border border-slate-200/60 space-y-3 text-xs">
+          <div className="p-5 bg-white rounded-3xl shadow-xs space-y-3 text-xs">
             <div className="flex justify-between items-center py-0.5">
               <span className="text-slate-500 font-bold flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-slate-400" />
                 Semana Actual (S30)
               </span>
-              <span className="font-extrabold text-slate-800 bg-white px-2.5 py-1 rounded-md border border-slate-200">
+              <span className="font-extrabold text-slate-800 bg-[#F4F5F0] px-2.5 py-1 rounded-full">
                 {Math.round(member.loadedHours * 0.25)}h
               </span>
             </div>
@@ -341,17 +345,17 @@ export const UserInspectorPanel: React.FC<UserInspectorPanelProps> = ({
                 <Calendar className="w-3.5 h-3.5 text-slate-400" />
                 Semana Anterior (S29)
               </span>
-              <span className="font-extrabold text-slate-800 bg-white px-2.5 py-1 rounded-md border border-slate-200">
+              <span className="font-extrabold text-slate-800 bg-[#F4F5F0] px-2.5 py-1 rounded-full">
                 {Math.round(member.loadedHours * 0.3)}h
               </span>
             </div>
-            <div className="border-t border-slate-200/80 pt-3 flex justify-between items-center">
+            <div className="border-t border-stone-100 pt-3 flex justify-between items-center">
               <div className="flex items-center gap-1.5">
                 <TrendingUp className="w-4 h-4 text-emerald-600" />
                 <span className="text-slate-600 font-bold">Promedio Diario</span>
               </div>
               <span className="font-extrabold text-slate-900 text-sm">
-                {(member.loadedHours > 0 ? (member.loadedHours / 20).toFixed(1) : '0.0')}h / dÃ­a
+                {(member.loadedHours > 0 ? (member.loadedHours / 20).toFixed(1) : '0.0')}h / día
               </span>
             </div>
           </div>

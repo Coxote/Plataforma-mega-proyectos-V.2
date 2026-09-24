@@ -176,6 +176,7 @@ export interface UserSession {
   username: string;
   puesto: string;
   role: Role;
+  email?: string;
   password?: string;
   projectId?: string; // Restringir invitado a un proyecto específico
   proyectosAsignados?: string[]; // IDs de proyectos permitidos para proveedores o consultores
@@ -183,7 +184,10 @@ export interface UserSession {
   tarifaHoraProveedor?: number; // Tarifa por hora acordada con el proveedor ($ / h)
   empresaProveedor?: string; // Nombre de la empresa o agencia del proveedor
   capacidadMensualHoras?: number; // Capacidad mensual (default 176h)
-  estado?: 'activo' | 'inactivo';
+  estado?: 'activo' | 'inactivo' | 'pendiente_autenticacion';
+  autenticadoPor?: string; // Nombre/ID del supervisor o coordinador que aprobó la cuenta
+  fechaAutenticacion?: string; // Fecha en que se aprobó la cuenta
+  createdAt?: string;
   lastLoginAt?: string;
   preferences?: UserPreferences;
 }

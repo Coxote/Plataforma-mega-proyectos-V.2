@@ -66,10 +66,10 @@ export const ui = {
   cardSubtle: 'bg-slate-50/70 rounded-xl border border-slate-200/60 p-4',
   
   // Botones
-  btnPrimary: 'bg-[#FF5500] hover:bg-[#E04B00] text-white font-semibold text-xs rounded-xl px-4 py-2 transition-all shadow-sm active:scale-[0.99] cursor-pointer disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-2',
-  btnSecondary: 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-semibold text-xs rounded-xl px-4 py-2 transition-all cursor-pointer shadow-2xs active:scale-[0.99] flex items-center justify-center gap-2',
+  btnPrimary: 'bg-[#c6ef4e] hover:bg-[#b5e03b] text-black font-semibold text-xs rounded-xl px-4 py-2 transition-all shadow-none active:scale-[0.99] cursor-pointer disabled:opacity-40 disabled:pointer-events-none flex items-center justify-center gap-2',
+  btnSecondary: 'bg-white hover:bg-slate-50 text-black border-none font-medium text-xs rounded-xl px-4 py-2 transition-all cursor-pointer shadow-none active:scale-[0.99] flex items-center justify-center gap-2',
   btnGhost: 'text-slate-600 hover:bg-slate-100 font-medium text-xs rounded-xl px-3 py-1.5 transition-colors cursor-pointer flex items-center justify-center gap-1.5',
-  btnDanger: 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs rounded-xl px-3.5 py-2 transition-colors cursor-pointer',
+  btnDanger: 'bg-rose-50 hover:bg-rose-100 text-rose-700 border-none font-semibold text-xs rounded-xl px-3.5 py-2 transition-colors cursor-pointer',
 
   // Badges Semánticos Unificados
   badgeSuccess: 'bg-emerald-50 text-emerald-700 border border-emerald-200/70 text-xs px-2.5 py-0.5 rounded-full font-medium inline-flex items-center gap-1.5',

@@ -83,7 +83,7 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
           <p className="text-slate-500 text-xs mt-0.5">
             Mapeo interactivo de roles.
             {canEdit ? (
-              <span className="text-lime-700 font-medium"> Tienes permisos de ediciÃ³n.</span>
+              <span className="text-lime-700 font-medium"> Tienes permisos de edición.</span>
             ) : (
               <span className="text-slate-400"> Solo lectura para tu rol actual.</span>
             )}
@@ -272,7 +272,7 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
         <div className="flex gap-2 bg-slate-50 p-3 rounded-xl border border-slate-150">
           <input
             type="text"
-            placeholder="Nueva tarea estratÃ©gica para la matriz..."
+            placeholder="Nueva tarea estratégica para la matriz..."
             className="flex-1 border border-slate-200 rounded-xl px-3 py-1.5 text-xs bg-white outline-none focus:ring-1 focus:ring-lime-400 focus:border-lime-400"
             value={newTaskName}
             onChange={(e) => setNewTaskName(e.target.value)}
@@ -286,7 +286,7 @@ export const RaciMatrix: React.FC<Props> = ({ project, currentUser, onUpdateRaci
             className="bg-slate-900 hover:bg-slate-800 disabled:opacity-45 text-white font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1 transition-all cursor-pointer shrink-0 shadow-sm"
           >
             <Plus className="w-3.5 h-3.5" />
-            AÃ±adir Tarea
+            Añadir Tarea
           </button>
         </div>
       )}

@@ -62,14 +62,14 @@ const INITIAL_SYNC_LOGS: SyncLogEntry[] = [
     status: 'pending',
     timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
     message: 'Servicio en espera de credenciales de API Key de Odoo v16+',
-    details: 'VerificaciÃ³n de puerto XML-RPC de facturaciÃ³n y OVs',
+    details: 'Verificación de puerto XML-RPC de facturación y OVs',
   },
   {
     id: 'log-102',
     source: 'teams',
     status: 'pending',
     timestamp: new Date(Date.now() - 3600000 * 12).toISOString(),
-    message: 'Webhook de canal de alertas SLA pendiente de configuraciÃ³n',
+    message: 'Webhook de canal de alertas SLA pendiente de configuración',
     details: 'Microsoft Teams Incoming Webhook v2',
   },
 ];
@@ -109,7 +109,7 @@ const INITIAL_AUTOMATION_RULES: AutomationRule[] = [
 const INITIAL_WEBHOOKS: WebhookEndpoint[] = [
   {
     id: 'wh-101',
-    name: 'Endpoint ProducciÃ³n - Odoo ERP Sync',
+    name: 'Endpoint Producción - Odoo ERP Sync',
     url: 'https://odoo-erp.agenciatpp.com/api/v1/webhooks/deliverables',
     events: ['deliverable.rework', 'sla.vencido', 'phase.completed'],
     secretKey: 'whsec_odoo_live_99887711223344',
@@ -139,7 +139,7 @@ const INITIAL_WEBHOOK_LOGS: WebhookDeliveryLog[] = [
     payload: {
       event: 'deliverable.rework',
       deliverableId: 'DEL-8821',
-      title: 'Arte Final CampaÃ±a Verano 2026',
+      title: 'Arte Final Campaña Verano 2026',
       reworkOrigen: 'cliente',
       reworkMotivo: 'Ajuste de tono de color institucional',
       timestamp: new Date(Date.now() - 1800000).toISOString(),
@@ -276,13 +276,13 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
 
   if (!hasAccess) {
     return (
-      <div className="p-8 max-w-4xl mx-auto text-center space-y-4">
-        <div className="w-16 h-16 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center mx-auto shadow-md">
-          <Lock className="w-8 h-8" />
+      <div className="p-10 max-w-xl mx-auto my-12 text-center space-y-4 bg-white rounded-3xl shadow-xs">
+        <div className="w-16 h-16 bg-stone-100 text-slate-800 rounded-3xl flex items-center justify-center mx-auto shadow-2xs">
+          <Lock className="w-8 h-8 text-slate-800" />
         </div>
-        <h2 className="text-xl font-black text-slate-900">Acceso Restringido</h2>
-        <p className="text-sm text-slate-600 max-w-md mx-auto">
-          El Panel de Integraciones y Automatizaciones estÃ¡ reservado para Coordinadores PM y la DirecciÃ³n Financiera.
+        <h2 className="text-xl font-semibold text-slate-900">Acceso Restringido</h2>
+        <p className="text-sm text-slate-500 font-normal max-w-md mx-auto leading-relaxed">
+          El Panel de Integraciones y Automatizaciones está reservado para Coordinadores PM y la Dirección Financiera.
         </p>
       </div>
     );
@@ -306,8 +306,8 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
       source,
       status: 'success',
       timestamp: nowISO,
-      message: `ConexiÃ³n verificada exitosamente con ${source.toUpperCase()}`,
-      details: modalEndpoint ? `Endpoint: ${modalEndpoint}` : 'ConexiÃ³n vÃ­a API OAuth2',
+      message: `Conexión verificada exitosamente con ${source.toUpperCase()}`,
+      details: modalEndpoint ? `Endpoint: ${modalEndpoint}` : 'Conexión vía API OAuth2',
     };
 
     setIntegrations((prev) =>
@@ -363,7 +363,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
         source,
         status: 'success',
         timestamp: nowISO,
-        message: `SincronizaciÃ³n manual completada (0 errores)`,
+        message: `Sincronización manual completada (0 errores)`,
         details: `Ejecutado por ${currentUser.username}`,
       };
 
@@ -377,7 +377,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
 
       setSyncLogs((prev) => [newLog, ...prev]);
       setIsSyncingSource(null);
-      setToastMessage(`SincronizaciÃ³n de ${source.toUpperCase()} realizada con Ã©xito`);
+      setToastMessage(`Sincronización de ${source.toUpperCase()} realizada con éxito`);
     }, 1200);
   };
 
@@ -414,7 +414,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
     setAutomationRules((prev) => [newRule, ...prev]);
     setIsNewRuleModalOpen(false);
     setNewRuleName('');
-    setToastMessage(`Regla de automatizaciÃ³n creada con Ã©xito`);
+    setToastMessage(`Regla de automatización creada con éxito`);
   };
 
   const handleDeleteRule = (ruleId: string) => {
@@ -464,11 +464,11 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
         event: testEventName,
         timestamp: nowISO,
         projectId: 'PRJ-TPP-2026',
-        projectName: 'CampaÃ±a Global Redes Q3',
+        projectName: 'Campaña Global Redes Q3',
         triggeredBy: currentUser.username,
         data: {
           deliverableId: 'DEL-9902',
-          title: 'Entrega Final de Artes para aprobaciÃ³n SLA',
+          title: 'Entrega Final de Artes para aprobación SLA',
           status: 'retrabajo',
           motivo: 'Ajuste de dimensiones requerido por cliente',
         },
@@ -526,24 +526,24 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
   // Tool details dictionary
   const TOOL_INFO = {
     odoo: {
-      name: 'Odoo ERP & FacturaciÃ³n',
-      category: 'Finanzas y Ã“rdenes de Venta',
-      description: 'SincronizaciÃ³n de Ã“rdenes de Venta (OV), clientes, facturaciÃ³n y estados de cobro en tiempo real.',
+      name: 'Odoo ERP & Facturación',
+      category: 'Finanzas y Órdenes de Venta',
+      description: 'Sincronización de Órdenes de Venta (OV), clientes, facturación y estados de cobro en tiempo real.',
       icon: Database,
       accentColor: 'from-[#FF5500] to-amber-600',
       badgeBg: 'bg-orange-50 text-orange-800 border-orange-200',
       requirements: [
         'URL del servidor Odoo v16+ (ej: https://miempresa.odoo.com)',
-        'Nombre exacto de la Base de Datos de producciÃ³n',
-        'API Key o Token XML-RPC del usuario de integraciÃ³n',
-        'Correo electrÃ³nico corporativo registrado en Odoo',
+        'Nombre exacto de la Base de Datos de producción',
+        'API Key o Token XML-RPC del usuario de integración',
+        'Correo electrónico corporativo registrado en Odoo',
       ],
       docUrl: 'https://www.odoo.com/documentation/16.0/developer/reference/external_api.html',
     },
     teams: {
       name: 'Microsoft Teams Notifications',
-      category: 'ComunicaciÃ³n & Alertamiento SLA',
-      description: 'Alertas automÃ¡ticas en canales de Teams cuando un entregables o fase entra en riesgo de SLA o retrabajo.',
+      category: 'Comunicación & Alertamiento SLA',
+      description: 'Alertas automáticas en canales de Teams cuando un entregables o fase entra en riesgo de SLA o retrabajo.',
       icon: MessageSquare,
       accentColor: 'from-blue-600 to-indigo-700',
       badgeBg: 'bg-blue-50 text-blue-800 border-blue-200',
@@ -551,36 +551,36 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
         'URL de Incoming Webhook del canal de Teams objetivo',
         'ID del Equipo Microsoft 365 (Team ID)',
         'Permisos de Administrador para agregar conectores',
-        'Reglas de notificaciÃ³n de entregables activas',
+        'Reglas de notificación de entregables activas',
       ],
       docUrl: 'https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook',
     },
     outlook: {
       name: 'Outlook & Exchange Calendar',
-      category: 'SincronizaciÃ³n Temporal de Entregas',
-      description: 'PublicaciÃ³n de fechas de cierre de fase, entregas a clientes e hitos en calendarios corporativos compartidos.',
+      category: 'Sincronización Temporal de Entregas',
+      description: 'Publicación de fechas de cierre de fase, entregas a clientes e hitos en calendarios corporativos compartidos.',
       icon: Calendar,
       accentColor: 'from-sky-600 to-blue-800',
       badgeBg: 'bg-sky-50 text-sky-800 border-sky-200',
       requirements: [
         'Microsoft Azure App Registration (Client ID & Tenant ID)',
         'Permiso Microsoft Graph API: Calendars.ReadWrite.Shared',
-        'DirecciÃ³n del Calendario Compartido de la Agencia',
+        'Dirección del Calendario Compartido de la Agencia',
         'Consentimiento de Administrador de Microsoft 365',
       ],
       docUrl: 'https://learn.microsoft.com/en-us/graph/api/resources/calendar',
     },
     sharepoint: {
       name: 'SharePoint & OneDrive Storage',
-      category: 'GestiÃ³n de Entregables & Marca',
-      description: 'VinculaciÃ³n directa y almacenamiento de enlaces de entregables, artes finales y bibliotecas de marca.',
+      category: 'Gestión de Entregables & Marca',
+      description: 'Vinculación directa y almacenamiento de enlaces de entregables, artes finales y bibliotecas de marca.',
       icon: FolderGit,
       accentColor: 'from-teal-600 to-emerald-700',
       badgeBg: 'bg-teal-50 text-teal-800 border-teal-200',
       requirements: [
         'URL del Sitio SharePoint de Clientes (ej: https://empresa.sharepoint.com/sites/entregables)',
         'Nombre de la Biblioteca de Documentos (ej: Entregables_TPP_2026)',
-        'Token de AplicaciÃ³n Azure AD con scope Sites.Selected',
+        'Token de Aplicación Azure AD con scope Sites.Selected',
         'Estructura de carpetas por ID de Proyecto',
       ],
       docUrl: 'https://learn.microsoft.com/en-us/graph/api/resources/sharepoint',
@@ -602,74 +602,74 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
       )}
 
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-7 rounded-3xl shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-slate-900 text-amber-400 tracking-wider">
+            <span className="text-xs font-semibold uppercase px-3 py-1 rounded-full bg-slate-900 text-white tracking-wider">
               FASE 6.3 COMPLETA
             </span>
-            <span className="text-xs text-slate-400 font-bold">â€¢ Integraciones & Automatizaciones</span>
+            <span className="text-xs text-slate-400 font-semibold">• Integraciones & Automatizaciones</span>
           </div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
             <span>Ecosistema de Integraciones & Webhooks</span>
           </h1>
-          <p className="text-xs text-slate-500 max-w-2xl">
-            GestiÃ³n integral de conectores con Odoo, Teams, Outlook y SharePoint, motor de reglas condicionales y Webhook Hub con probador de payload en vivo.
+          <p className="text-xs text-slate-500 max-w-2xl font-normal">
+            Gestión integral de conectores con Odoo, Teams, Outlook y SharePoint, motor de reglas condicionales y Webhook Hub con probador de payload en vivo.
           </p>
         </div>
 
         {/* Global Stats */}
-        <div className="flex items-center gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200 shrink-0">
-          <div className="text-center px-3 border-r border-slate-200">
-            <span className="text-xs font-black uppercase text-slate-400 block">Conectores</span>
-            <span className="text-lg font-black text-slate-900">{connectedCount} / 4</span>
+        <div className="flex items-center gap-3 bg-[#F4F5F0] p-3.5 rounded-2xl shrink-0">
+          <div className="text-center px-3 border-r border-stone-200/60">
+            <span className="text-xs font-semibold uppercase text-slate-500 block">Conectores</span>
+            <span className="text-2xl font-semibold font-display text-slate-900">{connectedCount} / 4</span>
           </div>
-          <div className="text-center px-3 border-r border-slate-200">
-            <span className="text-xs font-black uppercase text-slate-400 block">Reglas Activas</span>
-            <span className="text-lg font-black text-amber-600">{activeRulesCount}</span>
+          <div className="text-center px-3 border-r border-stone-200/60">
+            <span className="text-xs font-semibold uppercase text-slate-500 block">Reglas Activas</span>
+            <span className="text-2xl font-semibold font-display text-slate-900">{activeRulesCount}</span>
           </div>
           <div className="text-center px-3">
-            <span className="text-xs font-black uppercase text-slate-400 block">Webhooks</span>
-            <span className="text-lg font-black text-indigo-600">{webhooks.length}</span>
+            <span className="text-xs font-semibold uppercase text-slate-500 block">Webhooks</span>
+            <span className="text-2xl font-semibold font-display text-slate-900">{webhooks.length}</span>
           </div>
         </div>
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1">
         <button
           onClick={() => setActiveTab('conectores')}
-          className={`px-5 py-2.5 rounded-2xl font-black text-xs transition-all flex items-center gap-2 cursor-pointer ${
+          className={`px-5 py-2.5 rounded-full font-semibold text-xs transition-all flex items-center gap-2 cursor-pointer ${
             activeTab === 'conectores'
-              ? 'bg-slate-900 text-white shadow-md'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'bg-white text-slate-600 hover:text-slate-900 shadow-2xs'
           }`}
         >
-          <Sliders className="w-4 h-4 text-amber-400" />
+          <Sliders className={`w-4 h-4 ${activeTab === 'conectores' ? 'text-white' : 'text-slate-800'}`} />
           <span>1. Conectores Oficiales ({connectedCount}/4)</span>
         </button>
 
         <button
           onClick={() => setActiveTab('automatizaciones')}
-          className={`px-5 py-2.5 rounded-2xl font-black text-xs transition-all flex items-center gap-2 cursor-pointer ${
+          className={`px-5 py-2.5 rounded-full font-semibold text-xs transition-all flex items-center gap-2 cursor-pointer ${
             activeTab === 'automatizaciones'
-              ? 'bg-slate-900 text-white shadow-md'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'bg-white text-slate-600 hover:text-slate-900 shadow-2xs'
           }`}
         >
-          <Zap className="w-4 h-4 text-amber-400" />
+          <Zap className={`w-4 h-4 ${activeTab === 'automatizaciones' ? 'text-white' : 'text-slate-800'}`} />
           <span>2. Motor de Automatizaciones ({activeRulesCount} activas)</span>
         </button>
 
         <button
           onClick={() => setActiveTab('webhooks')}
-          className={`px-5 py-2.5 rounded-2xl font-black text-xs transition-all flex items-center gap-2 cursor-pointer ${
+          className={`px-5 py-2.5 rounded-full font-semibold text-xs transition-all flex items-center gap-2 cursor-pointer ${
             activeTab === 'webhooks'
-              ? 'bg-slate-900 text-white shadow-md'
-              : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'bg-white text-slate-600 hover:text-slate-900 shadow-2xs'
           }`}
         >
-          <Radio className="w-4 h-4 text-amber-400" />
+          <Radio className={`w-4 h-4 ${activeTab === 'webhooks' ? 'text-white' : 'text-slate-800'}`} />
           <span>3. Webhook Hub & Payload Tester ({webhooks.length})</span>
         </button>
       </div>
@@ -678,19 +678,19 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
       {activeTab === 'conectores' && (
         <div className="space-y-8 animate-in fade-in">
           {/* Honest Architecture Notice Banner */}
-          <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-lg flex items-start gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center shrink-0 mt-0.5">
-              <ShieldCheck className="w-5 h-5" />
+          <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-xs flex items-start gap-4">
+            <div className="w-10 h-10 rounded-2xl bg-white/10 text-white flex items-center justify-center shrink-0 mt-0.5">
+              <ShieldCheck className="w-5 h-5 text-white" />
             </div>
             <div className="space-y-1 min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="font-extrabold text-sm text-white">Trazabilidad Transparente de Conexiones</h3>
-                <span className="text-xs font-black bg-white/10 text-slate-300 px-2 py-0.5 rounded uppercase">
+                <h3 className="font-semibold text-sm text-white">Trazabilidad Transparente de Conexiones</h3>
+                <span className="text-xs font-semibold bg-white/10 text-slate-300 px-2 py-0.5 rounded-full uppercase">
                   Gobernanza
                 </span>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Ninguna herramienta mostrarÃ¡ estado <strong>"Conectado"</strong> sin credenciales de API verificadas de producciÃ³n. Haz clic en "Conectar" para revisar la lista de prerequisitos tÃ©cnicos o solicitar la activaciÃ³n formal con el Ã¡rea de TI.
+              <p className="text-xs text-slate-300 leading-relaxed font-normal">
+                Ninguna herramienta mostrará estado <strong>"Conectado"</strong> sin credenciales de API verificadas de producción. Haz clic en "Conectar" para revisar la lista de prerequisitos técnicos o solicitar la activación formal con el área de TI.
               </p>
             </div>
           </div>
@@ -706,22 +706,22 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
               return (
                 <div
                   key={source}
-                  className={`bg-white border rounded-2xl p-6 shadow-xs flex flex-col justify-between transition-all relative overflow-hidden ${
+                  className={`bg-white rounded-3xl p-7 shadow-xs flex flex-col justify-between transition-all relative overflow-hidden ${
                     config.connected
-                      ? 'border-emerald-300 ring-2 ring-emerald-500/10'
-                      : 'border-slate-200 hover:border-slate-300'
+                      ? 'ring-2 ring-emerald-500/20'
+                      : 'hover:shadow-md'
                   }`}
                 >
                   {/* Top Card Header */}
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${info.accentColor} text-white flex items-center justify-center shadow-md`}>
+                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${info.accentColor} text-white flex items-center justify-center shadow-xs`}>
                           <Icon className="w-6 h-6" />
                         </div>
                         <div>
-                          <h3 className="font-black text-base text-slate-900 tracking-tight">{info.name}</h3>
-                          <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-full border ${info.badgeBg}`}>
+                          <h3 className="font-semibold text-base text-slate-900 tracking-tight">{info.name}</h3>
+                          <span className={`text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full ${info.badgeBg}`}>
                             {info.category}
                           </span>
                         </div>
@@ -730,57 +730,57 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                       {/* Status Badge */}
                       <div>
                         {config.connected ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-black px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-300 shadow-2xs">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 shadow-2xs">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-slate-800" />
                             Conectado
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-300">
-                            <Unplug className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-[#F4F5F0] text-slate-600">
+                            <Unplug className="w-3.5 h-3.5 text-slate-800" />
                             No conectado
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-600 leading-relaxed">{info.description}</p>
+                    <p className="text-xs text-slate-600 leading-relaxed font-normal">{info.description}</p>
 
                     {/* Freshness & Config Meta */}
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs space-y-1.5">
+                    <div className="bg-[#F4F5F0] rounded-2xl p-4 text-xs space-y-1.5">
                       <div className="flex items-center justify-between text-slate-600">
-                        <span className="font-bold flex items-center gap-1.5 text-slate-500">
-                          <Clock className="w-3.5 h-3.5 text-slate-400" /> Ãšltima SincronizaciÃ³n:
+                        <span className="font-semibold flex items-center gap-1.5 text-slate-500">
+                          <Clock className="w-3.5 h-3.5 text-slate-800" /> Última Sincronización:
                         </span>
-                        <span className="font-black text-slate-800">
+                        <span className="font-semibold text-slate-800">
                           {formatFreshness(config.lastSync?.timestamp)}
                         </span>
                       </div>
 
                       {config.connected && config.configuredBy && (
-                        <div className="flex items-center justify-between text-slate-600 text-xs pt-1 border-t border-slate-200">
+                        <div className="flex items-center justify-between text-slate-600 text-xs pt-1.5 border-t border-stone-200/60">
                           <span className="text-slate-400">Configurado por:</span>
-                          <span className="font-bold text-slate-700">{config.configuredBy}</span>
+                          <span className="font-semibold text-slate-700">{config.configuredBy}</span>
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="pt-5 border-t border-slate-100 flex items-center justify-between gap-2 mt-4">
+                  <div className="pt-5 border-t border-stone-100 flex items-center justify-between gap-2 mt-4">
                     {config.connected ? (
                       <>
                         <button
                           onClick={() => handleSyncNow(source)}
                           disabled={isSyncing}
-                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                          className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-50"
                         >
-                          <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                          <RefreshCw className={`w-3.5 h-3.5 text-white ${isSyncing ? 'animate-spin' : ''}`} />
                           <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar Ahora'}</span>
                         </button>
 
                         <button
                           onClick={() => handleDisconnect(source)}
-                          className="px-3.5 py-2 bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-bold rounded-2xl text-xs transition-all border border-slate-200 hover:border-rose-200 cursor-pointer"
+                          className="px-4 py-2 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-semibold rounded-full text-xs transition-all cursor-pointer"
                         >
                           Desconectar
                         </button>
@@ -788,9 +788,9 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                     ) : (
                       <button
                         onClick={() => handleOpenConnectModal(source)}
-                        className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-black rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                        className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
                       >
-                        <Zap className="w-3.5 h-3.5 text-amber-400" />
+                        <Zap className="w-3.5 h-3.5 text-white" />
                         <span>Conectar Herramienta</span>
                       </button>
                     )}
@@ -801,7 +801,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
           </div>
 
           {/* Sync Log History Table */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+          <div className="bg-white rounded-3xl p-7 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-extrabold text-base text-slate-900 tracking-tight flex items-center gap-2">
@@ -809,57 +809,57 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                   <span>Historial Auditable de Sincronizaciones</span>
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Registro cronolÃ³gico de verificaciones, sincronizaciones manuales y cambios de estado.
+                  Registro cronológico de verificaciones, sincronizaciones manuales y cambios de estado.
                 </p>
               </div>
-              <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+              <span className="text-xs font-bold text-slate-500 bg-[#F4F5F0] px-3.5 py-1 rounded-full">
                 {syncLogs.length} Registros
               </span>
             </div>
 
-            <div className="overflow-x-auto border border-slate-200 rounded-2xl">
+            <div className="overflow-x-auto rounded-2xl bg-[#F4F5F0]/50 p-1">
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-700 font-extrabold uppercase text-xs tracking-wider border-b border-slate-200">
+                <thead className="text-slate-500 font-extrabold uppercase text-[11px] tracking-wider border-b border-stone-200/60">
                   <tr>
                     <th className="p-3">Herramienta</th>
                     <th className="p-3">Estado</th>
                     <th className="p-3">Mensaje auditado</th>
-                    <th className="p-3">Detalle tÃ©cnico</th>
+                    <th className="p-3">Detalle técnico</th>
                     <th className="p-3 text-right">Fecha y Hora</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-800 font-medium">
+                <tbody className="divide-y divide-stone-100 text-slate-800 font-medium">
                   {syncLogs.length === 0 ? (
                     <tr>
                       <td colSpan={5} className="p-6 text-center text-slate-400 text-xs">
-                        No hay registros de sincronizaciÃ³n recientes.
+                        No hay registros de sincronización recientes.
                       </td>
                     </tr>
                   ) : (
                     syncLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-slate-50/80 transition-colors">
+                      <tr key={log.id} className="hover:bg-white/80 transition-colors">
                         <td className="p-3 font-extrabold uppercase text-xs text-slate-900">
                           {log.source}
                         </td>
                         <td className="p-3">
                           {log.status === 'success' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs border border-emerald-200">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Ã‰xito
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Éxito
                             </span>
                           )}
                           {log.status === 'pending' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold text-xs border border-slate-300">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-100 text-slate-600 font-bold text-xs">
                               <Unplug className="w-3 h-3 text-slate-400" /> Pendiente
                             </span>
                           )}
                           {log.status === 'error' && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold text-xs border border-rose-200">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold text-xs">
                               <XCircle className="w-3 h-3 text-rose-600" /> Error
                             </span>
                           )}
                         </td>
                         <td className="p-3 font-semibold text-slate-800">{log.message}</td>
-                        <td className="p-3 text-slate-500 text-xs font-mono">{log.details || 'â€”'}</td>
+                        <td className="p-3 text-slate-500 text-xs font-mono">{log.details || '—'}</td>
                         <td className="p-3 text-right text-slate-500 font-semibold text-xs">
                           {new Date(log.timestamp).toLocaleString('es-ES', {
                             day: '2-digit',
@@ -882,22 +882,22 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
       {/* TAB 2: MOTOR DE AUTOMATIZACIONES */}
       {activeTab === 'automatizaciones' && (
         <div className="space-y-6 animate-in fade-in">
-          <div className="flex items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-xs">
             <div>
-              <h3 className="font-black text-base text-slate-900 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-amber-500" />
-                <span>Reglas Condicionales "SI [Evento] ENTONCES [AcciÃ³n]"</span>
+              <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-slate-800" />
+                <span>Reglas Condicionales "SI [Evento] ENTONCES [Acción]"</span>
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-500 font-normal">
                 Automatiza disparadores entre eventos de entregables y tus herramientas conectadas (Teams, Odoo, SharePoint).
               </p>
             </div>
 
             <button
               onClick={() => setIsNewRuleModalOpen(true)}
-              className="px-4 py-2 bg-[#FF5500] hover:bg-[#E04B00] text-white font-black rounded-2xl text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer shrink-0"
+              className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer shrink-0"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-white" />
               <span>Nueva Regla</span>
             </button>
           </div>
@@ -907,51 +907,51 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
             {automationRules.map((rule) => (
               <div
                 key={rule.id}
-                className={`bg-white border rounded-2xl p-5 shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-                  rule.enabled ? 'border-slate-200 hover:border-slate-300' : 'border-slate-200 bg-slate-50/50 opacity-75'
+                className={`bg-white rounded-3xl p-6 shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                  rule.enabled ? 'hover:shadow-md' : 'bg-stone-50/70 opacity-75'
                 }`}
               >
                 <div className="space-y-1.5 min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-xs font-black uppercase px-2.5 py-0.5 rounded-full border ${
+                    <span className={`text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full ${
                       rule.enabled
-                        ? 'bg-amber-50 text-amber-900 border-amber-300'
-                        : 'bg-slate-100 text-slate-500 border-slate-300'
+                        ? 'bg-stone-100 text-slate-900 font-semibold'
+                        : 'bg-stone-100 text-slate-500 font-medium'
                     }`}>
                       {rule.enabled ? 'ACTIVA' : 'PAUSADA'}
                     </span>
 
-                    <h4 className="font-extrabold text-sm text-slate-900 truncate">{rule.name}</h4>
+                    <h4 className="font-semibold text-sm text-slate-900 truncate">{rule.name}</h4>
                   </div>
 
                   <div className="flex items-center gap-2 text-xs text-slate-600 font-medium flex-wrap">
-                    <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200 font-mono text-xs">
+                    <span className="bg-[#F4F5F0] px-2.5 py-1 rounded-full font-mono text-xs">
                       SI: {rule.triggerEvent}
                     </span>
                     <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="bg-slate-100 px-2 py-0.5 rounded border border-slate-200 font-mono text-xs">
+                    <span className="bg-[#F4F5F0] px-2.5 py-1 rounded-full font-mono text-xs">
                       ENTONCES: {rule.actionTarget}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-4 text-xs text-slate-400 pt-1">
                     <span>Creado por: <strong>{rule.createdByName}</strong></span>
-                    <span>â€¢</span>
+                    <span>•</span>
                     <span>Ejecutado: <strong>{rule.executionCount} veces</strong></span>
                     {rule.lastTriggeredAt && (
                       <>
-                        <span>â€¢</span>
-                        <span>Ãšltimo disparo: {formatFreshness(rule.lastTriggeredAt)}</span>
+                        <span>•</span>
+                        <span>Último disparo: {formatFreshness(rule.lastTriggeredAt)}</span>
                       </>
                     )}
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-slate-100">
+                <div className="flex items-center gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-stone-100">
                   <button
                     onClick={() => handleRunRuleManual(rule)}
-                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                    className="px-3.5 py-1.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-800 font-bold rounded-full text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
                     title="Ejecutar regla manualmente ahora"
                   >
                     <Play className="w-3.5 h-3.5 text-amber-600" />
@@ -960,10 +960,10 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
 
                   <button
                     onClick={() => handleToggleRule(rule.id)}
-                    className={`px-3 py-1.5 font-bold rounded-xl text-xs transition-colors cursor-pointer ${
+                    className={`px-3.5 py-1.5 font-bold rounded-full text-xs transition-colors cursor-pointer ${
                       rule.enabled
                         ? 'bg-amber-100 text-amber-900 hover:bg-amber-200'
-                        : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                        : 'bg-stone-200 text-slate-700 hover:bg-stone-300'
                     }`}
                   >
                     {rule.enabled ? 'Pausar' : 'Activar'}
@@ -971,7 +971,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
 
                   <button
                     onClick={() => handleDeleteRule(rule.id)}
-                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors cursor-pointer"
                     title="Eliminar regla"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -987,22 +987,22 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
       {activeTab === 'webhooks' && (
         <div className="space-y-8 animate-in fade-in">
           {/* Top Bar for Webhooks */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-7 rounded-3xl shadow-xs">
             <div>
-              <h3 className="font-black text-base text-slate-900 flex items-center gap-2">
-                <Radio className="w-5 h-5 text-indigo-600" />
-                <span>GestiÃ³n de Webhooks & Secret Keys</span>
+              <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
+                <Radio className="w-5 h-5 text-slate-800" />
+                <span>Gestión de Webhooks & Secret Keys</span>
               </h3>
-              <p className="text-xs text-slate-500 max-w-xl">
+              <p className="text-xs text-slate-500 max-w-xl font-normal">
                 Endpoints salientes para transmitir eventos en tiempo real a tus servidores o plataformas externas.
               </p>
             </div>
 
             <button
               onClick={() => setIsNewWebhookModalOpen(true)}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer shrink-0"
+              className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer shrink-0"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-white" />
               <span>Registrar Webhook</span>
             </button>
           </div>
@@ -1010,37 +1010,37 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
           {/* Registered Webhooks Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {webhooks.map((wh) => (
-              <div key={wh.id} className="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-3 relative">
+              <div key={wh.id} className="bg-white rounded-3xl p-6 shadow-xs space-y-3 relative">
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <h4 className="font-extrabold text-sm text-slate-900">{wh.name}</h4>
+                      <span className="w-2.5 h-2.5 rounded-full bg-slate-800 animate-pulse" />
+                      <h4 className="font-semibold text-sm text-slate-900">{wh.name}</h4>
                     </div>
                     <p className="text-xs font-mono text-slate-500 truncate max-w-xs">{wh.url}</p>
                   </div>
 
                   <button
                     onClick={() => handleDeleteWebhook(wh.id)}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                    className="p-2 text-slate-400 hover:text-rose-600 rounded-full hover:bg-rose-50 transition-colors cursor-pointer"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-4 h-4 text-slate-800" />
                   </button>
                 </div>
 
-                <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs space-y-1">
+                <div className="bg-[#F4F5F0] p-3.5 rounded-2xl text-xs space-y-1">
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Secret Key:</span>
-                    <span className="font-mono text-xs text-slate-700 font-bold">{wh.secretKey}</span>
+                    <span className="font-mono text-xs text-slate-700 font-semibold">{wh.secretKey}</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Eventos suscritos:</span>
-                    <span className="font-bold text-slate-800">{wh.events.join(', ')}</span>
+                    <span className="font-semibold text-slate-800">{wh.events.join(', ')}</span>
                   </div>
                   {wh.lastStatusCode && (
-                    <div className="flex items-center justify-between text-slate-500 pt-1 border-t border-slate-200">
-                      <span>Ãšltimo Status HTTP:</span>
-                      <span className="font-black text-emerald-600">
+                    <div className="flex items-center justify-between text-slate-500 pt-1.5 border-t border-stone-200/60">
+                      <span>Último Status HTTP:</span>
+                      <span className="font-semibold text-slate-800">
                         HTTP {wh.lastStatusCode} ({wh.lastLatencyMs}ms)
                       </span>
                     </div>
@@ -1051,24 +1051,24 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
           </div>
 
           {/* Interactive Payload Tester */}
-          <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl space-y-6 border border-slate-800">
+          <div className="bg-slate-900 text-white rounded-3xl p-7 shadow-xl space-y-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
               <div>
-                <h3 className="font-black text-base text-white flex items-center gap-2">
-                  <Terminal className="w-5 h-5 text-amber-400" />
+                <h3 className="font-semibold text-base text-white flex items-center gap-2">
+                  <Terminal className="w-5 h-5 text-white" />
                   <span>Probador Interactivo de Payloads Webhook (Live Sandbox)</span>
                 </h3>
-                <p className="text-xs text-slate-400">
-                  Simula el envÃ­o inmediato de un payload JSON de evento hacia tu endpoint objetivo y verifica la respuesta.
+                <p className="text-xs text-slate-400 font-normal">
+                  Simula el envío inmediato de un payload JSON de evento hacia tu endpoint objetivo y verifica la respuesta.
                 </p>
               </div>
 
               <button
                 onClick={handleRunTestWebhook}
                 disabled={isTestingWebhook}
-                className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-[#FF5500] hover:opacity-95 text-slate-950 font-black rounded-2xl text-xs transition-all shadow-lg flex items-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
+                className="px-5 py-2.5 bg-white hover:bg-stone-100 text-slate-950 font-semibold rounded-full text-xs transition-all shadow-lg flex items-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
               >
-                <Send className={`w-4 h-4 ${isTestingWebhook ? 'animate-bounce' : ''}`} />
+                <Send className={`w-4 h-4 text-slate-900 ${isTestingWebhook ? 'animate-bounce' : ''}`} />
                 <span>{isTestingWebhook ? 'Transmitiendo HTTP...' : 'Enviar Payload de Prueba'}</span>
               </button>
             </div>
@@ -1080,7 +1080,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                 <select
                   value={testWebhookId}
                   onChange={(e) => setTestWebhookId(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-medium outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="w-full bg-slate-800 border-0 rounded-2xl px-4 py-2.5 text-white font-medium outline-none focus:ring-2 focus:ring-amber-500/50"
                 >
                   <option value="">-- Seleccionar Endpoint --</option>
                   {webhooks.map((w) => (
@@ -1096,12 +1096,12 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                 <select
                   value={testEventName}
                   onChange={(e) => setTestEventName(e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white font-medium outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="w-full bg-slate-800 border-0 rounded-2xl px-4 py-2.5 text-white font-medium outline-none focus:ring-2 focus:ring-amber-500/50"
                 >
                   <option value="deliverable.rework">deliverable.rework (Entregable a Retrabajo)</option>
                   <option value="sla.vencido">sla.vencido (SLA Vencido en Fase)</option>
                   <option value="phase.completed">phase.completed (Fase Marcada Completada)</option>
-                  <option value="deliverable.approaching_deadline">deliverable.approaching_deadline (LÃ­mite PrÃ³ximo)</option>
+                  <option value="deliverable.approaching_deadline">deliverable.approaching_deadline (Límite Próximo)</option>
                 </select>
               </div>
             </div>
@@ -1112,18 +1112,18 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                 <span>Payload JSON transmitido:</span>
                 <span className="text-emerald-400 font-bold">Content-Type: application/json</span>
               </div>
-              <pre className="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-amber-300 font-mono text-xs overflow-x-auto">
+              <pre className="bg-slate-950 p-5 rounded-2xl text-amber-300 font-mono text-xs overflow-x-auto">
 {JSON.stringify({
   event: testEventName,
   timestamp: new Date().toISOString(),
   projectId: 'PRJ-TPP-2026',
-  projectName: 'CampaÃ±a Global Redes Q3',
+  projectName: 'Campaña Global Redes Q3',
   triggeredBy: currentUser.username,
   data: {
     deliverableId: 'DEL-9902',
-    title: 'Entrega Final de Artes para aprobaciÃ³n SLA',
+    title: 'Entrega Final de Artes para aprobación SLA',
     status: testEventName.includes('rework') ? 'retrabajo' : 'completado',
-    motivo: 'VerificaciÃ³n en sandbox de automatizaciÃ³n Capa 3',
+    motivo: 'Verificación en sandbox de automatización Capa 3',
   }
 }, null, 2)}
               </pre>
@@ -1131,27 +1131,27 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
 
             {/* Webhook Delivery Audit Log */}
             <div className="space-y-3 pt-4 border-t border-slate-800">
-              <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider">
-                Logs de EnvÃ­os de Webhook en Vivo
+              <h4 className="text-xs font-semibold uppercase text-slate-400 tracking-wider">
+                Logs de Envíos de Webhook en Vivo
               </h4>
 
               <div className="space-y-2">
                 {webhookLogs.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">No hay entregas registradas en la sesiÃ³n.</p>
+                  <p className="text-xs text-slate-500 italic font-normal">No hay entregas registradas en la sesión.</p>
                 ) : (
                   webhookLogs.map((log) => (
                     <div
                       key={log.id}
-                      className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs flex flex-col md:flex-row md:items-center justify-between gap-2"
+                      className="bg-slate-950 p-3.5 rounded-2xl text-xs flex flex-col md:flex-row md:items-center justify-between gap-2"
                     >
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`px-2 py-0.5 rounded font-black text-xs ${
-                          log.statusCode === 200 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                        <span className={`px-2.5 py-0.5 rounded-full font-semibold text-xs ${
+                          log.statusCode === 200 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
                         }`}>
                           HTTP {log.statusCode}
                         </span>
-                        <span className="font-mono text-amber-400 font-bold">{log.eventName}</span>
-                        <span className="text-slate-500 text-xs">â€¢ {log.latencyMs}ms</span>
+                        <span className="font-mono text-white font-semibold">{log.eventName}</span>
+                        <span className="text-slate-500 text-xs">• {log.latencyMs}ms</span>
                       </div>
 
                       <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
@@ -1169,63 +1169,63 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
 
       {/* CONNECT MODAL (CAPA 1) */}
       {selectedToolModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md transition-all duration-300 flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden flex flex-col text-slate-800">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-all duration-300 flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full overflow-hidden flex flex-col text-slate-800">
             {(() => {
               const info = TOOL_INFO[selectedToolModal];
               const Icon = info.icon;
               return (
                 <>
-                  <div className="p-6 border-b border-slate-100 bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 text-white flex items-center justify-between">
+                  <div className="p-6 border-b border-stone-100 bg-slate-900 text-white flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${info.accentColor} text-white flex items-center justify-center shadow-md`}>
+                      <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${info.accentColor} text-white flex items-center justify-center shadow-xs`}>
                         <Icon className="w-5 h-5" />
                       </div>
                       <div>
                         <h3 className="font-extrabold text-base tracking-tight">{info.name}</h3>
-                        <p className="text-xs text-slate-300">ConfiguraciÃ³n de Conector Capa 1</p>
+                        <p className="text-xs text-slate-400">Configuración de Conector Capa 1</p>
                       </div>
                     </div>
                     <button
                       onClick={() => setSelectedToolModal(null)}
-                      className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+                      className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
                     >
                       <X className="w-5 h-5" />
                     </button>
                   </div>
 
                   <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
-                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl text-xs text-amber-950 flex items-start gap-3">
+                    <div className="bg-amber-50/80 p-4 rounded-2xl text-xs text-amber-950 flex items-start gap-3">
                       <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                       <div>
-                        <span className="font-bold block text-amber-950">Prerequisitos TÃ©cnicos de ConexiÃ³n</span>
+                        <span className="font-bold block text-amber-950">Prerequisitos Técnicos de Conexión</span>
                         <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-                          Este conector requiere parÃ¡metros de acceso de tu infraestructura corporativa. Puedes registrar los parÃ¡metros a continuaciÃ³n o ejecutar una prueba de conexiÃ³n simulada para verificar el comportamiento de la plataforma.
+                          Este conector requiere parámetros de acceso de tu infraestructura corporativa. Puedes registrar los parámetros a continuación o ejecutar una prueba de conexión simulada para verificar el comportamiento de la plataforma.
                         </p>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
                         Credenciales Requeridas
                       </h4>
                       <ul className="space-y-2 text-xs text-slate-700">
                         {info.requirements.map((req, idx) => (
-                          <li key={idx} className="flex items-start gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                            <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                          <li key={idx} className="flex items-start gap-2 bg-[#F4F5F0] p-3 rounded-2xl">
+                            <Check className="w-4 h-4 text-slate-800 shrink-0 mt-0.5" />
                             <span>{req}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    <div className="space-y-3 pt-2 border-t border-slate-100">
-                      <h4 className="text-xs font-black uppercase tracking-wider text-slate-700">
-                        ParÃ¡metros de ConfiguraciÃ³n
+                    <div className="space-y-3 pt-2 border-t border-stone-100">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
+                        Parámetros de Configuración
                       </h4>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700 block">
+                        <label className="text-xs font-semibold text-slate-700 block">
                           URL Servidor / Webhook Endpoint
                         </label>
                         <input
@@ -1233,20 +1233,20 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                           value={modalEndpoint}
                           onChange={(e) => setModalEndpoint(e.target.value)}
                           placeholder="https://servidor-corporativo.com/api"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30"
+                          className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 text-xs font-normal text-slate-800 outline-none focus:ring-2 focus:ring-slate-400"
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700 block">
+                        <label className="text-xs font-semibold text-slate-700 block">
                           API Key / User Access Token (Secret)
                         </label>
                         <input
                           type="password"
                           value={modalApiKey}
                           onChange={(e) => setModalApiKey(e.target.value)}
-                          placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30"
+                          placeholder="••••••••••••••••••••••••"
+                          className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 text-xs font-normal text-slate-800 outline-none focus:ring-2 focus:ring-slate-400"
                         />
                       </div>
                     </div>
@@ -1256,28 +1256,28 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                         href={info.docUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-[#FF5500] hover:underline font-bold flex items-center gap-1"
+                        className="text-slate-800 hover:underline font-semibold flex items-center gap-1"
                       >
-                        <span>DocumentaciÃ³n Oficial</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <span>Documentación Oficial</span>
+                        <ExternalLink className="w-3 h-3 text-slate-800" />
                       </a>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+                  <div className="p-4 bg-[#F4F5F0] border-t border-stone-100 flex items-center justify-between">
                     <button
                       onClick={() => setSelectedToolModal(null)}
-                      className="px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                      className="px-4 py-2 bg-white hover:bg-stone-200 text-slate-700 font-semibold rounded-full text-xs transition-colors cursor-pointer shadow-2xs"
                     >
                       Cancelar
                     </button>
 
                     <button
                       onClick={() => handleSimulateConnection(selectedToolModal)}
-                      className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black rounded-xl text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
+                      className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer"
                     >
-                      <CheckCircle2 className="w-4 h-4" />
-                      <span>Guardar & Verificar ConexiÃ³n</span>
+                      <CheckCircle2 className="w-4 h-4 text-white" />
+                      <span>Guardar & Verificar Conexión</span>
                     </button>
                   </div>
                 </>
@@ -1289,16 +1289,16 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
 
       {/* NEW RULE MODAL */}
       {isNewRuleModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 text-slate-800">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 space-y-4 text-slate-800">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
               <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
                 <Zap className="w-5 h-5 text-amber-500" />
-                <span>Nueva Regla de AutomatizaciÃ³n</span>
+                <span>Nueva Regla de Automatización</span>
               </h3>
               <button
                 onClick={() => setIsNewRuleModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg"
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-stone-100"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1312,7 +1312,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                   value={newRuleName}
                   onChange={(e) => setNewRuleName(e.target.value)}
                   placeholder="Ej: Enviar alerta Teams al marcar entregable como retrabajo"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30"
+                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30"
                 />
               </div>
 
@@ -1321,7 +1321,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                 <select
                   value={newRuleEvent}
                   onChange={(e) => setNewRuleEvent(e.target.value as any)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30"
+                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30"
                 >
                   <option value="deliverable.rework">deliverable.rework (Entregable a Retrabajo)</option>
                   <option value="sla.vencido">sla.vencido (SLA Vencido en Fase)</option>
@@ -1331,11 +1331,11 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-700 block">AcciÃ³n Objetivo (ENTONCES...):</label>
+                <label className="font-bold text-slate-700 block">Acción Objetivo (ENTONCES...):</label>
                 <select
                   value={newRuleTarget}
                   onChange={(e) => setNewRuleTarget(e.target.value as any)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30"
+                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30"
                 >
                   <option value="teams_channel">Canal Microsoft Teams (Webhook)</option>
                   <option value="odoo_log">Registrar Log auditado en Odoo ERP</option>
@@ -1346,17 +1346,17 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2">
               <button
                 onClick={() => setIsNewRuleModalOpen(false)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                className="px-4 py-2 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCreateRule}
                 disabled={!newRuleName.trim()}
-                className="px-5 py-2 bg-[#FF5500] hover:bg-[#E04B00] text-white font-black rounded-xl text-xs shadow-md disabled:opacity-50"
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 Crear Regla
               </button>
@@ -1367,56 +1367,56 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
 
       {/* NEW WEBHOOK MODAL */}
       {isNewWebhookModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4 text-slate-800">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                <Radio className="w-5 h-5 text-indigo-600" />
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 space-y-4 text-slate-800">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+              <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
+                <Radio className="w-5 h-5 text-slate-800" />
                 <span>Registrar Nuevo Webhook Endpoint</span>
               </h3>
               <button
                 onClick={() => setIsNewWebhookModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg"
+                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-stone-100 cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-5 h-5 text-slate-800" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-700 block">Nombre del Endpoint:</label>
+                <label className="font-semibold text-slate-700 block">Nombre del Endpoint:</label>
                 <input
                   type="text"
                   value={newWebhookName}
                   onChange={(e) => setNewWebhookName(e.target.value)}
                   placeholder="Ej: Servidor Analytics Hubspot"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500/30"
+                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-normal text-slate-800 outline-none focus:ring-2 focus:ring-slate-400"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="font-bold text-slate-700 block">URL de Destino (HTTPS):</label>
+                <label className="font-semibold text-slate-700 block">URL de Destino (HTTPS):</label>
                 <input
                   type="url"
                   value={newWebhookUrl}
                   onChange={(e) => setNewWebhookUrl(e.target.value)}
                   placeholder="https://api.tuempresa.com/webhooks/listener"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500/30"
+                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-normal text-slate-800 outline-none focus:ring-2 focus:ring-slate-400"
                 />
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+            <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2">
               <button
                 onClick={() => setIsNewWebhookModalOpen(false)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                className="px-4 py-2 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-semibold rounded-full text-xs cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleCreateWebhook}
                 disabled={!newWebhookName.trim() || !newWebhookUrl.trim()}
-                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl text-xs shadow-md disabled:opacity-50"
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs shadow-xs disabled:opacity-50 cursor-pointer"
               >
                 Registrar Webhook
               </button>

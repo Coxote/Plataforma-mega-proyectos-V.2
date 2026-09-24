@@ -17,6 +17,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { Project, OrdenVenta, EstadoOV } from '../types';
+import { CustomModal } from './CustomModal';
 
 interface MultiOVManagerProps {
   project: Project;
@@ -56,6 +57,10 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
     contents: 0,
     contentd: 0,
   });
+
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
+  const [ovRestrictionModal, setOvRestrictionModal] = useState(false);
+  const [ovToDelete, setOvToDelete] = useState<string | null>(null);
 
   // Calculate total hours from role breakdown automatically
   const totalHorasAuto = (Number(horasPorRol.supervisor) || 0) +
@@ -162,11 +167,11 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
               });
             }
           } else {
-            alert(data.error || 'No se pudo analizar el archivo con la IA.');
+            setNoticeMessage(data.error || 'No se pudo analizar el archivo con la IA.');
           }
         } catch (err) {
           console.error(err);
-          alert('Error al conectar con la IA de parsing.');
+          setNoticeMessage('Error al conectar con la IA de parsing.');
         } finally {
           setIsParsing(false);
         }
@@ -229,11 +234,17 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
 
   const handleDeleteOV = (ovId: string) => {
     if (ordenesVenta.length <= 1) {
-      alert('El proyecto debe mantener al menos una Orden de Venta.');
+      setOvRestrictionModal(true);
       return;
     }
-    const updatedList = ordenesVenta.filter(ov => ov.id !== ovId);
+    setOvToDelete(ovId);
+  };
+
+  const confirmDeleteOV = () => {
+    if (!ovToDelete) return;
+    const updatedList = ordenesVenta.filter(ov => ov.id !== ovToDelete);
     syncAndSaveProject(updatedList);
+    setOvToDelete(null);
   };
 
   const handleQuickStatusChange = (ovId: string, newStatus: EstadoOV) => {
@@ -275,16 +286,16 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <FileText className="w-4 h-4 text-indigo-600" />
-              Ã“rdenes de Venta (Multi-OV)
+            <h3 className="text-sm font-semibold text-slate-900 tracking-tight flex items-center gap-2">
+              <FileText className="w-4 h-4 text-slate-800" />
+              Órdenes de Venta (Multi-OV)
             </h3>
-            <span className="text-xs bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded-full border border-indigo-100">
+            <span className="text-xs bg-stone-100 text-slate-800 font-semibold px-2 py-0.5 rounded-full border border-stone-200">
               {ordenesVenta.length} registrada{ordenesVenta.length !== 1 ? 's' : ''}
             </span>
           </div>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
-            GestiÃ³n de facturaciÃ³n comercial y presupuestos contratados por el cliente.
+          <p className="text-xs text-slate-500 font-normal mt-0.5">
+            Gestión de facturación comercial y presupuestos contratados por el cliente.
           </p>
         </div>
 
@@ -292,9 +303,9 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="inline-flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all shadow-xs cursor-pointer self-start sm:self-auto"
+            className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all shadow-xs cursor-pointer self-start sm:self-auto"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 text-white" />
             Agregar OV
           </button>
         )}
@@ -303,16 +314,16 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
       {/* KPI METRICS SUMMARY */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Monto Total Contratado</span>
-          <div className="text-lg font-black text-slate-900 font-mono">
-            ${totalMonto.toLocaleString('es-CL', { minimumFractionDigits: 0 })} <span className="text-xs text-slate-400 font-bold">{project.currency || 'CLP'}</span>
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Monto Total Contratado</span>
+          <div className="text-3xl font-semibold font-display text-slate-900">
+            ${totalMonto.toLocaleString('es-CL', { minimumFractionDigits: 0 })} <span className="text-xs text-slate-500 font-normal">{project.currency || 'CLP'}</span>
           </div>
         </div>
 
         <div className="bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200/70">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Horas Totales en OVs</span>
-          <div className="text-lg font-black text-indigo-600 font-mono">
-            {totalHoras} <span className="text-xs text-indigo-400 font-bold">horas</span>
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Horas Totales en OVs</span>
+          <div className="text-3xl font-semibold font-display text-slate-900">
+            {totalHoras} <span className="text-xs text-slate-500 font-normal">horas</span>
           </div>
         </div>
 
@@ -338,9 +349,9 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
               <th className="py-2.5 px-3">No. OV</th>
               <th className="py-2.5 px-3">Monto</th>
               <th className="py-2.5 px-3">Horas Totales</th>
-              <th className="py-2.5 px-3">EmisiÃ³n</th>
+              <th className="py-2.5 px-3">Emisión</th>
               <th className="py-2.5 px-3">Estado</th>
-              <th className="py-2.5 px-3">DescripciÃ³n / Concepto</th>
+              <th className="py-2.5 px-3">Descripción / Concepto</th>
               {isCoordinador && <th className="py-2.5 px-3 text-right">Acciones</th>}
             </tr>
           </thead>
@@ -355,8 +366,8 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
                     </span>
                   </td>
                   <td className="py-3 px-3 font-mono">
-                    <div className="font-black text-slate-800">
-                      ${(ov.monto || 0).toLocaleString('es-CL')} <span className="text-xs text-slate-400">{ov.moneda}</span>
+                    <div className="font-semibold text-slate-800">
+                      ${(ov.monto || 0).toLocaleString('es-CL')} <span className="text-xs text-slate-400 font-normal">{ov.moneda}</span>
                     </div>
                     {(ov.subtotal !== undefined || ov.impuestos !== undefined || ov.comisiones !== undefined) && (
                       <div className="text-xs text-slate-500 font-medium mt-0.5 space-x-1 flex flex-wrap gap-x-1">
@@ -379,7 +390,7 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
                     </span>
                   </td>
                   <td className="py-3 px-3 text-slate-600 max-w-[200px] truncate text-xs" title={ov.descripcion}>
-                    {ov.descripcion || 'Sin descripciÃ³n'}
+                    {ov.descripcion || 'Sin descripción'}
                   </td>
                   {isCoordinador && (
                     <td className="py-3 px-3 text-right">
@@ -428,30 +439,30 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-4 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-              <h4 className="font-black text-slate-900 text-base flex items-center gap-2">
-                <FileText className="w-5 h-5 text-indigo-600" />
+              <h4 className="font-semibold text-slate-900 text-base flex items-center gap-2">
+                <FileText className="w-5 h-5 text-slate-800" />
                 {editingOV ? 'Editar Orden de Venta' : 'Nueva Orden de Venta'}
               </h4>
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4 text-slate-800" />
               </button>
             </div>
 
             {/* AI DOCUMENT UPLOADER BANNER */}
-            <div className="p-3 bg-indigo-50/70 border border-indigo-100 rounded-2xl flex items-center justify-between gap-3">
+            <div className="p-3 bg-stone-100 border border-stone-200 rounded-2xl flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 bg-indigo-600 text-white rounded-xl shadow-xs">
-                  <Sparkles className="w-4 h-4" />
+                <div className="p-2 bg-slate-900 text-white rounded-xl shadow-xs">
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <span className="text-xs font-black text-indigo-950 block">Rellenar automÃ¡ticamente con IA</span>
-                  <span className="text-xs font-medium text-indigo-600 block">Sube un PDF o imagen de la OV / CotizaciÃ³n</span>
+                  <span className="text-xs font-semibold text-slate-900 block">Rellenar automáticamente con IA</span>
+                  <span className="text-xs font-normal text-slate-500 block">Sube un PDF o imagen de la OV / Cotización</span>
                 </div>
               </div>
-              <label className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-xs shrink-0 ${
+              <label className={`inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-xs shrink-0 ${
                 isParsing ? 'opacity-70 pointer-events-none' : ''
               }`}>
                 {isParsing ? (
@@ -514,7 +525,7 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
 
               {/* Financial breakdown: Subtotal, Impuestos, Comisiones, Monto Total */}
               <div className="p-3 bg-slate-50/80 rounded-2xl border border-slate-200/80 space-y-3">
-                <span className="text-xs font-black text-slate-700 uppercase tracking-wider block">
+                <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
                   Desglose Financiero de la Orden
                 </span>
 
@@ -567,7 +578,7 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
 
                   <div>
                     <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                      ComisiÃ³n / RetenciÃ³n
+                      Comisión / Retención
                     </label>
                     <input
                       type="number"
@@ -600,22 +611,22 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
                       placeholder="Ej: 8072.00"
                       value={monto}
                       onChange={(e) => setMonto(e.target.value ? Number(e.target.value) : '')}
-                      className="w-full px-3 py-2 text-xs bg-white border border-indigo-200 rounded-xl font-mono font-black text-indigo-950 focus:outline-none focus:border-indigo-500 shadow-2xs"
+                      className="w-full px-3 py-2 text-xs bg-white border border-stone-200 rounded-xl font-mono font-semibold text-slate-900 focus:outline-none focus:border-slate-800 shadow-2xs"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+                    <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">
                       Moneda
                     </label>
                     <select
                       value={moneda}
                       onChange={(e) => setMoneda(e.target.value)}
-                      className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-bold focus:outline-none focus:border-indigo-500 cursor-pointer"
+                      className="w-full px-3 py-2 text-xs bg-white border border-slate-200 rounded-xl font-semibold focus:outline-none focus:border-slate-800 cursor-pointer"
                     >
                       <option value="CLP">CLP ($)</option>
                       <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (â‚¬)</option>
+                      <option value="EUR">EUR (€)</option>
                       <option value="GTQ">GTQ (Q)</option>
                       <option value="UF">UF</option>
                     </select>
@@ -626,11 +637,11 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
               {/* HORAS VENDIDAS POR ROL DESGLOSE */}
               <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between border-b border-slate-200/60 pb-1.5">
-                  <span className="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                  <span className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-slate-800" />
                     Horas Vendidas por Rol
                   </span>
-                  <span className="text-xs font-black text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-full font-mono">
+                  <span className="text-xs font-semibold text-slate-800 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-full font-mono">
                     Total: {totalHorasAuto} hrs
                   </span>
                 </div>
@@ -648,7 +659,7 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 uppercase mb-0.5">CoordinaciÃ³n</label>
+                    <label className="block text-xs font-bold text-slate-600 uppercase mb-0.5">Coordinación</label>
                     <input
                       type="number"
                       min="0"
@@ -681,7 +692,7 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-600 uppercase mb-0.5">DiseÃ±ador</label>
+                    <label className="block text-xs font-bold text-slate-600 uppercase mb-0.5">Diseñador</label>
                     <input
                       type="number"
                       min="0"
@@ -696,7 +707,7 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                  Fecha de EmisiÃ³n
+                  Fecha de Emisión
                 </label>
                 <input
                   type="date"
@@ -708,11 +719,11 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
 
               <div>
                 <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                  DescripciÃ³n / Concepto
+                  Descripción / Concepto
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Ej: Servicio de consultorÃ­a y diseÃ±o de contenidos Q3"
+                  placeholder="Ej: Servicio de consultoría y diseño de contenidos Q3"
                   value={descripcion}
                   onChange={(e) => setDescripcion(e.target.value)}
                   className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-medium focus:outline-none focus:border-indigo-500 resize-none"
@@ -738,6 +749,39 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
           </div>
         </div>
       )}
+
+      {/* Modal Confirmación Eliminación OV */}
+      <CustomModal
+        isOpen={!!ovToDelete}
+        onClose={() => setOvToDelete(null)}
+        type="danger"
+        isDestructive={true}
+        title="¿Eliminar Orden de Venta?"
+        description="Esta acción eliminará la Orden de Venta seleccionada del proyecto. No se puede deshacer."
+        confirmLabel="Eliminar OV"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDeleteOV}
+      />
+
+      {/* Modal Restricción Mínimo 1 OV */}
+      <CustomModal
+        isOpen={ovRestrictionModal}
+        onClose={() => setOvRestrictionModal(false)}
+        type="info"
+        title="Acción Restringida"
+        description="El proyecto debe mantener al menos una Orden de Venta activa en todo momento para asegurar la trazabilidad comercial."
+        confirmLabel="Entendido"
+      />
+
+      {/* Modal Mensaje / Error */}
+      <CustomModal
+        isOpen={!!noticeMessage}
+        onClose={() => setNoticeMessage(null)}
+        type="warning"
+        title="Atención"
+        description={noticeMessage || ''}
+        confirmLabel="Entendido"
+      />
     </div>
   );
 };

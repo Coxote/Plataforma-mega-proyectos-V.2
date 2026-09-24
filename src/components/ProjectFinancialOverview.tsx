@@ -123,7 +123,7 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
         rate: ROLE_HOURLY_RATES.contents,
       },
       {
-        name: 'ContentD (DiseÃ±o)',
+        name: 'ContentD (Diseño)',
         roleKey: 'contentd',
         'Horas Vendidas': hoursSold.contentd,
         'Horas Consumidas': hoursConsumed.contentd,
@@ -187,33 +187,33 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
       {/* 1. TOP METRICS BLOCK (Flattened Hierarchy, No nested cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1: Income */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between" id="financial-income">
+        <div className="bg-white p-5 rounded-2xl border border-stone-200/90 shadow-xs flex flex-col justify-between" id="financial-income">
           <div className="flex justify-between items-start">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Ingreso de Venta (OV)</span>
-            <DollarSign className="w-4 h-4 text-indigo-500" />
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Ingreso de Venta (OV)</span>
+            <DollarSign className="w-4 h-4 text-slate-800" />
           </div>
-          <div className="mt-2">
-            <div className="text-2xl font-black text-slate-950 font-mono">
+          <div className="mt-3">
+            <div className="text-3xl sm:text-4xl font-semibold text-slate-900 font-display">
               ${stats.income.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-slate-500 font-semibold mt-1">
-              Orden de Venta: <span className="text-slate-700 font-bold">{project.ovNumber || project.saleOrderNumber || 'No registrada'}</span>
+            <p className="text-xs text-slate-500 font-normal mt-1">
+              Orden de Venta: <span className="text-slate-700 font-semibold">{project.ovNumber || project.saleOrderNumber || 'No registrada'}</span>
             </p>
           </div>
         </div>
 
         {/* Metric 2: Operational Cost */}
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between" id="financial-cost">
+        <div className="bg-white p-5 rounded-2xl border border-stone-200/90 shadow-xs flex flex-col justify-between" id="financial-cost">
           <div className="flex justify-between items-start">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Costo Operativo Real</span>
-            <Activity className="w-4 h-4 text-emerald-500" />
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Costo Operativo Real</span>
+            <Activity className="w-4 h-4 text-slate-800" />
           </div>
-          <div className="mt-2">
-            <div className="text-2xl font-black text-slate-950 font-mono">
+          <div className="mt-3">
+            <div className="text-3xl sm:text-4xl font-semibold text-slate-900 font-display">
               ${stats.costConsumed.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-slate-500 font-semibold mt-1">
-              Presupuesto mÃ¡ximo: <span className="text-slate-700 font-bold">${stats.costSold.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <p className="text-xs text-slate-500 font-normal mt-1">
+              Presupuesto máximo: <span className="text-slate-700 font-semibold">${stats.costSold.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </p>
           </div>
         </div>
@@ -225,21 +225,21 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
             : 'bg-rose-50/50 border-rose-100 text-rose-950'
         }`} id="financial-margin">
           <div className="flex justify-between items-start">
-            <span className={`text-xs font-bold uppercase tracking-wider ${marginIsHealthy ? 'text-emerald-700' : 'text-rose-700'}`}>
+            <span className={`text-xs font-semibold uppercase tracking-wider ${marginIsHealthy ? 'text-emerald-700' : 'text-rose-700'}`}>
               Margen de Rentabilidad
             </span>
             {marginIsHealthy ? (
-              <TrendingUp className="w-4 h-4 text-emerald-500" />
+              <TrendingUp className="w-4 h-4 text-slate-800" />
             ) : (
-              <TrendingDown className="w-4 h-4 text-rose-500" />
+              <TrendingDown className="w-4 h-4 text-slate-800" />
             )}
           </div>
-          <div className="mt-2">
-            <div className={`text-2xl font-black font-mono ${marginIsHealthy ? 'text-emerald-700' : 'text-rose-700'}`}>
+          <div className="mt-3">
+            <div className={`text-3xl sm:text-4xl font-semibold font-display ${marginIsHealthy ? 'text-emerald-700' : 'text-rose-700'}`}>
               {stats.marginPercentage.toFixed(1)}%
             </div>
-            <p className={`text-xs font-semibold mt-1 ${marginIsHealthy ? 'text-emerald-600' : 'text-rose-600'}`}>
-              Utilidad neta: <span className="font-bold">${stats.profitReal.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <p className={`text-xs font-normal mt-1 ${marginIsHealthy ? 'text-emerald-600' : 'text-rose-600'}`}>
+              Utilidad neta: <span className="font-semibold">${stats.profitReal.toLocaleString('es-CL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </p>
           </div>
         </div>
@@ -248,66 +248,66 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
         <div className={`p-5 rounded-2xl border shadow-xs flex flex-col justify-between transition-colors ${
           isOverBudget
             ? 'bg-amber-50/60 border-amber-200 text-amber-950'
-            : 'bg-white border-slate-200'
+            : 'bg-white border-stone-200/90'
         }`} id="financial-hours">
           <div className="flex justify-between items-start">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Esfuerzo Consumido</span>
-            <Clock className="w-4 h-4 text-slate-500" />
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Esfuerzo Consumido</span>
+            <Clock className="w-4 h-4 text-slate-800" />
           </div>
-          <div className="mt-2">
-            <div className="text-2xl font-black text-slate-950 font-mono">
+          <div className="mt-3">
+            <div className="text-3xl sm:text-4xl font-semibold text-slate-900 font-display">
               {stats.totalHoursConsumed.toFixed(1)}h
             </div>
-            <p className="text-xs text-slate-500 font-semibold mt-1">
-              De <span className="text-slate-700 font-bold">{stats.totalHoursSold}h vendidas</span> ({stats.hourConsumptionRate.toFixed(0)}%)
+            <p className="text-xs text-slate-500 font-normal mt-1">
+              De <span className="text-slate-700 font-semibold">{stats.totalHoursSold}h vendidas</span> ({stats.hourConsumptionRate.toFixed(0)}%)
             </p>
           </div>
         </div>
       </div>
 
       {/* FORECAST & BURN RATE SUMMARY BANNER (Fase 3 Rentabilidad) */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-md space-y-4" id="forecast-burn-rate-card">
+      <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-md space-y-4" id="forecast-burn-rate-card">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <h3 className="font-extrabold text-xs uppercase tracking-widest text-slate-200">
-              PronÃ³stico de Rentabilidad al Cierre (Financial Forecast)
+            <Sparkles className="w-4 h-4 text-slate-300" />
+            <h3 className="font-semibold text-xs uppercase tracking-widest text-slate-200">
+              Pronóstico de Rentabilidad al Cierre (Financial Forecast)
             </h3>
           </div>
-          <span className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${
+          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
             stats.projectedMarginPercentage >= 30
               ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
               : stats.projectedMarginPercentage >= 15
               ? 'bg-amber-500/20 text-amber-300 border-amber-500/30'
               : 'bg-rose-500/20 text-rose-300 border-rose-500/30'
           }`}>
-            ProyecciÃ³n Margen: {stats.projectedMarginPercentage.toFixed(1)}%
+            Proyección Margen: {stats.projectedMarginPercentage.toFixed(1)}%
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div className="bg-white/5 p-3 rounded-xl border border-white/10 space-y-1">
-            <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">Costo Estimado Final</span>
-            <div className="text-base font-black text-slate-100 font-mono">
+            <span className="text-xs text-slate-400 uppercase font-semibold tracking-wider">Costo Estimado Final</span>
+            <div className="text-base font-semibold text-slate-100 font-display">
               ${stats.projectedCostAtCompletion.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
             </div>
-            <p className="text-xs text-slate-400">Basado en tendencia actual de consumo</p>
+            <p className="text-xs text-slate-400 font-normal">Basado en tendencia actual de consumo</p>
           </div>
 
           <div className="bg-white/5 p-3 rounded-xl border border-white/10 space-y-1">
-            <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">Utilidad Proyectada Cierre</span>
-            <div className={`text-base font-black font-mono ${stats.projectedProfitAtCompletion >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+            <span className="text-xs text-slate-400 uppercase font-semibold tracking-wider">Utilidad Proyectada Cierre</span>
+            <div className={`text-base font-semibold font-display ${stats.projectedProfitAtCompletion >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
               ${stats.projectedProfitAtCompletion.toLocaleString('es-CL', { maximumFractionDigits: 0 })}
             </div>
-            <p className="text-xs text-slate-400">Ingreso menos costo final estimado</p>
+            <p className="text-xs text-slate-400 font-normal">Ingreso menos costo final estimado</p>
           </div>
 
           <div className="bg-white/5 p-3 rounded-xl border border-white/10 space-y-1">
-            <span className="text-xs text-slate-400 uppercase font-bold tracking-wider">Burn Rate & Disponibilidad</span>
-            <div className="text-base font-black text-indigo-300 font-mono">
+            <span className="text-xs text-slate-400 uppercase font-semibold tracking-wider">Burn Rate & Disponibilidad</span>
+            <div className="text-base font-semibold text-slate-200 font-display">
               {stats.totalHoursRemaining > 0 ? `${stats.totalHoursRemaining}h disponibles` : '0h (Presupuesto Agotado)'}
             </div>
-            <p className="text-xs text-slate-400">{stats.totalHoursConsumed}h ejecutadas de {stats.totalHoursSold}h vendidas</p>
+            <p className="text-xs text-slate-400 font-normal">{stats.totalHoursConsumed}h ejecutadas de {stats.totalHoursSold}h vendidas</p>
           </div>
         </div>
       </div>
@@ -322,7 +322,7 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
               Comparativa de Horas por Rol
             </h3>
             <p className="text-slate-500 text-xs mt-0.5">
-              AnÃ¡lisis visual entre las horas vendidas al cliente vs. las horas consumidas por cada rol operativo.
+              Análisis visual entre las horas vendidas al cliente vs. las horas consumidas por cada rol operativo.
             </p>
           </div>
 
@@ -400,7 +400,7 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
                     pillLabel = 'Excedido';
                   } else if (ratio >= 85) {
                     pillStyle = 'bg-amber-50 text-amber-700 border-amber-100';
-                    pillLabel = 'LÃ­mite';
+                    pillLabel = 'Límite';
                   } else {
                     pillStyle = 'bg-emerald-50 text-emerald-700 border-emerald-100';
                     pillLabel = 'Eficiente';
@@ -410,8 +410,8 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
                 return (
                   <div key={data.roleKey} className="pt-3 flex flex-col gap-2" id={`role-stat-${data.roleKey}`}>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs font-bold text-slate-800">{data.name}</span>
-                      <span className={`text-xs font-black px-2 py-0.5 rounded-full border ${pillStyle}`}>
+                      <span className="text-xs font-semibold text-slate-800">{data.name}</span>
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${pillStyle}`}>
                         {pillLabel}
                       </span>
                     </div>
@@ -451,14 +451,14 @@ export const ProjectFinancialOverview: React.FC<ProjectFinancialOverviewProps> =
               <div className="flex items-start gap-2.5 text-xs bg-rose-50 text-rose-800 p-3 rounded-xl border border-rose-200" id="hours-overrun-warning">
                 <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                 <p className="text-xs font-semibold leading-relaxed">
-                  <strong className="font-bold">DesviaciÃ³n detectada:</strong> El consumo de horas operativas ha superado las horas vendidas. El margen del proyecto se reducirÃ¡ de forma directa.
+                  <strong className="font-bold">Desviación detectada:</strong> El consumo de horas operativas ha superado las horas vendidas. El margen del proyecto se reducirá de forma directa.
                 </p>
               </div>
             ) : stats.hourConsumptionRate >= 80 ? (
               <div className="flex items-start gap-2.5 text-xs bg-amber-50 text-amber-800 p-3 rounded-xl border border-amber-200" id="hours-warning">
                 <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                 <p className="text-xs font-semibold leading-relaxed">
-                  <strong className="font-bold">Consumo PrÃ³ximo al LÃ­mite:</strong> Has consumido el {stats.hourConsumptionRate.toFixed(0)}% del total vendido. Revisa el alcance con SAC antes de cargar mÃ¡s horas.
+                  <strong className="font-bold">Consumo Próximo al Límite:</strong> Has consumido el {stats.hourConsumptionRate.toFixed(0)}% del total vendido. Revisa el alcance con SAC antes de cargar más horas.
                 </p>
               </div>
             ) : (

@@ -56,21 +56,21 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
       case 'active_projects':
         return {
           title: 'Detalle de Proyectos Activos',
-          subtitle: 'Portafolio de proyectos en ejecuciÃ³n y mÃ©tricas de salud',
-          icon: <Briefcase className="w-5 h-5 text-indigo-600" />,
-          badgeBg: 'bg-indigo-50 border-indigo-200 text-indigo-700',
+          subtitle: 'Portafolio de proyectos en ejecución y métricas de salud',
+          icon: <Briefcase className="w-5 h-5 text-slate-800" />,
+          badgeBg: 'bg-stone-100 border-stone-200 text-slate-800',
           filters: [
             { id: 'todos', label: 'Todos' },
-            { id: 'optima', label: 'Salud Ã“ptima (â‰¥80%)' },
-            { id: 'atencion', label: 'AtenciÃ³n (<80%)' },
+            { id: 'optima', label: 'Salud Óptima (≥80%)' },
+            { id: 'atencion', label: 'Atención (<80%)' },
           ]
         };
       case 'agency_utilization':
         return {
-          title: 'UtilizaciÃ³n por Equipo',
-          subtitle: 'DistribuciÃ³n de carga operativa y capacidad del escuadrÃ³n',
-          icon: <Activity className="w-5 h-5 text-emerald-600" />,
-          badgeBg: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+          title: 'Utilización por Equipo',
+          subtitle: 'Distribución de carga operativa y capacidad del escuadrón',
+          icon: <Activity className="w-5 h-5 text-slate-800" />,
+          badgeBg: 'bg-stone-100 border-stone-200 text-slate-800',
           filters: [
             { id: 'todos', label: 'Todos' },
             { id: 'alta_carga', label: 'Alta Carga' },
@@ -80,12 +80,12 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
       case 'pending_approvals':
         return {
           title: 'Aprobaciones & Entregables',
-          subtitle: 'Listado de entregables pendientes de revisiÃ³n interna o del cliente',
-          icon: <FileCheck className="w-5 h-5 text-amber-600" />,
-          badgeBg: 'bg-amber-50 border-amber-200 text-amber-700',
+          subtitle: 'Listado de entregables pendientes de revisión interna o del cliente',
+          icon: <FileCheck className="w-5 h-5 text-slate-800" />,
+          badgeBg: 'bg-stone-100 border-stone-200 text-slate-800',
           filters: [
             { id: 'todos', label: 'Todos' },
-            { id: 'en_revision', label: 'RevisiÃ³n Interna' },
+            { id: 'en_revision', label: 'Revisión Interna' },
             { id: 'pendiente', label: 'Pendiente Cliente' },
           ]
         };
@@ -94,8 +94,8 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
         return {
           title: 'Registro de Consumo de Horas',
           subtitle: 'Desglose de horas presupuestadas vs horas invertidas y re-trabajo',
-          icon: <Clock className="w-5 h-5 text-blue-600" />,
-          badgeBg: 'bg-blue-50 border-blue-200 text-blue-700',
+          icon: <Clock className="w-5 h-5 text-slate-800" />,
+          badgeBg: 'bg-stone-100 border-stone-200 text-slate-800',
           filters: [
             { id: 'todos', label: 'Todos los Proyectos' },
             { id: 'retrabajo', label: 'Con Retrabajo' },
@@ -133,7 +133,7 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
 
     if (!matchesSearch) return false;
     if (statusFilter === 'alta_carga') return item.saturationLabel.includes('Sobrecargado') || item.saturationLabel.includes('Carga Alta');
-    if (statusFilter === 'optimo') return item.saturationLabel.includes('Ã“ptima') || item.saturationLabel.includes('Disponible');
+    if (statusFilter === 'optimo') return item.saturationLabel.includes('Óptima') || item.saturationLabel.includes('Disponible');
     return true;
   });
 
@@ -192,8 +192,8 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
                 {meta.icon}
               </div>
               <div className="min-w-0">
-                <h3 className="text-sm sm:text-base font-black text-slate-900 truncate">{meta.title}</h3>
-                <p className="text-xs sm:text-xs text-slate-500 font-medium truncate">{meta.subtitle}</p>
+                <h3 className="text-sm sm:text-base font-semibold text-slate-900 truncate">{meta.title}</h3>
+                <p className="text-xs sm:text-xs text-slate-500 font-normal truncate">{meta.subtitle}</p>
               </div>
             </div>
 
@@ -273,13 +273,13 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="space-y-0.5">
-                            <span className="text-xs font-black uppercase tracking-wider text-slate-400 block">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
                               {proj.clientName || 'Cliente'}
                             </span>
-                            <h4 className="text-sm font-black text-slate-900">{proj.name}</h4>
+                            <h4 className="text-sm font-semibold text-slate-900">{proj.name}</h4>
                           </div>
 
-                          <span className={`text-xs font-black px-2.5 py-0.5 rounded-full border shrink-0 ${
+                          <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border shrink-0 ${
                             proj.health >= 80 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' :
                             proj.health >= 60 ? 'bg-amber-50 text-amber-800 border-amber-200' :
                             'bg-rose-50 text-rose-800 border-rose-200'
@@ -289,10 +289,10 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
                         </div>
 
                         <div className="flex items-center gap-2 flex-wrap text-xs">
-                          <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> Fase: {activePhase ? activePhase.label : 'Sin Fase'}
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-stone-100 text-slate-800 border border-stone-200 flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-slate-800" /> Fase: {activePhase ? activePhase.label : 'Sin Fase'}
                           </span>
-                          <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
                             Avance: {completedPhasesCount}/{totalPhases} Fases
                           </span>
                         </div>
@@ -300,7 +300,7 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
                         {/* Phase Progress Bar */}
                         <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
                           <div
-                            className="h-full bg-indigo-600 rounded-full transition-all duration-300"
+                            className="h-full bg-slate-800 rounded-full transition-all duration-300"
                             style={{ width: `${Math.round((completedPhasesCount / (totalPhases || 1)) * 100)}%` }}
                           />
                         </div>
@@ -324,7 +324,7 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
                     const { user, totalTasksCount, totalHours, saturationLabel, saturationBadgeBg, completionRatio, userTasks } = item;
 
                     return (
-                      <div key={user.id} className="p-4 rounded-2xl border border-slate-200/90 bg-white space-y-3 shadow-2xs hover:border-emerald-300 transition-all">
+                      <div key={user.id} className="p-4 rounded-2xl border border-slate-200/90 bg-white space-y-3 shadow-2xs hover:border-slate-400 transition-all">
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
                             <img
@@ -334,28 +334,28 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
                               referrerPolicy="no-referrer"
                             />
                             <div>
-                              <h4 className="text-sm font-black text-slate-900 capitalize">{user.username}</h4>
-                              <span className="text-xs font-extrabold uppercase text-slate-400 tracking-wider block">{user.puesto || user.role}</span>
+                              <h4 className="text-sm font-semibold text-slate-900 capitalize">{user.username}</h4>
+                              <span className="text-xs font-medium uppercase text-slate-400 tracking-wider block">{user.puesto || user.role}</span>
                             </div>
                           </div>
 
-                          <span className={`text-xs font-black px-2.5 py-1 rounded-full border uppercase tracking-wider ${saturationBadgeBg}`}>
+                          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border uppercase tracking-wider ${saturationBadgeBg}`}>
                             {saturationLabel}
                           </span>
                         </div>
 
                         <div className="grid grid-cols-3 gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200/70">
                           <div className="text-center">
-                            <span className="text-xs font-bold text-slate-400 uppercase block">Tareas</span>
-                            <span className="text-xs font-black text-slate-800">{totalTasksCount}</span>
+                            <span className="text-xs font-medium text-slate-400 uppercase block">Tareas</span>
+                            <span className="text-sm font-semibold font-display text-slate-800">{totalTasksCount}</span>
                           </div>
                           <div className="text-center">
-                            <span className="text-xs font-bold text-slate-400 uppercase block">Horas</span>
-                            <span className="text-xs font-black text-indigo-700">{totalHours}h</span>
+                            <span className="text-xs font-medium text-slate-400 uppercase block">Horas</span>
+                            <span className="text-sm font-semibold font-display text-slate-800">{totalHours}h</span>
                           </div>
                           <div className="text-center">
-                            <span className="text-xs font-bold text-slate-400 uppercase block">Completado</span>
-                            <span className="text-xs font-black text-emerald-700">{completionRatio}%</span>
+                            <span className="text-xs font-medium text-slate-400 uppercase block">Completado</span>
+                            <span className="text-sm font-semibold font-display text-slate-800">{completionRatio}%</span>
                           </div>
                         </div>
 
@@ -382,31 +382,31 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
             {activeKpi === 'pending_approvals' && (
               <>
                 {filteredDeliverables.length === 0 ? (
-                  <div className="p-8 text-center bg-emerald-50/60 border border-emerald-200 rounded-2xl space-y-2">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto" />
-                    <h4 className="text-sm font-black text-emerald-900">Â¡Al DÃ­a!</h4>
-                    <p className="text-xs text-emerald-700 font-medium">No hay entregables pendientes con los filtros seleccionados.</p>
+                  <div className="p-8 text-center bg-stone-50 border border-stone-200 rounded-2xl space-y-2">
+                    <CheckCircle2 className="w-8 h-8 text-slate-400 mx-auto" />
+                    <h4 className="text-sm font-semibold text-slate-900">¡Al Día!</h4>
+                    <p className="text-xs text-slate-500 font-normal">No hay entregables pendientes con los filtros seleccionados.</p>
                   </div>
                 ) : (
                   filteredDeliverables.map(del => (
                     <div
                       key={del.id}
-                      className="p-4 rounded-2xl border border-amber-200/90 bg-amber-50/40 hover:bg-white hover:border-amber-300 transition-all space-y-2 shadow-2xs"
+                      className="p-4 rounded-2xl border border-stone-200 bg-stone-50/40 hover:bg-white hover:border-stone-400 transition-all space-y-2 shadow-2xs"
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-100 text-amber-900 border border-amber-300 uppercase">
-                          {del.status === 'en_revision' ? 'RevisiÃ³n Interna' : 'Pendiente Cliente'}
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-stone-100 text-slate-800 border border-stone-300 uppercase">
+                          {del.status === 'en_revision' ? 'Revisión Interna' : 'Pendiente Cliente'}
                         </span>
                         {del.deadline && (
-                          <span className="text-xs font-mono font-bold text-amber-900 bg-white px-2 py-0.5 rounded-md border border-amber-200">
+                          <span className="text-xs font-mono font-medium text-slate-800 bg-white px-2 py-0.5 rounded-md border border-stone-200">
                             {del.deadline}
                           </span>
                         )}
                       </div>
 
-                      <h4 className="text-sm font-black text-slate-900">{del.title}</h4>
-                      <p className="text-xs text-slate-500 font-medium">
-                        Proyecto: <strong className="text-slate-800">{del.projectName}</strong> ({del.clientName})
+                      <h4 className="text-sm font-semibold text-slate-900">{del.title}</h4>
+                      <p className="text-xs text-slate-500 font-normal">
+                        Proyecto: <strong className="text-slate-800 font-semibold">{del.projectName}</strong> ({del.clientName})
                       </p>
                     </div>
                   ))
@@ -433,24 +433,24 @@ export const KpiSidePanel: React.FC<KpiSidePanelProps> = ({
                       return true;
                     })
                     .map(p => (
-                      <div key={p.id} className="p-4 rounded-2xl border border-blue-200/90 bg-blue-50/30 hover:bg-white hover:border-blue-300 transition-all space-y-2.5 shadow-2xs">
+                      <div key={p.id} className="p-4 rounded-2xl border border-stone-200 bg-stone-50/30 hover:bg-white hover:border-stone-400 transition-all space-y-2.5 shadow-2xs">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-black uppercase text-slate-400">{p.clientName || 'Cliente'}</span>
-                          <span className={`text-xs font-black px-2 py-0.5 rounded-full border ${
-                            (p.totalReworkHours || 0) > 0 ? 'bg-amber-100 text-amber-900 border-amber-300' : 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                          <span className="text-xs font-semibold uppercase text-slate-400">{p.clientName || 'Cliente'}</span>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
+                            (p.totalReworkHours || 0) > 0 ? 'bg-stone-200 text-slate-800 border-stone-300' : 'bg-stone-100 text-slate-800 border-stone-200'
                           }`}>
                             {(p.totalReworkHours || 0)}h Retrabajo
                           </span>
                         </div>
-                        <h4 className="text-sm font-black text-slate-900">{p.name}</h4>
+                        <h4 className="text-sm font-semibold text-slate-900">{p.name}</h4>
                         <div className="grid grid-cols-2 gap-2 text-xs bg-white p-2 rounded-xl border border-slate-200/60">
                           <div>
-                            <span className="text-xs font-bold text-slate-400 uppercase block">Horas Consumidas</span>
-                            <span className="text-xs font-black text-blue-700">{p.totalConsumedHours || 0}h / {p.totalBudgetHours || 0}h</span>
+                            <span className="text-xs font-medium text-slate-400 uppercase block">Horas Consumidas</span>
+                            <span className="text-sm font-semibold font-display text-slate-900">{p.totalConsumedHours || 0}h / {p.totalBudgetHours || 0}h</span>
                           </div>
                           <div>
-                            <span className="text-xs font-bold text-slate-400 uppercase block">Eficiencia</span>
-                            <span className="text-xs font-black text-emerald-700">{p.efficiencyScore || 100}%</span>
+                            <span className="text-xs font-medium text-slate-400 uppercase block">Eficiencia</span>
+                            <span className="text-sm font-semibold font-display text-slate-900">{p.efficiencyScore || 100}%</span>
                           </div>
                         </div>
                       </div>

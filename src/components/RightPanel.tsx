@@ -90,11 +90,11 @@ export default function RightPanel({
   if (finalHealth < 50) {
     healthColor = 'text-red-700 bg-red-50 border-red-100';
     healthProgressColor = 'bg-red-500';
-    healthAdvice = 'âš ï¸ Alerta CrÃ­tica: El proyecto requiere atenciÃ³n inmediata. Se sugieren reuniones de contenciÃ³n.';
+    healthAdvice = '⚠️ Alerta Crítica: El proyecto requiere atención inmediata. Se sugieren reuniones de contención.';
   } else if (finalHealth < 75) {
     healthColor = 'text-amber-700 bg-amber-50 border-amber-100';
     healthProgressColor = 'bg-amber-500';
-    healthAdvice = 'âš ï¸ Riesgo Moderado: Revisar cuellos de botella y asegurar las firmas de alcance pendientes.';
+    healthAdvice = '⚠️ Riesgo Moderado: Revisar cuellos de botella y asegurar las firmas de alcance pendientes.';
   }
 
   // Generate copyable markdown report
@@ -103,9 +103,9 @@ export default function RightPanel({
       .map((p) => `- [${p.status === 'completed' ? 'X' : ' '}] Phase ${p.id} â€” ${p.label} (${p.status})`)
       .join('\n');
 
-    return `### ðŸ“Š Reporte de Proyecto: ${project.name}
+    return `### 📊 Reporte de Proyecto: ${project.name}
 **Cliente:** ${project.clientName} (${project.clientContact})
-**Fecha de CreaciÃ³n:** ${new Date(project.createdAt).toLocaleDateString()}
+**Fecha de Creación:** ${new Date(project.createdAt).toLocaleDateString()}
 **Salud del Proyecto:** ${finalHealth}%
 **Horas Logueadas:** ${hoursUsed}h / ${hoursTotal}h (${hoursPercent}%)
 **Progreso Global:** ${progressPercent}% (${completedCount}/7 fases completas)
@@ -118,7 +118,7 @@ ${phaseListStr}
 - **Alcance:** ${project.alcance || 'Pendiente de registrar.'}
 - **Riesgos:** ${project.riesgos || 'Ninguno registrado.'}
 
-*Generado automÃ¡ticamente mediante Sistema de Fases SaaS.*`;
+*Generado automáticamente mediante Sistema de Fases SaaS.*`;
   };
 
   const handleCopyReport = () => {
@@ -141,7 +141,7 @@ ${phaseListStr}
       <div className="space-y-6">
         <div>
           <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
-            MÃ©tricas de Salud & Esfuerzo
+            Métricas de Salud & Esfuerzo
           </h2>
 
           {/* BLOCK 1: SALUD DEL PROYECTO */}
@@ -149,7 +149,7 @@ ${phaseListStr}
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5">
                 <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500" />
-                Salud del Proyecto (AutomÃ¡tica)
+                Salud del Proyecto (Automática)
               </span>
               <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${healthColor}`}>
                 {finalHealth}%
@@ -177,7 +177,7 @@ ${phaseListStr}
           <div className="space-y-3">
             <StackedHoursBar timeEntries={timeEntries} hoursTotal={hoursTotal} />
 
-            {/* BLOCK 2B: ANÃLISIS DE RETRABAJOS (FASE 1) */}
+            {/* BLOCK 2B: ANÁLISIS DE RETRABAJOS (FASE 1) */}
             {(() => {
               const retrabajoStats = getRetrabajoStats(project);
               const retrabajoBadge = getRetrabajoBadgeStyle(retrabajoStats.porcentajeRetrabajo);
@@ -212,7 +212,7 @@ ${phaseListStr}
 
                       {retrabajoStats.entriesRetrabajo.length > 0 && (
                         <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                          <span className="text-xs font-bold text-slate-500 block uppercase tracking-wider">Ãšltimos Retrabajos</span>
+                          <span className="text-xs font-bold text-slate-500 block uppercase tracking-wider">Últimos Retrabajos</span>
                           <div className="max-h-28 overflow-y-auto space-y-1 pr-1 text-xs">
                             {retrabajoStats.entriesRetrabajo.slice(-3).reverse().map(e => (
                               <div key={e.id} className="bg-slate-50 border border-slate-100 p-2 rounded-lg flex justify-between items-start gap-2">
@@ -233,7 +233,7 @@ ${phaseListStr}
                       )}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400 font-medium">Sin registro de horas todavÃ­a.</p>
+                    <p className="text-xs text-slate-400 font-medium">Sin registro de horas todavía.</p>
                   )}
                 </div>
               );
@@ -275,8 +275,8 @@ ${phaseListStr}
 
                 const actionText = type === 'retrabajo' ? 'Registro Retrabajo' : 'Registro Horas';
                 const detailText = type === 'retrabajo'
-                  ? `CargÃ³ ${hours}h de retrabajo [Origen: ${retrabajoOrigen}] en fase ${activePhase.id}: "${retrabajoMotivo || description}"`
-                  : `CargÃ³ ${hours}h en fase ${activePhase.id}: "${description}"`;
+                  ? `Cargó ${hours}h de retrabajo [Origen: ${retrabajoOrigen}] en fase ${activePhase.id}: "${retrabajoMotivo || description}"`
+                  : `Cargó ${hours}h en fase ${activePhase.id}: "${description}"`;
 
                 const newAuditLog = [
                   {
@@ -309,7 +309,7 @@ ${phaseListStr}
                     userRole: currentUser.role,
                     action: 'Ajuste Presupuesto',
                     entityType: 'Presupuesto',
-                    details: `ReasignÃ³ presupuestos de roles. Nuevo total: ${
+                    details: `Reasignó presupuestos de roles. Nuevo total: ${
                       (newBudget.coordinador?.allocated || 0) +
                       (newBudget.sac?.allocated || 0) +
                       (newBudget.content?.allocated || 0)
@@ -331,7 +331,7 @@ ${phaseListStr}
             <Clock className="w-5 h-5 text-rose-500 mx-auto" />
             <h4 className="text-xs font-bold text-rose-800">Presupuesto de Horas</h4>
             <p className="text-xs text-rose-600 font-semibold leading-normal">
-              Acceso Restringido: El perfil de Cliente no visualiza mÃ©tricas de tiempos internas.
+              Acceso Restringido: El perfil de Cliente no visualiza métricas de tiempos internas.
             </p>
           </div>
         )}
@@ -406,7 +406,7 @@ ${phaseListStr}
             <h4 className="text-xs font-bold text-emerald-900">Empaquetar Cierre ZIP</h4>
           </div>
           <p className="text-xs text-emerald-700 leading-relaxed font-semibold">
-            Genera un archivo ZIP que incluye el historial de auditorÃ­a completo, reporte de feedback con anotaciones y el respaldo en JSON.
+            Genera un archivo ZIP que incluye el historial de auditoría completo, reporte de feedback con anotaciones y el respaldo en JSON.
           </p>
           <button
             onClick={handleExportToZip}
@@ -451,7 +451,7 @@ ${phaseListStr}
             {/* Modal Body */}
             <div className="p-6 overflow-y-auto bg-slate-50/50 flex-1 space-y-4">
               <p className="text-xs text-slate-500 font-medium">
-                Usa este informe estructurado para compartir con el equipo cliente, incluir en la minuta del Sprint o enviar por canales de mensajerÃ­a:
+                Usa este informe estructurado para compartir con el equipo cliente, incluir en la minuta del Sprint o enviar por canales de mensajería:
               </p>
 
               <div className="bg-white border border-slate-200 rounded-xl p-4 font-mono text-xs text-slate-700 whitespace-pre-wrap select-all leading-relaxed max-h-[45vh] overflow-y-auto shadow-inner">
@@ -476,7 +476,7 @@ ${phaseListStr}
                   className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md cursor-pointer"
                 >
                   <Copy className="w-3.5 h-3.5 text-lime-400" />
-                  {copied ? 'Â¡Copiado!' : 'Copiar Informe'}
+                  {copied ? '¡Copiado!' : 'Copiar Informe'}
                 </button>
               </div>
             </div>

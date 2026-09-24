@@ -48,14 +48,14 @@ export const TppLogo: React.FC<TppLogoProps> = ({
       {variant === 'full' && (
         <div className="flex flex-col leading-none">
           <div className="flex items-baseline gap-1">
-            <span className={`font-black tracking-tight text-[#FF5500] ${textSize}`}>
+            <span className={`font-semibold tracking-tight ${darkMode ? 'text-white' : 'text-slate-900'} ${textSize}`}>
               TPP
             </span>
-            <span className={`font-black tracking-wider ${darkMode ? 'text-white' : 'text-slate-800'} ${textSize}`}>
+            <span className={`font-semibold tracking-wider ${darkMode ? 'text-slate-200' : 'text-slate-700'} ${textSize}`}>
               HUB
             </span>
           </div>
-          <span className={`text-xs font-bold uppercase tracking-widest ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
+          <span className={`text-xs font-medium uppercase tracking-widest ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
             DIGITAL
           </span>
         </div>

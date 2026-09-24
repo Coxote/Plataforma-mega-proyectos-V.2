@@ -1,0 +1,89 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A project managed by the platform with phases, OVs, budget, raci and time tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for project" },
+        "name": { "type": "string", "description": "Project title" },
+        "clientName": { "type": "string", "description": "Client commercial name" },
+        "clientContact": { "type": "string", "description": "Client main contact" },
+        "startDate": { "type": "string", "description": "Project start date" },
+        "endDate": { "type": "string", "description": "Project target end date" },
+        "deliverablesCount": { "type": "number", "description": "Target deliverable units" },
+        "description": { "type": "string", "description": "Project overview" },
+        "currency": { "type": "string", "description": "Billing currency" },
+        "totalIncome": { "type": "number", "description": "Total contract value" },
+        "hoursTotal": { "type": "number", "description": "Total sold hours" },
+        "activePhaseId": { "type": "string", "description": "Currently active phase id" },
+        "health": { "type": "number", "description": "Calculated project health index" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["id", "name", "clientName", "createdAt"]
+    },
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with role, capacity and platform preferences",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique user id" },
+        "username": { "type": "string", "description": "Username identifier" },
+        "email": { "type": "string", "description": "User email address" },
+        "role": { "type": "string", "description": "Assigned platform role" },
+        "puesto": { "type": "string", "description": "Display job title" },
+        "capacidadMensualHoras": { "type": "number", "description": "Monthly capacity in hours" },
+        "createdAt": { "type": "string", "description": "Registration date" }
+      },
+      "required": ["id", "username", "role"]
+    },
+    "Client": {
+      "title": "Client",
+      "description": "Commercial client directory record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Client ID" },
+        "nombreComercial": { "type": "string", "description": "Commercial brand name" },
+        "categoria": { "type": "string", "description": "Market sector category" },
+        "contactoPrincipal": { "type": "string", "description": "Primary contact name" },
+        "estado": { "type": "string", "description": "Client status: activo, inactivo, pausado" },
+        "fechaAlta": { "type": "string", "description": "Creation date" }
+      },
+      "required": ["id", "nombreComercial", "estado"]
+    },
+    "PlannerTask": {
+      "title": "PlannerTask",
+      "description": "Planner task assignment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Task identifier" },
+        "brand": { "type": "string", "description": "Brand name" },
+        "project": { "type": "string", "description": "Project title" },
+        "projectId": { "type": "string", "description": "Associated project ID" },
+        "start": { "type": "string", "description": "Start date" },
+        "deadline": { "type": "string", "description": "Deadline date" },
+        "priority": { "type": "string", "description": "Task priority" },
+        "status": { "type": "string", "description": "Task status" }
+      },
+      "required": ["id", "brand", "project", "start", "deadline"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "Central project documents"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Internal and external user profiles"
+    },
+    "/clients/{clientId}": {
+      "schema": { "$ref": "#/entities/Client" },
+      "description": "Commercial client brand records"
+    },
+    "/plannerTasks/{taskId}": {
+      "schema": { "$ref": "#/entities/PlannerTask" },
+      "description": "Workload and planner task schedule records"
+    }
+  }
+}

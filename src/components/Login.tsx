@@ -12,7 +12,7 @@ interface LoginProps {
 const ARTWORK_SLIDES = [
   {
     id: 1,
-    title: "Esferas 3D & NÃºcleo Naranja",
+    title: "Esferas 3D & Núcleo Naranja",
     url: "/src/assets/images/spheres_3d_artwork_1786405864690.jpg",
     fallbackUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop",
     gradient: "from-amber-900/60 to-slate-950/80",
@@ -20,7 +20,7 @@ const ARTWORK_SLIDES = [
   },
   {
     id: 2,
-    title: "VÃ³rtice LÃ­quido Naranja",
+    title: "Vórtice Líquido Naranja",
     url: "/src/assets/images/orange_swirl_vortex_1786405886375.jpg",
     fallbackUrl: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=1200&auto=format&fit=crop",
     gradient: "from-orange-950/70 to-red-950/80",
@@ -28,7 +28,7 @@ const ARTWORK_SLIDES = [
   },
   {
     id: 3,
-    title: "Mano 3D TÃ¡ctil Peluda",
+    title: "Mano 3D Táctil Peluda",
     url: "/src/assets/images/orange_fuzzy_hand_1786405899645.jpg",
     fallbackUrl: "https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?q=80&w=1200&auto=format&fit=crop",
     gradient: "from-amber-600/60 to-orange-950/80",
@@ -36,7 +36,7 @@ const ARTWORK_SLIDES = [
   },
   {
     id: 4,
-    title: "IlustraciÃ³n Vectorial de Equipo",
+    title: "Ilustración Vectorial de Equipo",
     url: "/src/assets/images/team_vector_art_1786405910647.jpg",
     fallbackUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop",
     gradient: "from-orange-600/50 to-blue-900/80",
@@ -69,7 +69,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
     }
 
     if (!password) {
-      setError('Por favor, ingresa tu contraseÃ±a.');
+      setError('Por favor, ingresa tu contraseña.');
       return;
     }
 
@@ -121,7 +121,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
         id="login-card"
       >
 
-        {/* Panel Izquierdo (ComposiciÃ³n 3D limpia separada a 13px de los bordes con radio anidado de 7px) */}
+        {/* Panel Izquierdo (Composición 3D limpia separada a 13px de los bordes con radio anidado de 7px) */}
         <div className="relative w-full aspect-[4/5] md:h-[510px] rounded-[7px] overflow-hidden bg-slate-100 shadow-sm">
           <img
             src={currentSlide.url}
@@ -137,14 +137,14 @@ export default function Login({ onLogin, usersList }: LoginProps) {
           />
         </div>
 
-        {/* Panel Derecho (UI / Formulario Iniciar SesiÃ³n con mayor separaciÃ³n respecto a la imagen) */}
+        {/* Panel Derecho (UI / Formulario Iniciar Sesión con mayor separación respecto a la imagen) */}
         <div className="w-full h-full flex flex-col justify-start pt-2 md:pt-4 pb-12 md:pb-16 pr-2 sm:pr-6 pl-3 md:pl-6">
           <div className="w-full max-w-[290px] space-y-4">
 
-          {/* Encabezados - Texto Iniciar SesiÃ³n ampliado ~20% */}
+          {/* Encabezados - Texto Iniciar Sesión ampliado ~20% */}
           <div className="space-y-0.5">
             <h1 className="text-2xl sm:text-[30px] font-semibold text-[#18181b] tracking-tight leading-tight">
-              Iniciar SesiÃ³n
+              Iniciar Sesión
             </h1>
             <p className="text-xs sm:text-xs text-[#71717a] font-normal">
               Ingresa tus credenciales
@@ -180,18 +180,18 @@ export default function Login({ onLogin, usersList }: LoginProps) {
               />
             </div>
 
-            {/* Input 2: ContraseÃ±a */}
+            {/* Input 2: Contraseña */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <label className="block text-xs sm:text-xs font-semibold text-[#3f3f46]">
-                  ContraseÃ±a
+                  Contraseña
                 </label>
                 <a
                   href="#forgot"
-                  onClick={(e) => { e.preventDefault(); setError('Instrucciones de recuperaciÃ³n enviadas a administraciÃ³n.'); }}
+                  onClick={(e) => { e.preventDefault(); setError('Instrucciones de recuperación enviadas a administración.'); }}
                   className="text-xs sm:text-xs font-medium text-[#FF5500] hover:underline"
                 >
-                  Â¿Olvidaste tu contraseÃ±a?
+                  ¿Olvidaste tu contraseña?
                 </a>
               </div>
               <div className="relative">
@@ -199,7 +199,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                  placeholder="••••••••"
                   className="w-full bg-white border-2 border-[#FF5500] rounded-[7px] px-2.5 py-1.5 text-xs text-[#18181b] outline-none transition-all pr-8"
                   id="login-password"
                 />
@@ -213,7 +213,7 @@ export default function Login({ onLogin, usersList }: LoginProps) {
               </div>
             </div>
 
-            {/* Checkbox: Mantener sesiÃ³n */}
+            {/* Checkbox: Mantener sesión */}
             <div className="flex items-center gap-1.5 pt-0.5">
               <input
                 type="checkbox"
@@ -223,24 +223,24 @@ export default function Login({ onLogin, usersList }: LoginProps) {
                 className="w-3 h-3 rounded-[3px] border-[#D1D5DB] text-[#FF5500] focus:ring-[#FF5500] cursor-pointer"
               />
               <label htmlFor="rememberMe" className="text-xs sm:text-xs text-[#3f3f46] font-normal cursor-pointer select-none">
-                Mantener sesiÃ³n
+                Mantener sesión
               </label>
             </div>
 
-            {/* BotÃ³n Principal CTA */}
+            {/* Botón Principal CTA */}
             <button
               type="submit"
               className="w-full bg-[#FF5500] hover:bg-[#E04B00] text-white font-medium py-2 rounded-[7px] text-xs transition-all shadow-sm cursor-pointer text-center active:scale-[0.99] mt-1"
               id="login-submit-btn"
             >
-              Iniciar SesiÃ³n
+              Iniciar Sesión
             </button>
           </form>
 
-          {/* Accesos rÃ¡pidos de ejemplo */}
+          {/* Accesos rápidos de ejemplo */}
           <div className="pt-1.5 border-t border-slate-100 space-y-1">
             <span className="text-xs font-medium text-slate-400 block">
-              Accesos de prueba rÃ¡pidos:
+              Accesos de prueba rápidos:
             </span>
             <div className="flex flex-wrap gap-1">
               {usersList.slice(0, 4).map((u) => (
