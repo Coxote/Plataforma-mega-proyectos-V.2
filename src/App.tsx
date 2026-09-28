@@ -163,13 +163,6 @@ export default function App() {
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
   const [singleProjectRestrictionModal, setSingleProjectRestrictionModal] = useState(false);
 
-  // Trigger Onboarding modal if logged-in user hasn't completed onboarding preferences
-  useEffect(() => {
-    if (currentUser && !currentUser.preferences?.onboardingCompletedAt) {
-      setIsOnboardingOpen(true);
-    }
-  }, [currentUser?.id, currentUser?.preferences?.onboardingCompletedAt]);
-
   // Hook de monitoreo de entregables y SLAs del sistema
   const deliverableMonitoring = useDeliverableMonitoring(projects);
 
