@@ -9,6 +9,13 @@ import { getUserColor } from '../dashboardUtils';
 import { StatBar, StatItem } from './StatBar';
 import { tokens, ui } from '../theme';
 import {
+  deletePlannerTaskFromFirestore,
+  savePlannerTaskToFirestore,
+  seedPlannerTasksIfEmpty,
+  subscribePlannerTasks,
+  type PlannerTaskRecord
+} from '../services/firebaseDb';
+import {
   Plus,
   Trash2,
   Calendar,
@@ -37,19 +44,7 @@ import {
   X
 } from 'lucide-react';
 
-interface PlannerTask {
-  id: string;
-  brand: string;
-  project: string;
-  projectId?: string;
-  start: string;
-  deadline: string;
-  assignedTo?: string; // Legacy single user
-  assignedToUsers?: string[]; // Multi-user array
-  status: 'pendiente' | 'proceso' | 'completado';
-  priority?: 'alta' | 'media' | 'baja';
-  estimatedHours?: number;
-}
+type PlannerTask = PlannerTaskRecord;
 
 interface PlannerGridProps {
   projects: Project[];
@@ -160,7 +155,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
     }
   };
 
-  // Load from localStorage on mount
+  // Load local cache first, then subscribe to Cloud Firestore for multi-device sync.
   useEffect(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -172,16 +167,34 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
     } else {
       setTasks(INITIAL_TASKS);
     }
+
+    seedPlannerTasksIfEmpty(INITIAL_TASKS).catch(err => console.warn('Cloud sync note (Planner seed):', err));
+
+    const unsubscribe = subscribePlannerTasks((cloudTasks) => {
+      if (cloudTasks.length > 0) {
+        setTasks(cloudTasks);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudTasks));
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // Save tasks to localStorage on change
-  const saveTasks = (updatedTasks: PlannerTask[]) => {
+  // Save tasks locally and persist changed records to Cloud Firestore.
+  const saveTasks = (updatedTasks: PlannerTask[], changedTask?: PlannerTask, deletedTaskId?: string) => {
     setTasks(updatedTasks);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedTasks));
+    if (changedTask) {
+      savePlannerTaskToFirestore(changedTask).catch(err => console.warn('Cloud sync error (Planner Task):', err));
+    }
+    if (deletedTaskId) {
+      deletePlannerTaskFromFirestore(deletedTaskId).catch(err => console.warn('Cloud sync error (Delete Planner Task):', err));
+    }
   };
 
   // Assign user to a task (supports configurable max members)
   const handleAssignTask = (taskId: string, userId: string) => {
+    let changedTask: PlannerTask | undefined;
     const updated = tasks.map(t => {
       if (t.id === taskId) {
         const currentArr = t.assignedToUsers || (t.assignedTo ? [t.assignedTo] : []);
@@ -190,36 +203,41 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
           if (newArr.length > maxMembersPerTask) {
             newArr = newArr.slice(newArr.length - maxMembersPerTask);
           }
-          return { ...t, assignedToUsers: newArr, assignedTo: newArr[0] };
+          changedTask = { ...t, assignedToUsers: newArr, assignedTo: newArr[0] };
+          return changedTask;
         }
       }
       return t;
     });
-    saveTasks(updated);
+    saveTasks(updated, changedTask);
   };
 
   // Unassign user from a task
   const handleUnassignTask = (taskId: string, userId: string) => {
+    let changedTask: PlannerTask | undefined;
     const updated = tasks.map(t => {
       if (t.id === taskId) {
         const currentArr = t.assignedToUsers || (t.assignedTo ? [t.assignedTo] : []);
         const newArr = currentArr.filter(id => id !== userId);
-        return { ...t, assignedToUsers: newArr, assignedTo: newArr[0] || undefined };
+        changedTask = { ...t, assignedToUsers: newArr, assignedTo: newArr[0] || undefined };
+        return changedTask;
       }
       return t;
     });
-    saveTasks(updated);
+    saveTasks(updated, changedTask);
   };
 
   // Change task status
   const handleStatusChange = (taskId: string, status: 'pendiente' | 'proceso' | 'completado') => {
+    let changedTask: PlannerTask | undefined;
     const updated = tasks.map(t => {
       if (t.id === taskId) {
-        return { ...t, status };
+        changedTask = { ...t, status };
+        return changedTask;
       }
       return t;
     });
-    saveTasks(updated);
+    saveTasks(updated, changedTask);
   };
 
   // Delete a task
@@ -227,7 +245,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
 
   const handleDeleteTask = (taskId: string) => {
     const updated = tasks.filter(t => t.id !== taskId);
-    saveTasks(updated);
+    saveTasks(updated, undefined, taskId);
   };
 
   // Handle Project Selection in Create Form to pre-fill brand
@@ -277,7 +295,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
       assignedTo: formAssignedUsers[0] || undefined
     };
 
-    saveTasks([newTask, ...tasks]);
+    saveTasks([newTask, ...tasks], newTask);
 
     // Reset form
     setFormBrand('');

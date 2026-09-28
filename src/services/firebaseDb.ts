@@ -12,6 +12,21 @@ import { Project, Client, UserSession } from '../types';
 export const PROJECTS_COL = 'projects';
 export const CLIENTS_COL = 'clients';
 export const USERS_COL = 'users';
+export const PLANNER_TASKS_COL = 'plannerTasks';
+
+export interface PlannerTaskRecord {
+  id: string;
+  brand: string;
+  project: string;
+  projectId?: string;
+  start: string;
+  deadline: string;
+  assignedTo?: string;
+  assignedToUsers?: string[];
+  status: 'pendiente' | 'proceso' | 'completado';
+  priority?: 'alta' | 'media' | 'baja';
+  estimatedHours?: number;
+}
 
 function sanitizeUserForFirestore(user: UserSession): UserSession {
   const { password, ...safeUser } = user;
@@ -148,6 +163,62 @@ export async function deleteUserFromFirestore(userId: string): Promise<void> {
     await deleteDoc(docRef);
   } catch (error) {
     handleFirestoreError(error, OperationType.DELETE, `${USERS_COL}/${userId}`);
+  }
+}
+
+/**
+ * Suscripción en tiempo real a las tareas del planner.
+ */
+export function subscribePlannerTasks(
+  onTasks: (tasks: PlannerTaskRecord[]) => void,
+  onError?: (err: any) => void
+) {
+  return onSnapshot(
+    collection(db, PLANNER_TASKS_COL),
+    (snapshot) => {
+      const tasks: PlannerTaskRecord[] = [];
+      snapshot.forEach((docSnap) => {
+        tasks.push(docSnap.data() as PlannerTaskRecord);
+      });
+      tasks.sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
+      onTasks(tasks);
+    },
+    (error) => {
+      console.warn('Firestore subscription warning (Planner Tasks):', error.message);
+      if (onError) onError(error);
+    }
+  );
+}
+
+export async function savePlannerTaskToFirestore(task: PlannerTaskRecord): Promise<void> {
+  try {
+    const docRef = doc(db, PLANNER_TASKS_COL, task.id);
+    await setDoc(docRef, task, { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.WRITE, `${PLANNER_TASKS_COL}/${task.id}`);
+  }
+}
+
+export async function deletePlannerTaskFromFirestore(taskId: string): Promise<void> {
+  try {
+    const docRef = doc(db, PLANNER_TASKS_COL, taskId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `${PLANNER_TASKS_COL}/${taskId}`);
+  }
+}
+
+export async function seedPlannerTasksIfEmpty(defaultTasks: PlannerTaskRecord[]): Promise<void> {
+  try {
+    const tasksSnap = await getDocs(collection(db, PLANNER_TASKS_COL));
+    if (tasksSnap.empty) {
+      console.log('Sembrando tareas iniciales del planner en Cloud Firestore...');
+      for (const task of defaultTasks) {
+        await setDoc(doc(db, PLANNER_TASKS_COL, task.id), task);
+      }
+    }
+  } catch (err) {
+    console.warn('Planner seed verification note:', err);
   }
 }
 
