@@ -1,0 +1,8 @@
+{
+  "firestore": [
+    {
+      "database": "ai-studio-plataformamegapr-c36b5048-d90a-47be-8366-2f67ba02330f",
+      "rules": "firestore.rules"
+    }
+  ]
+}
