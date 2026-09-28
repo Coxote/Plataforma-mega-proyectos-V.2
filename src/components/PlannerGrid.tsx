@@ -742,12 +742,12 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
               {/* Wizard Header */}
               <div className="p-5 border-b border-stone-100 flex items-center justify-between bg-stone-50/60">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-orange-50 text-[#FF5500] flex items-center justify-center font-bold text-xs">
+                  <div className="w-8 h-8 rounded-full bg-lime-50 text-lime-700 flex items-center justify-center font-bold text-xs">
                     {wizardStep}
                   </div>
                   <div>
                     <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#FF5500]" />
+                      <Sparkles className="w-4 h-4 text-[#c6ef4e]" />
                       Nueva Tarea / Pendiente
                     </h3>
                     <p className="text-xs text-slate-500 font-medium">
@@ -771,7 +771,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                   type="button"
                   onClick={() => setWizardStep(1)}
                   className={`flex items-center gap-2 text-xs font-bold px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
-                    wizardStep === 1 ? 'bg-orange-50 text-[#FF5500] shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                    wizardStep === 1 ? 'bg-lime-50 text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
                   <span className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-700">1</span>
@@ -789,7 +789,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                     setWizardStep(2);
                   }}
                   className={`flex items-center gap-2 text-xs font-bold px-3.5 py-1.5 rounded-full transition-all cursor-pointer ${
-                    wizardStep === 2 ? 'bg-orange-50 text-[#FF5500] shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                    wizardStep === 2 ? 'bg-lime-50 text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
                   }`}
                 >
                   <span className="w-4 h-4 rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-700">2</span>
@@ -814,7 +814,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                         <select
                           value={formSelectedProjectId}
                           onChange={(e) => handleSelectProjectInForm(e.target.value)}
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-[#FF5500] focus:border-[#FF5500] outline-none transition-all font-medium cursor-pointer"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-[#c6ef4e] focus:border-[#c6ef4e] outline-none transition-all font-medium cursor-pointer"
                         >
                           <option value="">-- No asociar / Tarea Independiente --</option>
                           {projects.map(p => (
@@ -830,7 +830,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                           value={formBrand}
                           onChange={(e) => setFormBrand(e.target.value)}
                           placeholder="Ej: Arrocha, Banco General"
-                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-[#FF5500] focus:border-[#FF5500] outline-none transition-all font-medium"
+                          className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-800 focus:ring-1 focus:ring-[#c6ef4e] focus:border-[#c6ef4e] outline-none transition-all font-medium"
                         />
                       </div>
 
@@ -839,7 +839,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                         <select
                           value={formPriority}
                           onChange={(e) => setFormPriority(e.target.value as any)}
-                          className="w-full bg-[#F4F5F0] border-0 rounded-2xl px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-[#FF5500] outline-none transition-all font-medium cursor-pointer"
+                          className="w-full bg-[#F4F5F0] border-0 rounded-2xl px-3 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-[#c6ef4e] outline-none transition-all font-medium cursor-pointer"
                         >
                           <option value="alta">🔴 Alta</option>
                           <option value="media">🟡 Media</option>
@@ -854,7 +854,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                           value={formProjectName}
                           onChange={(e) => setFormProjectName(e.target.value)}
                           placeholder="Ej: Producción de Video Reels para Redes Sociales"
-                          className="w-full bg-[#F4F5F0] border-0 rounded-2xl px-3.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-[#FF5500] outline-none transition-all font-medium"
+                          className="w-full bg-[#F4F5F0] border-0 rounded-2xl px-3.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-[#c6ef4e] outline-none transition-all font-medium"
                         />
                       </div>
 
@@ -867,7 +867,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                           value={formHours}
                           onChange={(e) => setFormHours(e.target.value ? Number(e.target.value) : '')}
                           placeholder="Ej: 8"
-                          className="w-full bg-[#F4F5F0] border-0 rounded-2xl px-3.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-[#FF5500] outline-none transition-all font-medium"
+                          className="w-full bg-[#F4F5F0] border-0 rounded-2xl px-3.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-[#c6ef4e] outline-none transition-all font-medium"
                         />
                       </div>
 
@@ -877,7 +877,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                           type="date"
                           value={formStart}
                           onChange={(e) => setFormStart(e.target.value)}
-                          className="w-full bg-[#F4F5F0] border-0 rounded-2xl px-3.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-[#FF5500] outline-none transition-all font-medium"
+                          className="w-full bg-[#F4F5F0] border-0 rounded-2xl px-3.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-[#c6ef4e] outline-none transition-all font-medium"
                         />
                       </div>
 
@@ -887,7 +887,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                           type="date"
                           value={formDeadline}
                           onChange={(e) => setFormDeadline(e.target.value)}
-                          className="w-full bg-[#F4F5F0] border-0 rounded-2xl px-3.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-[#FF5500] outline-none transition-all font-medium"
+                          className="w-full bg-[#F4F5F0] border-0 rounded-2xl px-3.5 py-2 text-xs text-slate-800 focus:ring-2 focus:ring-[#c6ef4e] outline-none transition-all font-medium"
                         />
                       </div>
                     </div>
@@ -929,7 +929,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                                 }}
                                 className={`flex items-center gap-2.5 p-2.5 rounded-2xl text-left transition-all cursor-pointer ${
                                   isSelected
-                                    ? 'bg-orange-50 text-slate-900 shadow-2xs ring-2 ring-[#FF5500]'
+                                    ? 'bg-lime-50 text-slate-900 shadow-2xs ring-2 ring-[#c6ef4e]'
                                     : 'bg-white text-slate-700 hover:bg-stone-50'
                                 }`}
                               >
@@ -944,7 +944,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                                   <div className="text-xs text-slate-400 font-medium">{u.puesto || u.role}</div>
                                 </div>
                                 <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${
-                                  isSelected ? 'bg-[#FF5500] text-white' : 'bg-stone-200 text-transparent'
+                                  isSelected ? 'bg-[#c6ef4e] text-black' : 'bg-stone-200 text-transparent'
                                 }`}>
                                   ✓
                                 </div>
@@ -983,7 +983,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                           setFormError(null);
                           setWizardStep(2);
                         }}
-                        className="bg-[#FF5500] hover:bg-[#E04B00] text-white font-bold px-5 py-2 rounded-full text-xs transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-[0.99]"
+                        className="bg-[#c6ef4e] hover:bg-[#b5e03b] text-black font-bold px-5 py-2 rounded-full text-xs transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-[0.99]"
                       >
                         <span>Siguiente: Asignar Equipo</span>
                         <ChevronRight className="w-3.5 h-3.5" />
@@ -991,7 +991,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                     ) : (
                       <button
                         type="submit"
-                        className="bg-[#FF5500] hover:bg-[#E04B00] text-white font-bold px-5 py-2 rounded-full text-xs transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-[0.99]"
+                        className="bg-[#c6ef4e] hover:bg-[#b5e03b] text-black font-bold px-5 py-2 rounded-full text-xs transition-all cursor-pointer shadow-xs flex items-center gap-1.5 active:scale-[0.99]"
                       >
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>Crear Tarea</span>
@@ -1020,7 +1020,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                 <thead>
                   <tr className="bg-[#F4F5F0] text-slate-600 uppercase text-xs font-bold tracking-wider border-b border-stone-200">
                     <th className="p-3 w-10 text-center">
-                      <input type="checkbox" className="rounded border-slate-300 text-[#FF5500] focus:ring-[#FF5500] cursor-pointer" />
+                      <input type="checkbox" className="rounded border-slate-300 text-[#c6ef4e] focus:ring-[#c6ef4e] cursor-pointer" />
                     </th>
                     <th className="p-3">PROYECTO & MARCA</th>
                     <th className="p-3">INICIO</th>
@@ -1049,12 +1049,12 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                       <tr key={task.id} className="hover:bg-slate-50/70 transition-colors group">
 
                         <td className="p-3 text-center">
-                          <input type="checkbox" className="rounded border-slate-300 text-[#FF5500] focus:ring-[#FF5500] cursor-pointer" />
+                          <input type="checkbox" className="rounded border-slate-300 text-[#c6ef4e] focus:ring-[#c6ef4e] cursor-pointer" />
                         </td>
 
                         <td className="p-3">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-xl bg-orange-50 text-[#FF5500] border border-orange-100 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                            <div className="w-8 h-8 rounded-xl bg-lime-50 text-lime-700 border border-lime-100 flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
                               {task.brand.substring(0, 2).toUpperCase()}
                             </div>
                             <div>

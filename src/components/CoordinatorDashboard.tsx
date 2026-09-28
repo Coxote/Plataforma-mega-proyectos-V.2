@@ -186,7 +186,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
   }, [currentProject]);
 
   const healthTrend: 'up' | 'down' = healthScore >= 75 ? 'up' : healthScore >= 50 ? 'up' : 'down';
-  const healthColor = healthScore >= 75 ? '#12AB51' : healthScore >= 50 ? '#FF5500' : '#EF4444';
+  const healthColor = healthScore >= 75 ? '#12AB51' : healthScore >= 50 ? '#c6ef4e' : '#EF4444';
 
   const spiDisplay = useMemo(() => {
     if (currentProject?.id === 'p1') return '0.96';
@@ -196,7 +196,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
   }, [currentProject]);
 
   const spiSubtitle = parseFloat(spiDisplay) >= 1.0 ? 'Adelantado' : parseFloat(spiDisplay) >= 0.90 ? 'En plan' : 'Con retraso';
-  const spiColor = parseFloat(spiDisplay) >= 0.90 ? '#12AB51' : '#FF5500';
+  const spiColor = parseFloat(spiDisplay) >= 0.90 ? '#12AB51' : '#c6ef4e';
 
   const cpiDisplay = useMemo(() => {
     if (currentProject?.id === 'p1') return '1.0';
@@ -206,7 +206,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
   }, [currentProject]);
 
   const cpiSubtitle = parseFloat(cpiDisplay) >= 1.0 ? '5% eficiencia' : 'Sobre costo';
-  const cpiColor = parseFloat(cpiDisplay) >= 1.0 ? '#12AB51' : '#FF5500';
+  const cpiColor = parseFloat(cpiDisplay) >= 1.0 ? '#12AB51' : '#c6ef4e';
 
   // Global progress calculation
   const globalProgress = useMemo(() => {
@@ -983,7 +983,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                         {ph.estado === 'completed' ? (
                           <CheckCircle2 className="w-3.5 h-3.5 text-[#12AB51]" />
                         ) : ph.estado === 'active' ? (
-                          <Clock className="w-3.5 h-3.5 text-[#FF5500] animate-pulse" />
+                          <Clock className="w-3.5 h-3.5 text-[#c6ef4e] animate-pulse" />
                         ) : (
                           <span className="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block" />
                         )}
@@ -999,7 +999,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                         className="h-full rounded-full transition-all duration-300"
                         style={{
                           width: `${ph.completado}%`,
-                          backgroundColor: ph.estado === 'completed' ? '#12AB51' : ph.estado === 'active' ? '#FF5500' : '#CBD5E1'
+                          backgroundColor: ph.estado === 'completed' ? '#12AB51' : ph.estado === 'active' ? '#c6ef4e' : '#CBD5E1'
                         }}
                       />
                     </div>
@@ -1030,7 +1030,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
               <div className="flex items-center justify-between pb-3 mb-3 border-b border-stone-100">
                 <div>
                   <h3 className="text-sm font-semibold text-[#1E293B] flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-[#FF5500]" />
+                    <Sparkles className="w-4 h-4 text-[#c6ef4e]" />
                     Matriz de Riesgo y Criticidad (Heatmap 5x5)
                   </h3>
                   <p className="text-xs text-[#64748B] mt-0.5">
@@ -1063,7 +1063,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                           let cellBg = '#DCFCE7'; // light green
                           let textColor = '#166534';
                           if (score >= 16) {
-                            cellBg = '#FF5500';
+                            cellBg = '#c6ef4e';
                             textColor = '#FFFFFF';
                           } else if (score >= 10) {
                             cellBg = '#FB923C';
@@ -1145,7 +1145,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                   <span className="w-2.5 h-2.5 rounded-sm bg-[#FEF08A]"></span> Medio
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-[#FF5500]"></span> Crítico
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[#c6ef4e]"></span> Crítico
                 </span>
               </div>
               <span className="font-medium text-slate-800">100% Celdas 1:1</span>
@@ -1204,8 +1204,8 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                           <span
                             className="text-[11px] font-bold px-1.5 py-0.5 rounded-full"
                             style={{
-                              backgroundColor: isOver ? '#FF550015' : '#12AB5115',
-                              color: isOver ? '#FF5500' : '#12AB51'
+                              backgroundColor: isOver ? '#c6ef4e15' : '#12AB5115',
+                              color: isOver ? '#c6ef4e' : '#12AB51'
                             }}
                           >
                             {member.effectiveSaturation}%

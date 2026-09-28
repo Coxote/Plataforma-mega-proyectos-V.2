@@ -318,7 +318,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                                 <span className={`w-2 h-2 rounded-full ${cfg.dotColor}`} />
                                 <span>{cfg.label}</span>
                               </div>
-                              {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-[#FF5500]" />}
+                              {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-[#c6ef4e]" />}
                             </button>
                           );
                         })}
@@ -404,19 +404,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       {/* MÓDULO INFERIOR: ASISTENTE IA Y SALIDA */}
       <div className={`p-2.5 border-t border-slate-800/80 space-y-1 bg-[#1A1A1A] shrink-0 ${isCollapsed ? 'px-1' : 'sm:p-2.5'}`}>
         
-        {/* Botón Asistente: color #fd4c06, limpio sin recuadro */}
+        {/* Botón Asistente: color #c6ef4e, limpio sin recuadro */}
         <button
           onClick={() => {
             setIsAIAssistantOpen(true);
             setIsMobileMenuOpen(false);
           }}
           title="Asistente IA"
-          className={`flex items-center text-[#fd4c06] bg-transparent border-none cursor-pointer text-xs font-semibold ${
+          className={`flex items-center text-[#c6ef4e] bg-transparent border-none cursor-pointer text-xs font-semibold ${
             isCollapsed ? 'w-8 h-8 justify-center mx-auto p-0' : 'w-full px-3 py-1.5 gap-2.5 min-h-[32px] pl-3.5'
           }`}
         >
-          <Mic className="w-3.5 h-3.5 shrink-0 text-[#fd4c06]" />
-          {!isCollapsed && <span className="sidebar-text text-[#fd4c06] font-semibold">Asistente</span>}
+          <Mic className="w-3.5 h-3.5 shrink-0 text-[#c6ef4e]" />
+          {!isCollapsed && <span className="sidebar-text text-[#c6ef4e] font-semibold">Asistente</span>}
         </button>
 
         {/* Salir del Sistema: hover rojo #c52211 */}

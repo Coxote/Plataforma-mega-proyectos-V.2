@@ -530,8 +530,8 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
       category: 'Finanzas y Órdenes de Venta',
       description: 'Sincronización de Órdenes de Venta (OV), clientes, facturación y estados de cobro en tiempo real.',
       icon: Database,
-      accentColor: 'from-[#FF5500] to-amber-600',
-      badgeBg: 'bg-orange-50 text-orange-800 border-orange-200',
+      accentColor: 'from-[#c6ef4e] to-amber-600',
+      badgeBg: 'bg-lime-50 text-lime-800 border-lime-200',
       requirements: [
         'URL del servidor Odoo v16+ (ej: https://miempresa.odoo.com)',
         'Nombre exacto de la Base de Datos de producción',
@@ -1312,7 +1312,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                   value={newRuleName}
                   onChange={(e) => setNewRuleName(e.target.value)}
                   placeholder="Ej: Enviar alerta Teams al marcar entregable como retrabajo"
-                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30"
+                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#c6ef4e]/30"
                 />
               </div>
 
@@ -1321,7 +1321,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                 <select
                   value={newRuleEvent}
                   onChange={(e) => setNewRuleEvent(e.target.value as any)}
-                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30"
+                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#c6ef4e]/30"
                 >
                   <option value="deliverable.rework">deliverable.rework (Entregable a Retrabajo)</option>
                   <option value="sla.vencido">sla.vencido (SLA Vencido en Fase)</option>
@@ -1335,7 +1335,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                 <select
                   value={newRuleTarget}
                   onChange={(e) => setNewRuleTarget(e.target.value as any)}
-                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30"
+                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#c6ef4e]/30"
                 >
                   <option value="teams_channel">Canal Microsoft Teams (Webhook)</option>
                   <option value="odoo_log">Registrar Log auditado en Odoo ERP</option>

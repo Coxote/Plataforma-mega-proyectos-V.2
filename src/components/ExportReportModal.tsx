@@ -205,7 +205,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                 <select
                   value={selectedPhaseFilter}
                   onChange={(e) => setSelectedPhaseFilter(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5500]/50"
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/50"
                 >
                   <option value="all">Todas las Fases ({project.phases.length})</option>
                   {project.phases.map(p => (
@@ -221,7 +221,7 @@ export const ExportReportModal: React.FC<ExportReportModalProps> = ({
                 <select
                   value={dateRangeFilter}
                   onChange={(e) => setDateRangeFilter(e.target.value)}
-                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#FF5500]/50"
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/50"
                 >
                   <option value="all">Todo el Histórico</option>
                   <option value="month">Este Mes</option>

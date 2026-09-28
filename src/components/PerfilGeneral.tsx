@@ -199,13 +199,13 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
 
       {/* 🚀 DOSSIER HERO BANNER */}
       <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white rounded-2xl p-6 shadow-md border border-slate-700/60 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-lime-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
 
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-extrabold uppercase tracking-widest text-orange-400 bg-orange-900/50 px-2.5 py-1 rounded-md border border-orange-500/30 flex items-center gap-1">
+              <span className="text-xs font-extrabold uppercase tracking-widest text-lime-400 bg-lime-900/50 px-2.5 py-1 rounded-md border border-lime-500/30 flex items-center gap-1">
                 <FileCheck className="w-3 h-3" /> Expediente del Proyecto
               </span>
               <span className="text-slate-500">•</span>
@@ -258,7 +258,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             onClick={() => setActiveSection('all')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
               activeSection === 'all'
-                ? 'bg-orange-600 text-white shadow-xs'
+                ? 'bg-[#c6ef4e] text-black shadow-xs'
                 : 'bg-slate-800/90 text-slate-300 hover:text-white hover:bg-slate-700'
             }`}
           >
@@ -270,7 +270,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             onClick={() => setActiveSection('comercial')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
               activeSection === 'comercial'
-                ? 'bg-orange-600 text-white shadow-xs'
+                ? 'bg-[#c6ef4e] text-black shadow-xs'
                 : 'bg-slate-800/90 text-slate-300 hover:text-white hover:bg-slate-700'
             }`}
           >
@@ -282,7 +282,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             onClick={() => setActiveSection('tecnica')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
               activeSection === 'tecnica'
-                ? 'bg-orange-600 text-white shadow-xs'
+                ? 'bg-[#c6ef4e] text-black shadow-xs'
                 : 'bg-slate-800/90 text-slate-300 hover:text-white hover:bg-slate-700'
             }`}
           >
@@ -294,7 +294,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({ project, onUpdateP
             onClick={() => setActiveSection('horas')}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
               activeSection === 'horas'
-                ? 'bg-orange-600 text-white shadow-xs'
+                ? 'bg-[#c6ef4e] text-black shadow-xs'
                 : 'bg-slate-800/90 text-slate-300 hover:text-white hover:bg-slate-700'
             }`}
           >

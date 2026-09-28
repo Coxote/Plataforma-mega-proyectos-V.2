@@ -745,7 +745,7 @@ export default function PhaseContent({
                   activePhase.status === 'completed'
                     ? 'bg-emerald-600 text-white'
                     : (checklistTotal === 0 || checklistPercent === 100)
-                    ? 'bg-[#FF5500] hover:bg-[#E04B00] text-white'
+                    ? 'bg-[#c6ef4e] hover:bg-[#b5e03b] text-black'
                     : 'bg-amber-600 hover:bg-amber-700 text-white'
                 }`}
                 id="btn-complete-phase"

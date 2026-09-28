@@ -248,7 +248,7 @@ const OrdenesVentaArrayManager: React.FC<{
                     value={ov.descripcion}
                     onChange={(e) => onUpdateOV(ov.id, 'descripcion', e.target.value)}
                     placeholder="Servicios contratados..."
-                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:border-[#FF5500]"
+                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 focus:outline-none focus:border-[#c6ef4e]"
                   />
                 </div>
               </div>
@@ -271,7 +271,7 @@ const OrdenesVentaArrayManager: React.FC<{
                       }
                     }}
                     placeholder="Ej: 7175.10"
-                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-[#FF5500]"
+                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-[#c6ef4e]"
                   />
                 </div>
 
@@ -291,7 +291,7 @@ const OrdenesVentaArrayManager: React.FC<{
                       }
                     }}
                     placeholder="Ej: 861.02"
-                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-[#FF5500]"
+                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-[#c6ef4e]"
                   />
                 </div>
 
@@ -311,7 +311,7 @@ const OrdenesVentaArrayManager: React.FC<{
                       }
                     }}
                     placeholder="Ej: 35.88"
-                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-[#FF5500]"
+                    className="w-full px-2.5 py-1 bg-white border border-slate-200 rounded-md text-xs font-mono text-slate-800 focus:outline-none focus:border-[#c6ef4e]"
                   />
                 </div>
 
@@ -323,7 +323,7 @@ const OrdenesVentaArrayManager: React.FC<{
                     value={ov.monto}
                     onChange={(e) => onUpdateOV(ov.id, 'monto', e.target.value ? Number(e.target.value) : '')}
                     placeholder="Ej: 8072"
-                    className="w-full px-2.5 py-1 bg-white border border-orange-300 rounded-md text-xs font-bold text-slate-900 focus:outline-none focus:border-[#FF5500] font-mono shadow-2xs"
+                    className="w-full px-2.5 py-1 bg-white border border-lime-300 rounded-md text-xs font-bold text-slate-900 focus:outline-none focus:border-[#c6ef4e] font-mono shadow-2xs"
                   />
                 </div>
               </div>
@@ -332,10 +332,10 @@ const OrdenesVentaArrayManager: React.FC<{
               <div className="pt-2.5 border-t border-slate-100 bg-slate-50/70 p-3 rounded-xl space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-[#FF5500]" />
+                    <Clock className="w-3.5 h-3.5 text-[#c6ef4e]" />
                     Horas Vendidas por Rol (OV #{ov.numero || 'Sin número'})
                   </span>
-                  <span className="text-xs font-bold text-[#FF5500] bg-orange-50 border border-orange-200 px-2.5 py-0.5 rounded-full font-mono">
+                  <span className="text-xs font-bold text-slate-900 bg-lime-50 border border-lime-200 px-2.5 py-0.5 rounded-full font-mono">
                     Total Horas OV: {typeof ov.horasAsociadas === 'number' ? ov.horasAsociadas : 0} hrs
                   </span>
                 </div>
@@ -1018,7 +1018,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   placeholder="Ej: Rediseño Portal Clientes"
                   value={draft.projectName}
                   onChange={(e) => setDraft(prev => ({ ...prev, projectName: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FF5500]/50 bg-[#F4F5F0]"
+                  className="w-full px-4 py-3 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/50 bg-[#F4F5F0]"
                 />
               </div>
 
@@ -1030,7 +1030,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   placeholder="Introduce o selecciona cliente *"
                   value={draft.clientName}
                   onChange={(e) => setDraft(prev => ({ ...prev, clientName: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#FF5500]/50 bg-[#F4F5F0]"
+                  className="w-full px-4 py-3 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/50 bg-[#F4F5F0]"
                 />
                 <datalist id="clients-list-suggestions">
                   {clients.map((c: any) => (
@@ -1062,7 +1062,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
               <button
                 disabled={!draft.projectName.trim() || !draft.clientName.trim()}
                 onClick={() => setStep(2)}
-                className="px-8 py-3 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-full font-bold text-sm disabled:opacity-40 transition-colors cursor-pointer shadow-xs"
+                className="px-8 py-3 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-full font-bold text-sm disabled:opacity-40 transition-colors cursor-pointer shadow-xs"
               >
                 Siguiente
               </button>
@@ -1161,7 +1161,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                     {/* CREADOR MANUAL DE FASES CON CHECKLIST */}
                     <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-3">
                       <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                        <Layers className="w-4 h-4 text-[#FF5500]" />
+                        <Layers className="w-4 h-4 text-[#c6ef4e]" />
                         <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Crear Fase Manualmente</h4>
                       </div>
 
@@ -1172,7 +1172,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                           placeholder="Ej: Kickoff & Levantamiento"
                           value={newPhaseName}
                           onChange={(e) => setNewPhaseName(e.target.value)}
-                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#FF5500]"
+                          className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:border-[#c6ef4e]"
                         />
                       </div>
 
@@ -1185,7 +1185,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                             value={newChecklistText}
                             onChange={(e) => setNewChecklistText(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddChecklistItem())}
-                            className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:border-[#FF5500]"
+                            className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 focus:outline-none focus:border-[#c6ef4e]"
                           />
                           <button
                             type="button"
@@ -1218,7 +1218,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                         type="button"
                         onClick={handleAddManualPhase}
                         disabled={!newPhaseName.trim()}
-                        className="w-full py-2.5 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs disabled:opacity-40 flex items-center justify-center gap-1.5 mt-2"
+                        className="w-full py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs disabled:opacity-40 flex items-center justify-center gap-1.5 mt-2"
                       >
                         <Plus className="w-4 h-4" />
                         Agregar Fase a la Lista
@@ -1515,7 +1515,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                     setStep(1);
                   }
                 }}
-                className="text-xs font-bold text-[#FF5500] flex items-center gap-1 hover:underline cursor-pointer"
+                className="text-xs font-bold text-[#c6ef4e] flex items-center gap-1 hover:underline cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" /> Volver
               </button>
@@ -1530,7 +1530,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       setActiveTab('integrantes');
                     }
                   }}
-                  className="px-6 py-2.5 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+                  className="px-6 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
                 >
                   Siguiente
                 </button>
@@ -1539,7 +1539,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   type="button"
                   onClick={handleFinish}
                   disabled={!draft.projectName.trim() || !draft.clientName.trim()}
-                  className="px-8 py-3 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer disabled:opacity-40"
+                  className="px-8 py-3 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer disabled:opacity-40"
                 >
                   Crear Proyecto
                 </button>

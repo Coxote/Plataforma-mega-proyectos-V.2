@@ -361,7 +361,7 @@ export const NewClientWizard: React.FC<NewClientWizardProps> = ({ isOpen, onClos
                 <div className="flex justify-between pt-4">
                   <button onClick={() => setStep(1)} className="px-5 py-3 text-slate-500 font-bold text-sm hover:text-slate-800 cursor-pointer">Volver</button>
                   {isEditing ? (
-                    <button onClick={handleFinish} className="px-8 py-3 bg-[#FF5500] hover:bg-[#E04B00] text-white rounded-full font-bold text-sm cursor-pointer shadow-xs transition-all">Guardar Cliente</button>
+                    <button onClick={handleFinish} className="px-8 py-3 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-full font-bold text-sm cursor-pointer shadow-xs transition-all">Guardar Cliente</button>
                   ) : (
                     <button onClick={onClose} className="px-8 py-3 bg-slate-900 hover:bg-black text-white rounded-full font-bold text-sm cursor-pointer">Cerrar</button>
                   )}

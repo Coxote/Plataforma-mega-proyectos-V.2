@@ -241,7 +241,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
 
         {/* Header */}
         <div className="bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-800 relative overflow-hidden shrink-0">
-          <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-orange-500/20 to-transparent pointer-events-none" />
+          <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-lime-500/20 to-transparent pointer-events-none" />
 
           <div className="flex items-center gap-3 z-10">
             <div className="w-9 h-9 bg-slate-800 rounded-xl flex items-center justify-center shadow-md">
@@ -389,7 +389,7 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
                 <button
                   type="submit"
                   disabled={!inputText.trim() && !isRecording}
-                  className="p-3.5 bg-[#FF5500] text-white hover:bg-[#E04B00] disabled:opacity-40 rounded-xl transition-all flex items-center justify-center shrink-0 cursor-pointer shadow-md shadow-orange-500/20 hover:scale-105 active:scale-95"
+                  className="p-3.5 bg-[#c6ef4e] text-black hover:bg-[#b5e03b] disabled:opacity-40 rounded-xl transition-all flex items-center justify-center shrink-0 cursor-pointer shadow-md shadow-lime-500/20 hover:scale-105 active:scale-95"
                 >
                   <Send className="w-4 h-4" />
                 </button>

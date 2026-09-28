@@ -23,21 +23,21 @@ const ARTWORK_SLIDES = [
     title: "Vórtice Líquido",
     url: "/src/assets/images/orange_swirl_vortex_1786405886375.jpg",
     fallbackUrl: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?q=80&w=1200&auto=format&fit=crop",
-    gradient: "from-orange-950/70 to-red-950/80",
+    gradient: "from-lime-950/70 to-red-950/80",
   },
   {
     id: 3,
     title: "Mano 3D Táctil",
     url: "/src/assets/images/orange_fuzzy_hand_1786405899645.jpg",
     fallbackUrl: "https://images.unsplash.com/photo-1614741118887-7a4ee193a5fa?q=80&w=1200&auto=format&fit=crop",
-    gradient: "from-amber-600/60 to-orange-950/80",
+    gradient: "from-amber-600/60 to-lime-950/80",
   },
   {
     id: 4,
     title: "Ilustración Vectorial de Equipo",
     url: "/src/assets/images/team_vector_art_1786405910647.jpg",
     fallbackUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200&auto=format&fit=crop",
-    gradient: "from-orange-600/50 to-blue-900/80",
+    gradient: "from-lime-600/50 to-blue-900/80",
   }
 ];
 

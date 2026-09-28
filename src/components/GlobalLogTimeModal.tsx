@@ -136,7 +136,7 @@ export const GlobalLogTimeModal: React.FC<GlobalLogTimeModalProps> = ({
             <select
               value={selectedProjectId}
               onChange={handleProjectChange}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-500"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-500"
               required
             >
               {userProjects.length === 0 ? (
@@ -297,7 +297,7 @@ export const GlobalLogTimeModal: React.FC<GlobalLogTimeModalProps> = ({
             <button
               type="submit"
               disabled={!hours || Number(hours) <= 0 || (!description.trim() && !retrabajoMotivo.trim())}
-              className="px-5 py-2 bg-[#FF5500] hover:bg-[#E04B00] text-white text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-40"
+              className="px-5 py-2 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-40"
             >
               Guardar Horas
             </button>

@@ -1,9 +1,9 @@
 export const colors = {
   brand: {
-    DEFAULT: '#FF5500',
-    hover: '#E04B00',
-    subtle: '#FFF1EA',
-    glow: 'rgba(255, 85, 0, 0.15)',
+    DEFAULT: '#c6ef4e',
+    hover: '#b5e03b',
+    subtle: '#F3FBD1',
+    glow: 'rgba(198, 239, 78, 0.18)',
   },
   semantic: {
     success: '#059669',
@@ -77,11 +77,11 @@ export const ui = {
   badgeDanger: 'bg-rose-50 text-rose-700 border border-rose-200/70 text-xs px-2.5 py-0.5 rounded-full font-medium inline-flex items-center gap-1.5',
   badgeInfo: 'bg-blue-50 text-blue-700 border border-blue-200/70 text-xs px-2.5 py-0.5 rounded-full font-medium inline-flex items-center gap-1.5',
   badgeNeutral: 'bg-slate-100 text-slate-700 border border-slate-200 text-xs px-2.5 py-0.5 rounded-full font-medium inline-flex items-center gap-1.5',
-  badgeBrand: 'bg-orange-50 text-[#FF5500] border border-orange-200/70 text-xs px-2.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-1.5',
+  badgeBrand: 'bg-lime-50 text-lime-800 border border-lime-200/70 text-xs px-2.5 py-0.5 rounded-full font-semibold inline-flex items-center gap-1.5',
 
   // Inputs y Formularios
-  input: 'w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:border-[#FF5500] focus:ring-1 focus:ring-[#FF5500] outline-none transition-all placeholder:text-slate-400',
-  select: 'w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:border-[#FF5500] focus:ring-1 focus:ring-[#FF5500] outline-none transition-all cursor-pointer',
+  input: 'w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:border-[#c6ef4e] focus:ring-1 focus:ring-[#c6ef4e] outline-none transition-all placeholder:text-slate-400',
+  select: 'w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-900 focus:border-[#c6ef4e] focus:ring-1 focus:ring-[#c6ef4e] outline-none transition-all cursor-pointer',
   
   // Tablas
   tableHeader: 'bg-slate-50/80 text-slate-500 text-xs font-semibold uppercase tracking-wider px-4 py-2.5 border-b border-slate-200/80 text-left',

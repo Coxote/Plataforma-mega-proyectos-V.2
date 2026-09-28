@@ -29,7 +29,7 @@ export const TppLogo: React.FC<TppLogoProps> = ({
   return (
     <div className={`flex items-center gap-2.5 select-none ${className}`}>
       {/* ðŸŸ ðŸŸ¢ OFFICIAL TPP ICON MARK */}
-      <div className={`${iconDimensions} shrink-0 relative flex items-center justify-center rounded-xl bg-gradient-to-br from-[#FF5500] to-[#E04B00] shadow-md shadow-orange-500/20 p-1.5 transition-transform hover:scale-105`}>
+      <div className={`${iconDimensions} shrink-0 relative flex items-center justify-center rounded-xl bg-gradient-to-br from-[#c6ef4e] to-[#b5e03b] shadow-md shadow-lime-500/20 p-1.5 transition-transform hover:scale-105`}>
         {/* Geometric ribbon T symbol */}
         <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-white">
           {/* Top Fold Ribbon */}

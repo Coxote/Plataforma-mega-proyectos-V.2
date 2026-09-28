@@ -147,7 +147,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         value={displayName}
                         onChange={(e) => setDisplayName(e.target.value)}
                         placeholder="Ej: Rodrigo Valenzuela"
-                        className="w-full bg-white rounded-2xl pl-9 pr-4 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30 transition-all shadow-2xs"
+                        className="w-full bg-white rounded-2xl pl-9 pr-4 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-[#c6ef4e]/30 transition-all shadow-2xs"
                       />
                     </div>
                   </div>
@@ -163,7 +163,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({
                         value={displayPuesto}
                         onChange={(e) => setDisplayPuesto(e.target.value)}
                         placeholder="Ej: Supervisor de Cuentas / PM"
-                        className="w-full bg-white rounded-2xl pl-9 pr-4 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-[#FF5500]/30 transition-all shadow-2xs"
+                        className="w-full bg-white rounded-2xl pl-9 pr-4 py-2.5 text-xs font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-[#c6ef4e]/30 transition-all shadow-2xs"
                       />
                     </div>
                   </div>
