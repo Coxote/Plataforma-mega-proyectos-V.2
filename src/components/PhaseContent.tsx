@@ -32,7 +32,6 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import React, { useState } from 'react';
-import { analyzeBriefWithGemini } from '../geminiService';
 import { RaciMatrix } from './RaciMatrix';
 import { PerfilGeneral } from './PerfilGeneral';
 import { ProjectFinancialOverview } from './ProjectFinancialOverview';
@@ -69,14 +68,8 @@ export default function PhaseContent({
   userRole,
   currentUser,
 }: PhaseContentProps) {
-  const [activeTab, setActiveTab] = useState<'phase' | 'brandbible' | 'deliverables'>('phase');
-  const [brandSubTab, setBrandSubTab] = useState<'brandbible' | 'project'>('brandbible');
+  const [activeTab, setActiveTab] = useState<'phase' | 'project' | 'deliverables'>('phase');
   const [govSubTab, setGovSubTab] = useState<'bitacora' | 'raci'>('bitacora');
-
-  // AI Brief Form States
-  const [briefInput, setBriefInput] = useState('');
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   // New Deliverable Form States
   const [delivTitle, setDelivTitle] = useState('');
@@ -377,64 +370,6 @@ export default function PhaseContent({
     });
   };
 
-  // Handle Brand Bible text edits
-  const handleBrandBibleChange = (section: 'onePager' | 'positioning' | 'valuesAndPersonality' | 'targetAudience' | 'visualIdentity' | 'voiceAndTone', field: string, value: string) => {
-    if (isGeneralDisabled) return;
-    const currentBB = project.brandBible || {};
-    const sectionData = currentBB[section] || {};
-
-    const updatedBB = {
-      ...currentBB,
-      [section]: {
-        ...sectionData,
-        [field]: value
-      }
-    };
-
-    onUpdateProject({
-      ...project,
-      brandBible: updatedBB
-    });
-  };
-
-  // Trigger Gemini analysis
-  const handleAnalyzeBrief = async () => {
-    if (!briefInput.trim() || isAnalyzing) return;
-    setIsAnalyzing(true);
-    setAnalysisError(null);
-    try {
-      const data = await analyzeBriefWithGemini(briefInput);
-
-      const newAuditLog = [
-        {
-          id: `audit-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          userId: 'gemini-ai',
-          username: 'Gemini 3.6-Flash',
-          userRole: 'coordinador' as const,
-          action: 'Extracción Brand Bible',
-          entityType: 'BrandBible',
-          details: `Analizó brief de ${briefInput.length} caracteres y autogeneró Brand Bible.`,
-        },
-        ...(project.auditLog || [])
-      ];
-
-      onUpdateProject({
-        ...project,
-        brandBible: data,
-        auditLog: newAuditLog
-      });
-
-      setBriefInput('');
-      onSave();
-    } catch (error: any) {
-      console.error(error);
-      setAnalysisError(error.message || 'Error al conectar con Gemini. Por favor intenta de nuevo.');
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
   // Add a new deliverable
   const handleAddDeliverable = (e: React.FormEvent) => {
     e.preventDefault();
@@ -659,9 +594,6 @@ export default function PhaseContent({
   const [exceptionReason, setExceptionReason] = useState('');
   const [exceptionError, setExceptionError] = useState<string | null>(null);
 
-  // Safe reference to Brand Bible
-  const bb = project.brandBible || {};
-
   const timeEntries = project.timeEntries || [];
   const totalConsumedHours = timeEntries.reduce((sum, e) => sum + (e.hours || 0), 0);
   const totalHours = project.hoursTotal || 40;
@@ -854,15 +786,15 @@ export default function PhaseContent({
         </button>
 
         <button
-          onClick={() => setActiveTab('brandbible')}
+          onClick={() => setActiveTab('project')}
           className={`py-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'brandbible'
-              ? 'border-purple-600 text-purple-700 font-extrabold'
+            activeTab === 'project'
+              ? 'border-slate-900 text-slate-900 font-extrabold'
               : 'border-transparent text-slate-500 hover:text-slate-800'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-purple-500" />
-          <span>Ficha & Marca (IA)</span>
+          <Briefcase className="w-3.5 h-3.5 text-slate-600" />
+          <span>Perfil del Proyecto</span>
         </button>
 
         <button
@@ -1330,316 +1262,17 @@ export default function PhaseContent({
             </div>
           )}
 
-          {/* TAB 2: FICHA & MARCA (IA) */}
-          {activeTab === 'brandbible' && (
-            <div className="space-y-6" id="brand-bible-tab-content">
-              {/* Sub-tab pills selector */}
-              <div className="flex items-center justify-between bg-white p-2 rounded-3xl shadow-xs">
-                <div className="flex items-center gap-1.5 bg-[#F4F5F0] p-1 rounded-2xl">
-                  <button
-                    onClick={() => setBrandSubTab('brandbible')}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                      brandSubTab === 'brandbible'
-                        ? 'bg-purple-600 text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    Brand Bible (Gemini IA)
-                  </button>
-                  <button
-                    onClick={() => setBrandSubTab('project')}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                      brandSubTab === 'project'
-                        ? 'bg-slate-900 text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <Briefcase className="w-3.5 h-3.5" />
-                    Perfil General del Proyecto
-                  </button>
-                </div>
-                <span className="text-xs text-slate-400 font-medium px-3 hidden md:inline">
-                  {brandSubTab === 'brandbible' ? 'Guía de Identidad Inteligente' : 'Información técnica y comercial'}
-                </span>
-              </div>
-
-              {brandSubTab === 'project' ? (
-                <PerfilGeneral
-                  project={project}
-                  onUpdateProject={onUpdateProject}
-                  userRole={userRole}
-                />
-              ) : (
-                <>
-                  {/* Gemini Brief Parser Card */}
-                  <div className="bg-gradient-to-br from-purple-900 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-md relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-44 h-44 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
-
-                <div className="max-w-2xl space-y-4">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-purple-300 animate-pulse" />
-                    <span className="text-xs font-extrabold uppercase tracking-widest bg-purple-800/80 px-2.5 py-1 rounded-full border border-purple-700">
-                      Gemini 3.6-Flash Engine
-                    </span>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-bold font-playfair">Generar Brand Bible Inteligente</h3>
-                    <p className="text-xs text-purple-200 mt-1 leading-relaxed">
-                      Pega abajo el brief del cliente, transcripción de llamada de inicio o apuntes desestructurados de marca. La Inteligencia Artificial extraerá automáticamente la misión, UVP, personalidad, guía de logo y voz estructurada para el portal.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <textarea
-                      value={briefInput}
-                      onChange={(e) => setBriefInput(e.target.value)}
-                      placeholder="Ej: El cliente es un SaaS de logística llamado Fasty. Su misión es democratizar envíos ultra-rápidos en LATAM. Valoran mucho la simplicidad y la puntualidad (arquetipo el Héroe). Su paleta usa azul marino profundo #1E3A8A y verde vibrante #10B981, tipografía de cabeceras en Playfair..."
-                      className="w-full bg-white/10 border border-purple-700/80 rounded-2xl px-4 py-3 text-xs text-white placeholder:text-purple-300 outline-none focus:ring-2 focus:ring-purple-400 focus:bg-white/15 transition-all resize-y min-h-[100px] leading-relaxed"
-                      disabled={isAnalyzing}
-                    />
-
-                    {analysisError && (
-                      <div className="p-3 bg-red-950/40 border border-red-900/50 rounded-2xl text-xs text-red-300 flex items-center gap-2 font-medium">
-                        <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
-                        <span>{analysisError}</span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-end pt-1">
-                      <button
-                        onClick={handleAnalyzeBrief}
-                        disabled={isAnalyzing || !briefInput.trim()}
-                        className="bg-white hover:bg-purple-100 text-purple-900 disabled:bg-purple-800/50 disabled:text-purple-300 font-extrabold px-5 py-2.5 rounded-xl text-xs transition-all flex items-center gap-2 cursor-pointer shadow-md active:scale-95 shrink-0"
-                      >
-                        {isAnalyzing ? (
-                          <>
-                            <div className="w-3.5 h-3.5 border-2 border-purple-900 border-t-transparent rounded-full animate-spin"></div>
-                            <span>Procesando con IA...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-4 h-4 text-purple-600" />
-                            <span>Generar Brand Bible</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Structured Brand Bible Presentation */}
-              <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
-                <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                  <div>
-                    <h3 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-purple-600" />
-                      Estructura de la Brand Bible
-                    </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">Refina y edita los campos autogenerados por Gemini.</p>
-                  </div>
-                  {userRole === 'coordinador' && (
-                    <span className="text-xs bg-purple-50 text-purple-700 font-extrabold px-2 py-0.5 rounded-md border border-purple-100 uppercase tracking-wider">
-                      Editable
-                    </span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                  {/* Category 1: Fundamentos */}
-                  <div className="p-5 bg-[#F4F5F0] rounded-2xl space-y-3">
-                    <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-stone-200/60 pb-1.5">
-                      1. Fundamentos (One-Pager)
-                    </h4>
-
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase">Misión</label>
-                      <textarea
-                        value={bb.onePager?.mission || ''}
-                        disabled={isGeneralDisabled}
-                        onChange={(e) => handleBrandBibleChange('onePager', 'mission', e.target.value)}
-                        placeholder="N/A"
-                        className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                        rows={2}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase">Visión</label>
-                      <textarea
-                        value={bb.onePager?.vision || ''}
-                        disabled={isGeneralDisabled}
-                        onChange={(e) => handleBrandBibleChange('onePager', 'vision', e.target.value)}
-                        placeholder="N/A"
-                        className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                        rows={2}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase">Propuesta de Valor (UVP)</label>
-                      <textarea
-                        value={bb.onePager?.uvp || ''}
-                        disabled={isGeneralDisabled}
-                        onChange={(e) => handleBrandBibleChange('onePager', 'uvp', e.target.value)}
-                        placeholder="N/A"
-                        className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                        rows={2}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Category 2: Posicionamiento */}
-                  <div className="p-5 bg-[#F4F5F0] rounded-2xl space-y-3">
-                    <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-stone-200/60 pb-1.5">
-                      2. Posicionamiento Estratégico
-                    </h4>
-
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase">Declaración de Posicionamiento</label>
-                      <textarea
-                        value={bb.positioning?.statement || ''}
-                        disabled={isGeneralDisabled}
-                        onChange={(e) => handleBrandBibleChange('positioning', 'statement', e.target.value)}
-                        placeholder="N/A"
-                        className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                        rows={3}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase">Competidores Clave</label>
-                      <textarea
-                        value={bb.positioning?.competitors || ''}
-                        disabled={isGeneralDisabled}
-                        onChange={(e) => handleBrandBibleChange('positioning', 'competitors', e.target.value)}
-                        placeholder="N/A"
-                        className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Category 3: Personalidad y Audiencia */}
-                  <div className="p-5 bg-[#F4F5F0] rounded-2xl space-y-3">
-                    <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-stone-200/60 pb-1.5">
-                      3. Personalidad, Valores & Audiencia
-                    </h4>
-
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase">Valores Clave de Marca</label>
-                      <textarea
-                        value={bb.valuesAndPersonality?.values || ''}
-                        disabled={isGeneralDisabled}
-                        onChange={(e) => handleBrandBibleChange('valuesAndPersonality', 'values', e.target.value)}
-                        placeholder="N/A"
-                        className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                        rows={2}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase">Arquetipo de Marca</label>
-                      <input
-                        type="text"
-                        value={bb.valuesAndPersonality?.archetype || ''}
-                        disabled={isGeneralDisabled}
-                        onChange={(e) => handleBrandBibleChange('valuesAndPersonality', 'archetype', e.target.value)}
-                        placeholder="N/A"
-                        className="w-full bg-white rounded-xl px-3 py-2 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase">Público Objetivo (Personas)</label>
-                      <textarea
-                        value={bb.targetAudience?.personas || ''}
-                        disabled={isGeneralDisabled}
-                        onChange={(e) => handleBrandBibleChange('targetAudience', 'personas', e.target.value)}
-                        placeholder="N/A"
-                        className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                        rows={2}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Category 4: Identidad Visual */}
-                  <div className="p-5 bg-[#F4F5F0] rounded-2xl space-y-3">
-                    <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-stone-200/60 pb-1.5">
-                      4. Identidad Visual (Logo, Colores, Fuentes)
-                    </h4>
-
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase">Guías de Aplicación de Logo</label>
-                      <textarea
-                        value={bb.visualIdentity?.logoGuidelines || ''}
-                        disabled={isGeneralDisabled}
-                        onChange={(e) => handleBrandBibleChange('visualIdentity', 'logoGuidelines', e.target.value)}
-                        placeholder="N/A"
-                        className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                        rows={2}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase">Paleta de Colores de Marca</label>
-                      <textarea
-                        value={bb.visualIdentity?.colorPalette || ''}
-                        disabled={isGeneralDisabled}
-                        onChange={(e) => handleBrandBibleChange('visualIdentity', 'colorPalette', e.target.value)}
-                        placeholder="N/A"
-                        className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                        rows={2}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-500 uppercase">Sistema Tipográfico</label>
-                      <textarea
-                        value={bb.visualIdentity?.typographySystem || ''}
-                        disabled={isGeneralDisabled}
-                        onChange={(e) => handleBrandBibleChange('visualIdentity', 'typographySystem', e.target.value)}
-                        placeholder="N/A"
-                        className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                        rows={2}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Category 5: Voz y Tono */}
-                  <div className="p-5 bg-[#F4F5F0] rounded-2xl space-y-3 md:col-span-2">
-                    <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest border-b border-stone-200/60 pb-1.5">
-                      5. Voz, Tono & Vocabulario de Marca
-                    </h4>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-slate-500 uppercase">Lineamientos de Voz y Tono</label>
-                        <textarea
-                          value={bb.voiceAndTone?.guidelines || ''}
-                          disabled={isGeneralDisabled}
-                          onChange={(e) => handleBrandBibleChange('voiceAndTone', 'guidelines', e.target.value)}
-                          placeholder="N/A"
-                          className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                          rows={3}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="block text-xs font-bold text-slate-500 uppercase">Vocabulario Clave (Términos Permitidos / Prohibidos)</label>
-                        <textarea
-                          value={bb.voiceAndTone?.vocabulary || ''}
-                          disabled={isGeneralDisabled}
-                          onChange={(e) => handleBrandBibleChange('voiceAndTone', 'vocabulary', e.target.value)}
-                          placeholder="N/A"
-                          className="w-full bg-white rounded-xl p-3 text-xs text-slate-700 resize-none outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-75 shadow-2xs"
-                          rows={3}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-              </>
-              )}
+          {/* TAB 2: PERFIL GENERAL DEL PROYECTO */}
+          {activeTab === 'project' && (
+            <div className="space-y-6" id="project-profile-tab-content">
+              <PerfilGeneral
+                project={project}
+                onUpdateProject={onUpdateProject}
+                userRole={userRole}
+              />
             </div>
           )}
+
 
           {/* TAB 4: DELIVERABLES MANAGEMENT & CLIENT FEEDBACK */}
           {activeTab === 'deliverables' && (

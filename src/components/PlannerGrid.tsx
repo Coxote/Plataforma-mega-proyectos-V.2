@@ -5,6 +5,7 @@ import { KpiSidePanel } from './KpiSidePanel';
 import { CustomModal } from './CustomModal';
 import { useKpiSidePanel } from '../hooks/useKpiSidePanel';
 import { Project, UserSession, getUserAvatarUrl } from '../types';
+import { getUserColor } from '../dashboardUtils';
 import { StatBar, StatItem } from './StatBar';
 import { tokens, ui } from '../theme';
 import {
@@ -289,24 +290,6 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
     setFormAssignedUsers([]);
     setWizardStep(1);
     setShowAddForm(false);
-  };
-
-  // Get color per role to pass to avatars
-  const getUserColor = (role: string): string => {
-    switch (role) {
-      case 'coordinador':
-        return 'bg-slate-900';
-      case 'sac':
-        return 'bg-emerald-600';
-      case 'contents':
-        return 'bg-purple-600';
-      case 'contentd':
-        return 'bg-blue-600';
-      case 'invitado':
-        return 'bg-amber-500';
-      default:
-        return 'bg-slate-500';
-    }
   };
 
   // Exclude client/guests from task assignees dock

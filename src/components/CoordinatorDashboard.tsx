@@ -2,6 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { Project, UserSession } from '../types';
 import { ProjectStatusBadge } from './ProjectStatusBadge';
 import { runSlaRuleEngine } from '../utils/slaRuleEngine';
+import { getUserColor } from '../dashboardUtils';
 import {
   calculateGlobalFinancials,
   calculateTeamWorkload,
@@ -315,18 +316,6 @@ export const CoordinatorDashboard: React.FC<Props> = ({
     setTimeout(() => {
       setNotificationStatus(prev => ({ ...prev, [cardId]: false }));
     }, 3000);
-  };
-
-  // Color helper for roles
-  const getUserColor = (role: string): string => {
-    switch (role) {
-      case 'coordinador': return 'bg-slate-900';
-      case 'sac': return 'bg-[#12AB51]';
-      case 'contents': return 'bg-purple-600';
-      case 'contentd': return 'bg-blue-600';
-      case 'invitado': return 'bg-amber-500';
-      default: return 'bg-slate-500';
-    }
   };
 
   // Build Vitaminized Member objects dynamically

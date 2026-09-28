@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { X, Clock, Briefcase, Award, TrendingUp, Sparkles, AlertCircle, CheckCircle, Calendar, RotateCcw } from 'lucide-react';
 import { VitaminizedMember } from './TeamCard';
 import { Project, getUserAvatarUrl } from '../types';
-import { getRetrabajoBadgeStyle } from '../dashboardUtils';
+import { getRetrabajoBadgeStyle, getRoleHexColor } from '../dashboardUtils';
 import {
   Radar,
   RadarChart,
@@ -20,24 +20,6 @@ interface UserInspectorPanelProps {
   getUserColor: (role: string) => string;
   projects: Project[];
 }
-
-// Map roles to hexadecimal colors for the chart fill and stroke
-const getRoleHexColor = (role: string): string => {
-  switch (role) {
-    case 'coordinador':
-      return '#0f172a'; // slate-900
-    case 'sac':
-      return '#059669'; // emerald-600
-    case 'contents':
-      return '#9333ea'; // purple-600
-    case 'contentd':
-      return '#2563eb'; // blue-600
-    case 'invitado':
-      return '#f59e0b'; // amber-500
-    default:
-      return '#64748b'; // slate-500
-  }
-};
 
 // Map skills to values
 const getSkillsData = (role: string, skills: string[]) => {

@@ -1,13 +1,21 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Project, UserSession, RoleHoursAllocation, Client, TimeEntryType } from './types';
+import {
+  Project,
+  UserSession,
+  RoleHoursAllocation,
+  Client,
+  TimeEntryType,
+  ViewState,
+  isViewAllowedForRole,
+  getDefaultViewForRole
+} from './types';
 import { INITIAL_PROJECTS, createDefaultPhases, createDefaultBudget, createDefaultRaci } from './initialData';
 import Sidebar from './components/Sidebar';
 import PhaseContent from './components/PhaseContent';
 import Login from './components/Login';
-import UserManagementModal from './components/UserManagementModal';
 import { ClientPortal } from './components/ClientPortal';
 import { CoordinatorDashboard } from './components/CoordinatorDashboard';
-import { MainLayout, ViewState } from './components/MainLayout';
+import { MainLayout } from './components/MainLayout';
 import { TeamManagement } from './components/TeamManagement';
 import { PlannerGrid } from './components/PlannerGrid';
 import { GanttView } from './components/GanttView';
@@ -19,7 +27,6 @@ import { PredictiveAnalyticsPanel } from './components/PredictiveAnalyticsPanel'
 import { Sparkles, Shield, Users, LogOut, Activity, Briefcase } from 'lucide-react';
 import { generatePhasesForTemplate } from './projectTemplates';
 import { NewProjectWizard } from './components/NewProjectWizard';
-import { OnboardingModal } from './components/OnboardingModal';
 import { CustomModal } from './components/CustomModal';
 import { useDeliverableMonitoring } from './hooks/useDeliverableMonitoring';
 import {
@@ -28,6 +35,10 @@ import {
   deleteProjectFromFirestore,
   subscribeClients,
   saveClientToFirestore,
+  subscribeUsers,
+  saveUserToFirestore,
+  deleteUserFromFirestore,
+  authenticateOrApproveUserInFirestore,
   seedFirestoreIfEmpty
 } from './services/firebaseDb';
 
@@ -108,19 +119,19 @@ const DEFAULT_CLIENTS: Client[] = [
 ];
 
 const DEFAULT_USERS: UserSession[] = [
-  { id: 'u-rodrigo', username: 'rodrigo', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-lourdes', username: 'lourdes', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-maylin', username: 'maylin', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-eduardo', username: 'eduardo', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-edgar', username: 'edgar', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-jeremy', username: 'jeremy', puesto: 'Diseñador', role: 'contentd', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-noemi', username: 'noemi', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-alejandra', username: 'alejandra', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-fabiola', username: 'fabiola', puesto: 'Supervisor', role: 'coordinador', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-luis', username: 'luis', puesto: 'PM', role: 'sac', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-sofia', username: 'sofia', puesto: 'Directora Financiera', role: 'director_financiero', password: '123', capacidadMensualHoras: 176 },
-  { id: 'u-proveedor', username: 'proveedor', puesto: 'Proveedor Dev', role: 'proveedor', password: '123', tarifaHoraProveedor: 50, empresaProveedor: 'TechStudio Latam', proyectosAsignados: ['p1'], capacidadMensualHoras: 160 },
-  { id: 'u-invitado', username: 'invitado', puesto: 'Invitado', role: 'invitado', password: '123', projectId: 'p1', capacidadMensualHoras: 0 },
+  { id: 'u-rodrigo', username: 'rodrigo', email: 'rodrigo@tpp.com', puesto: 'Coordinador PM', role: 'coordinador', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
+  { id: 'u-lourdes', username: 'lourdes', email: 'lourdes@tpp.com', puesto: 'PM / Consultor', role: 'sac', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
+  { id: 'u-maylin', username: 'maylin', email: 'maylin@tpp.com', puesto: 'PM / Consultor', role: 'sac', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
+  { id: 'u-eduardo', username: 'eduardo', email: 'eduardo@tpp.com', puesto: 'Diseñador', role: 'contentd', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
+  { id: 'u-edgar', username: 'edgar', email: 'edgar@tpp.com', puesto: 'Diseñador', role: 'contentd', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
+  { id: 'u-jeremy', username: 'jeremy', email: 'jeremy@tpp.com', puesto: 'Diseñador', role: 'contentd', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
+  { id: 'u-noemi', username: 'noemi', email: 'noemi@tpp.com', puesto: 'Social Media', role: 'contents', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
+  { id: 'u-alejandra', username: 'alejandra', email: 'alejandra@tpp.com', puesto: 'Supervisor General', role: 'supervisor', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
+  { id: 'u-fabiola', username: 'fabiola', email: 'fabiola@tpp.com', puesto: 'Supervisor General', role: 'supervisor', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
+  { id: 'u-luis', username: 'luis', email: 'luis@tpp.com', puesto: 'PM / Consultor', role: 'sac', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
+  { id: 'u-sofia', username: 'sofia', email: 'sofia@tpp.com', puesto: 'Directora Financiera', role: 'director_financiero', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
+  { id: 'u-proveedor', username: 'proveedor', email: 'proveedor@tpp.com', puesto: 'Proveedor Dev', role: 'proveedor', password: '123', estado: 'activo', tarifaHoraProveedor: 50, empresaProveedor: 'TechStudio Latam', proyectosAsignados: ['p1'], capacidadMensualHoras: 160 },
+  { id: 'u-invitado', username: 'invitado', email: 'invitado@tpp.com', puesto: 'Invitado', role: 'invitado', password: '123', estado: 'activo', projectId: 'p1', capacidadMensualHoras: 0 },
 ];
 
 export default function App() {
@@ -131,12 +142,10 @@ export default function App() {
   // Authentication State
   const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
   const [usersList, setUsersList] = useState<UserSession[]>([]);
-  const [isUserMgmtOpen, setIsUserMgmtOpen] = useState(false);
   const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
   const [currentView, setCurrentView] = useState<ViewState>('planner');
   const [clients, setClients] = useState<Client[]>([]);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const isInitialized = useRef(false);
 
   // Modales de confirmación destructiva y advertencia de bloqueo (Paso 3 UX Modales)
@@ -324,9 +333,17 @@ export default function App() {
       }
     });
 
+    const unsubUsers = subscribeUsers((cloudUsers) => {
+      if (cloudUsers && cloudUsers.length > 0) {
+        setUsersList(cloudUsers);
+        localStorage.setItem(USERS_LIST_KEY, JSON.stringify(cloudUsers));
+      }
+    });
+
     return () => {
       unsubProjects();
       unsubClients();
+      unsubUsers();
     };
   }, []);
 
@@ -429,10 +446,13 @@ export default function App() {
     }
   }, [currentUser, visibleProjects, activeProjectId]);
 
-  // Restrict proveedor from accessing coordinator-only views
+  // Strict View Permission Guard for all roles
   useEffect(() => {
-    if (currentUser?.role === 'proveedor' && (currentView === 'dashboard' || currentView === 'team' || currentView === 'clients')) {
-      setCurrentView('project');
+    if (currentUser) {
+      if (!isViewAllowedForRole(currentUser.role, currentView)) {
+        const fallbackView = getDefaultViewForRole(currentUser.role);
+        setCurrentView(fallbackView);
+      }
     }
   }, [currentUser, currentView]);
 
@@ -694,13 +714,8 @@ export default function App() {
   const handleLogin = (user: UserSession) => {
     setCurrentUser(user);
     localStorage.setItem(SESSION_USER_KEY, JSON.stringify(user));
-    if (user.role === 'coordinador') {
-      setCurrentView('dashboard');
-    } else if (user.role === 'director_financiero') {
-      setCurrentView('financial');
-    } else {
-      setCurrentView('planner');
-    }
+    const initialView = getDefaultViewForRole(user.role);
+    setCurrentView(initialView);
 
     if (!usersList.some((u) => u.username.toLowerCase() === user.username.toLowerCase())) {
       const updated = [...usersList, user];
@@ -719,6 +734,7 @@ export default function App() {
     const updated = usersList.map((u) => (u.id === updatedUser.id ? updatedUser : u));
     setUsersList(updated);
     localStorage.setItem(USERS_LIST_KEY, JSON.stringify(updated));
+    saveUserToFirestore(updatedUser).catch(err => console.warn('Cloud sync error (Update User):', err));
 
     if (currentUser && currentUser.id === updatedUser.id) {
       setCurrentUser(updatedUser);
@@ -730,17 +746,48 @@ export default function App() {
     const updated = [...usersList, newUser];
     setUsersList(updated);
     localStorage.setItem(USERS_LIST_KEY, JSON.stringify(updated));
+    saveUserToFirestore(newUser).catch(err => console.warn('Cloud sync error (Add User):', err));
   };
 
   const handleDeleteUser = (userId: string) => {
     const updated = usersList.filter((u) => u.id !== userId);
     setUsersList(updated);
     localStorage.setItem(USERS_LIST_KEY, JSON.stringify(updated));
+    deleteUserFromFirestore(userId).catch(err => console.warn('Cloud sync error (Delete User):', err));
+  };
+
+  // Autenticar o Aprobar usuario pendiente (Supervisor o Coordinador)
+  const handleApproveUser = async (userId: string) => {
+    const approverName = currentUser?.username || 'Coordinador';
+    const updated = usersList.map(u => u.id === userId ? {
+      ...u,
+      estado: 'activo' as const,
+      autenticadoPor: approverName,
+      fechaAutenticacion: new Date().toISOString()
+    } : u);
+    setUsersList(updated);
+    localStorage.setItem(USERS_LIST_KEY, JSON.stringify(updated));
+    await authenticateOrApproveUserInFirestore(userId, approverName).catch(err => console.warn('Cloud sync error (Approve User):', err));
+    handleSave();
+  };
+
+  // Registro de nuevo usuario desde el Login (cae en estado 'pendiente_autenticacion')
+  const handleRegisterUser = async (newUser: UserSession) => {
+    const updated = [...usersList, newUser];
+    setUsersList(updated);
+    localStorage.setItem(USERS_LIST_KEY, JSON.stringify(updated));
+    await saveUserToFirestore(newUser).catch(err => console.warn('Cloud sync error (Register User):', err));
   };
 
   // Render Login if unauthenticated
   if (!currentUser) {
-    return <Login onLogin={handleLogin} usersList={usersList} />;
+    return (
+      <Login
+        onLogin={handleLogin}
+        onRegisterUser={handleRegisterUser}
+        usersList={usersList}
+      />
+    );
   }
 
   // Loading Screen
@@ -826,17 +873,15 @@ export default function App() {
       projects={visibleProjects}
       users={usersList}
       onLogTimeGlobal={handleLogTimeGlobal}
-      onOpenOnboarding={() => setIsOnboardingOpen(true)}
     >
-      {currentView === 'profile' ? (
+      {currentView === 'profile' && isViewAllowedForRole(currentUser.role, 'profile') ? (
         <div className="view-container">
           <MyProfileView
             currentUser={currentUser}
             projects={visibleProjects}
-            onOpenOnboarding={() => setIsOnboardingOpen(true)}
           />
         </div>
-      ) : currentView === 'dashboard' && currentUser.role === 'coordinador' ? (
+      ) : currentView === 'dashboard' && isViewAllowedForRole(currentUser.role, 'dashboard') ? (
         <div className="view-container">
           <CoordinatorDashboard
             projects={projects}
@@ -845,7 +890,7 @@ export default function App() {
             onSelectProject={handleSelectProject}
           />
         </div>
-      ) : currentView === 'team' && currentUser.role === 'coordinador' ? (
+      ) : currentView === 'team' && isViewAllowedForRole(currentUser.role, 'team') ? (
         <div className="view-container">
           <TeamManagement
             usersList={usersList}
@@ -853,10 +898,11 @@ export default function App() {
             onUpdateUser={handleUpdateUser}
             onAddUser={handleAddUser}
             onDeleteUser={handleDeleteUser}
+            onApproveUser={handleApproveUser}
             currentUser={currentUser}
           />
         </div>
-      ) : currentView === 'planner' ? (
+      ) : currentView === 'planner' && isViewAllowedForRole(currentUser.role, 'planner') ? (
         <div className="view-container">
           <PlannerGrid
             projects={visibleProjects}
@@ -864,14 +910,14 @@ export default function App() {
             currentUser={currentUser}
           />
         </div>
-      ) : currentView === 'gantt' ? (
+      ) : currentView === 'gantt' && isViewAllowedForRole(currentUser.role, 'gantt') ? (
         <div className="view-container">
           <GanttView
             projects={visibleProjects}
             users={usersList}
           />
         </div>
-      ) : currentView === 'clients' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') ? (
+      ) : currentView === 'clients' && isViewAllowedForRole(currentUser.role, 'clients') ? (
         <div className="view-container">
           <ClientsManagement
             clients={clients}
@@ -880,7 +926,7 @@ export default function App() {
             onUpdateClientStatus={handleUpdateClientStatus}
           />
         </div>
-      ) : currentView === 'financial' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') ? (
+      ) : currentView === 'financial' && isViewAllowedForRole(currentUser.role, 'financial') ? (
         <div className="view-container">
           <FinancialDashboard
             projects={projects}
@@ -889,11 +935,11 @@ export default function App() {
             currentUser={currentUser}
           />
         </div>
-      ) : currentView === 'integrations' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero') ? (
+      ) : currentView === 'integrations' && isViewAllowedForRole(currentUser.role, 'integrations') ? (
         <div className="view-container">
           <IntegrationsPanel currentUser={currentUser} />
         </div>
-      ) : currentView === 'predictive' && (currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor') ? (
+      ) : currentView === 'predictive' && isViewAllowedForRole(currentUser.role, 'predictive') ? (
         <div className="view-container">
           <PredictiveAnalyticsPanel
             projects={projects}
@@ -947,18 +993,6 @@ export default function App() {
         </div>
       )}
 
-      {/* USER MANAGEMENT MODAL */}
-      <UserManagementModal
-        isOpen={isUserMgmtOpen}
-        onClose={() => setIsUserMgmtOpen(false)}
-        usersList={usersList}
-        projects={projects}
-        onUpdateUser={handleUpdateUser}
-        onAddUser={handleAddUser}
-        onDeleteUser={handleDeleteUser}
-        currentUser={currentUser}
-      />
-
       {/* NEW PROJECT WIZARD */}
       <NewProjectWizard
         isOpen={isNewProjectModalOpen}
@@ -966,15 +1000,6 @@ export default function App() {
         onCreateProject={handleAddProject}
         users={usersList}
         registeredClients={clients}
-      />
-
-      {/* PREMIUM ONBOARDING EXPERIENCE MODAL */}
-      <OnboardingModal
-        isOpen={isOnboardingOpen}
-        onClose={() => setIsOnboardingOpen(false)}
-        currentUser={currentUser}
-        projects={visibleProjects}
-        onSavePreferences={handleUpdateUser}
       />
 
       {/* MODAL ADVERTENCIA DE FASE BLOQUEADA (PASO 3 UX MODALES) */}

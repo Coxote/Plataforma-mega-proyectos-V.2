@@ -24,12 +24,19 @@ import {
   CheckCircle2,
   Search
 } from 'lucide-react';
-import { Project, UserSession, TimeEntryType, getUserAvatarUrl, ROLE_LABELS } from '../types';
+import {
+  Project,
+  UserSession,
+  TimeEntryType,
+  getUserAvatarUrl,
+  ROLE_LABELS,
+  ViewState,
+  isViewAllowedForRole
+} from '../types';
 import { TppLogo } from './TppLogo';
 import { AIAssistantModal } from './AIAssistantModal';
 import { GlobalLogTimeModal } from './GlobalLogTimeModal';
 
-export type ViewState = 'dashboard' | 'planner' | 'team' | 'project' | 'gantt' | 'clients' | 'profile' | 'financial' | 'integrations' | 'predictive';
 export type PlatformStatus = 'en_linea' | 'ausente' | 'no_molestar';
 
 interface MainLayoutProps {
@@ -149,12 +156,12 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   };
 
   const handleNavClick = (view: ViewState) => {
-    onNavigate(view);
+    if (isViewAllowedForRole(currentUser.role, view)) {
+      onNavigate(view);
+    }
     setIsMobileMenuOpen(false);
   };
 
-  const hasDirectionAccess = currentUser.role === 'coordinador' || currentUser.role === 'director_financiero' || currentUser.role === 'supervisor';
-  const hasAdminAccess = currentUser.role === 'coordinador' || currentUser.role === 'director_financiero';
   const isActiveNavItem = (view: ViewState) => currentView === view;
 
   const statusConfig: Record<PlatformStatus, { label: string; lowerLabel: string; dotColor: string; textColor: string; glowColor: string; hex: string }> = {
@@ -208,36 +215,36 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     {
       label: 'Operación',
       items: [
-        { view: 'dashboard', label: 'Dashboard Proyectos', icon: LayoutDashboard, show: currentUser.role === 'coordinador' },
-        { view: 'planner', label: 'Planer Diario', icon: CalendarDays, show: currentUser.role !== 'proveedor' },
-        { view: 'gantt', label: 'Línea de Tiempo', icon: Layers, show: currentUser.role !== 'proveedor' },
+        { view: 'dashboard', label: 'Dashboard Proyectos', icon: LayoutDashboard, show: isViewAllowedForRole(currentUser.role, 'dashboard') },
+        { view: 'planner', label: 'Planer Diario', icon: CalendarDays, show: isViewAllowedForRole(currentUser.role, 'planner') },
+        { view: 'gantt', label: 'Línea de Tiempo', icon: Layers, show: isViewAllowedForRole(currentUser.role, 'gantt') },
       ],
     },
     {
       label: 'Proyecto',
       items: [
-        { view: 'project', label: 'Expediente del Proyecto', icon: Activity, show: true },
+        { view: 'project', label: 'Expediente del Proyecto', icon: Activity, show: isViewAllowedForRole(currentUser.role, 'project') },
       ],
     },
     {
       label: 'Dirección',
       items: [
-        { view: 'financial', label: 'Salud Financiera', icon: DollarSign, show: hasDirectionAccess },
-        { view: 'predictive', label: 'Simulador Predictivo', icon: BrainCircuit, show: hasDirectionAccess },
+        { view: 'financial', label: 'Salud Financiera', icon: DollarSign, show: isViewAllowedForRole(currentUser.role, 'financial') },
+        { view: 'predictive', label: 'Simulador Predictivo', icon: BrainCircuit, show: isViewAllowedForRole(currentUser.role, 'predictive') },
       ],
     },
     {
       label: 'Administración',
       items: [
-        { view: 'team', label: 'Equipo', icon: Users, show: currentUser.role === 'coordinador' },
-        { view: 'clients', label: 'Clientes y Marca IA', icon: Building2, show: hasDirectionAccess },
-        { view: 'integrations', label: 'Integraciones', icon: Plug, show: hasAdminAccess },
+        { view: 'team', label: 'Equipo', icon: Users, show: isViewAllowedForRole(currentUser.role, 'team') },
+        { view: 'clients', label: 'Clientes y Marca IA', icon: Building2, show: isViewAllowedForRole(currentUser.role, 'clients') },
+        { view: 'integrations', label: 'Integraciones', icon: Plug, show: isViewAllowedForRole(currentUser.role, 'integrations') },
       ],
     },
     {
       label: 'Mi Espacio',
       items: [
-        { view: 'profile', label: 'Mi Perfil y Horas', icon: User, show: true },
+        { view: 'profile', label: 'Mi Perfil y Horas', icon: User, show: isViewAllowedForRole(currentUser.role, 'profile') },
       ],
     },
   ];

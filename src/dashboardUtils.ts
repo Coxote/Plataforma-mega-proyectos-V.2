@@ -1,5 +1,39 @@
 import { Project, UserSession, ROLE_HOURLY_RATES, Role, TimeEntry } from './types';
 
+/**
+ * Paleta centralizada de color Tailwind para roles de usuario
+ */
+export const getUserColor = (role: string): string => {
+  switch (role) {
+    case 'coordinador': return 'bg-slate-900';
+    case 'supervisor': return 'bg-amber-600';
+    case 'sac': return 'bg-emerald-600';
+    case 'contents': return 'bg-purple-600';
+    case 'contentd': return 'bg-blue-600';
+    case 'director_financiero': return 'bg-teal-600';
+    case 'proveedor': return 'bg-indigo-600';
+    case 'invitado': return 'bg-stone-500';
+    default: return 'bg-slate-500';
+  }
+};
+
+/**
+ * Paleta hexadecimal centralizada para gráficos y canvas
+ */
+export const getRoleHexColor = (role: string): string => {
+  switch (role) {
+    case 'coordinador': return '#0f172a'; // slate-900
+    case 'supervisor': return '#d97706'; // amber-600
+    case 'sac': return '#059669'; // emerald-600
+    case 'contents': return '#9333ea'; // purple-600
+    case 'contentd': return '#2563eb'; // blue-600
+    case 'director_financiero': return '#0d9488'; // teal-600
+    case 'proveedor': return '#4f46e5'; // indigo-600
+    case 'invitado': return '#78716c'; // stone-500
+    default: return '#64748b'; // slate-500
+  }
+};
+
 // Dynamic capacity in hours per month based on role (192h disponiles al mes, 20% ocio/margen)
 export const GROSS_MONTHLY_CAPACITY = 192;
 export const IDLE_TIME_PERCENT = 20; // 20% de margen para horas de ocio / tiempos muertos

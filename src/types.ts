@@ -1,5 +1,41 @@
 export type Role = 'supervisor' | 'coordinador' | 'sac' | 'contents' | 'contentd' | 'proveedor' | 'invitado' | 'director_financiero';
 
+export type ViewState = 'dashboard' | 'planner' | 'team' | 'project' | 'gantt' | 'clients' | 'profile' | 'financial' | 'integrations' | 'predictive';
+
+export const ROLE_ALLOWED_VIEWS: Record<Role, ViewState[]> = {
+  coordinador: ['dashboard', 'planner', 'team', 'project', 'gantt', 'clients', 'profile', 'financial', 'integrations', 'predictive'],
+  supervisor: ['dashboard', 'planner', 'team', 'project', 'gantt', 'clients', 'profile', 'financial', 'integrations', 'predictive'],
+  director_financiero: ['financial', 'predictive', 'clients', 'integrations', 'planner', 'gantt', 'project', 'profile'],
+  sac: ['planner', 'gantt', 'project', 'profile'],
+  contents: ['planner', 'gantt', 'project', 'profile'],
+  contentd: ['planner', 'gantt', 'project', 'profile'],
+  proveedor: ['project', 'profile'],
+  invitado: ['project', 'profile'],
+};
+
+export function isViewAllowedForRole(role: Role, view: ViewState): boolean {
+  const allowed = ROLE_ALLOWED_VIEWS[role];
+  return allowed ? allowed.includes(view) : false;
+}
+
+export function getDefaultViewForRole(role: Role): ViewState {
+  switch (role) {
+    case 'coordinador':
+    case 'supervisor':
+      return 'dashboard';
+    case 'director_financiero':
+      return 'financial';
+    case 'proveedor':
+    case 'invitado':
+      return 'project';
+    case 'sac':
+    case 'contents':
+    case 'contentd':
+    default:
+      return 'planner';
+  }
+}
+
 export const ROLE_LABELS: Record<Role, string> = {
   supervisor: 'Supervisor',
   coordinador: 'Coordinador PM',
