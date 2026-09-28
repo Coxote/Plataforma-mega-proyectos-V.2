@@ -32,6 +32,31 @@ service cloud.firestore {
       );
     }
 
+    function canManagePlanner() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        getUserData().role in ['coordinador', 'supervisor', 'director_financiero', 'sac', 'contents', 'contentd'];
+    }
+
+    function isAssignedPlannerUser() {
+      return isSignedIn() &&
+        resource.data.assignedToUsers is list &&
+        request.auth.uid in resource.data.assignedToUsers;
+    }
+
+    function isValidPlannerTask(taskId) {
+      return request.resource.data.id == taskId &&
+        request.resource.data.brand is string &&
+        request.resource.data.project is string &&
+        request.resource.data.start is string &&
+        request.resource.data.deadline is string &&
+        request.resource.data.status in ['pendiente', 'proceso', 'completado'] &&
+        (!('priority' in request.resource.data) || request.resource.data.priority in ['alta', 'media', 'baja']) &&
+        (!('estimatedHours' in request.resource.data) || request.resource.data.estimatedHours is number) &&
+        (!('assignedToUsers' in request.resource.data) || request.resource.data.assignedToUsers is list) &&
+        (!('assignedTo' in request.resource.data) || request.resource.data.assignedTo is string);
+    }
+
     function isValidUserProfile(userId) {
       return isOwner(userId) &&
         request.resource.data.id == userId &&
@@ -123,7 +148,17 @@ service cloud.firestore {
     // 4. Planner Tasks
     match /plannerTasks/{taskId} {
       allow read: if isSignedIn();
-      allow create, update, delete: if isSignedIn() && isValidId(taskId);
+      allow create: if isValidId(taskId) && canManagePlanner() && isValidPlannerTask(taskId);
+      allow update: if isValidId(taskId) &&
+        isValidPlannerTask(taskId) &&
+        (
+          canManagePlanner() ||
+          (
+            isAssignedPlannerUser() &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          )
+        );
+      allow delete: if isValidId(taskId) && hasAdminRole();
     }
 
     // Connection testing
