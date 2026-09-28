@@ -29,6 +29,8 @@ import { generatePhasesForTemplate } from './projectTemplates';
 import { NewProjectWizard } from './components/NewProjectWizard';
 import { CustomModal } from './components/CustomModal';
 import { useDeliverableMonitoring } from './hooks/useDeliverableMonitoring';
+import { signOut } from 'firebase/auth';
+import { auth } from './firebase';
 import {
   subscribeProjects,
   saveProjectToFirestore,
@@ -224,10 +226,6 @@ export default function App() {
       setClients(DEFAULT_CLIENTS);
       localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(DEFAULT_CLIENTS));
 
-      // Auto login as Rodrigo (Supervisor) by default for seamless demo testing
-      setCurrentUser(DEFAULT_USERS[0]);
-      setCurrentView('planner');
-      localStorage.setItem(SESSION_USER_KEY, JSON.stringify(DEFAULT_USERS[0]));
       return;
     }
 
@@ -309,6 +307,10 @@ export default function App() {
 
   // Sincronización en tiempo real con Cloud Firestore (Base de datos en la nube)
   useEffect(() => {
+    if (!currentUser) {
+      return;
+    }
+
     const defaults = INITIAL_PROJECTS.map(normalizeProject);
     seedFirestoreIfEmpty(defaults, DEFAULT_CLIENTS, DEFAULT_USERS);
 
@@ -338,7 +340,7 @@ export default function App() {
       unsubClients();
       unsubUsers();
     };
-  }, []);
+  }, [currentUser]);
 
   // Centralized local storage synchronization (Single Source of Truth)
   useEffect(() => {
@@ -710,14 +712,22 @@ export default function App() {
     const initialView = getDefaultViewForRole(user.role);
     setCurrentView(initialView);
 
-    if (!usersList.some((u) => u.username.toLowerCase() === user.username.toLowerCase())) {
-      const updated = [...usersList, user];
+    const existingById = usersList.some((u) => u.id === user.id);
+    const existingByEmail = usersList.find((u) => u.email?.toLowerCase() === user.email?.toLowerCase());
+
+    if (!existingById) {
+      const updated = existingByEmail
+        ? usersList.map((u) => (u.email?.toLowerCase() === user.email?.toLowerCase() ? user : u))
+        : [...usersList, user];
       setUsersList(updated);
       localStorage.setItem(USERS_LIST_KEY, JSON.stringify(updated));
     }
+
+    saveUserToFirestore(user).catch(err => console.warn('Cloud sync error (Login User):', err));
   };
 
   const handleLogout = () => {
+    signOut(auth).catch(err => console.warn('Firebase sign out warning:', err));
     setCurrentUser(null);
     localStorage.removeItem(SESSION_USER_KEY);
   };

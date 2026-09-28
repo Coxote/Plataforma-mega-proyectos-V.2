@@ -13,6 +13,11 @@ export const PROJECTS_COL = 'projects';
 export const CLIENTS_COL = 'clients';
 export const USERS_COL = 'users';
 
+function sanitizeUserForFirestore(user: UserSession): UserSession {
+  const { password, ...safeUser } = user;
+  return safeUser;
+}
+
 /**
  * Suscripción en tiempo real a los proyectos en Cloud Firestore.
  */
@@ -128,7 +133,7 @@ export function subscribeUsers(
 export async function saveUserToFirestore(user: UserSession): Promise<void> {
   try {
     const docRef = doc(db, USERS_COL, user.id);
-    await setDoc(docRef, user, { merge: true });
+    await setDoc(docRef, sanitizeUserForFirestore(user), { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, `${USERS_COL}/${user.id}`);
   }
@@ -198,7 +203,7 @@ export async function seedFirestoreIfEmpty(
     if (usersSnap.empty) {
       console.log('Sembrando usuarios en Cloud Firestore...');
       for (const u of defaultUsers) {
-        await setDoc(doc(db, USERS_COL, u.id), u);
+        await setDoc(doc(db, USERS_COL, u.id), sanitizeUserForFirestore(u));
       }
     }
   } catch (err) {

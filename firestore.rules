@@ -32,6 +32,58 @@ service cloud.firestore {
       );
     }
 
+    function isValidUserProfile(userId) {
+      return isOwner(userId) &&
+        request.resource.data.id == userId &&
+        request.resource.data.email == request.auth.token.email &&
+        request.resource.data.estado == 'pendiente_autenticacion' &&
+        request.resource.data.role in [
+          'coordinador',
+          'supervisor',
+          'director_financiero',
+          'sac',
+          'contents',
+          'contentd',
+          'proveedor',
+          'invitado'
+        ] &&
+        !('password' in request.resource.data);
+    }
+
+    function isLegacyBootstrapProfile(userId) {
+      return isOwner(userId) &&
+        request.resource.data.id == userId &&
+        request.resource.data.email == request.auth.token.email &&
+        request.resource.data.email in [
+          'rodrigo@tpp.com',
+          'lourdes@tpp.com',
+          'maylin@tpp.com',
+          'eduardo@tpp.com',
+          'edgar@tpp.com',
+          'jeremy@tpp.com',
+          'noemi@tpp.com',
+          'alejandra@tpp.com',
+          'fabiola@tpp.com',
+          'luis@tpp.com',
+          'sofia@tpp.com',
+          'proveedor@tpp.com',
+          'invitado@tpp.com',
+          'coxot35@gmail.com'
+        ] &&
+        request.resource.data.estado == 'activo' &&
+        request.resource.data.role in [
+          'coordinador',
+          'supervisor',
+          'director_financiero',
+          'sac',
+          'contents',
+          'contentd',
+          'proveedor',
+          'invitado'
+        ] &&
+        !('password' in request.resource.data);
+    }
+
     // 1. Projects Collection
     match /projects/{projectId} {
       allow read: if isSignedIn();
@@ -42,9 +94,24 @@ service cloud.firestore {
 
     // 2. Users Collection
     match /users/{userId} {
-      allow read: if true;
-      allow create: if isValidId(userId);
-      allow update, delete: if isValidId(userId);
+      allow read: if isSignedIn();
+      allow create: if isValidId(userId) && (isValidUserProfile(userId) || isLegacyBootstrapProfile(userId) || hasAdminRole());
+      allow update: if isValidId(userId) &&
+        (
+          hasAdminRole() ||
+          (
+            isOwner(userId) &&
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+              'role',
+              'estado',
+              'autenticadoPor',
+              'fechaAutenticacion',
+              'password'
+            ])
+          )
+        ) &&
+        !('password' in request.resource.data);
+      allow delete: if isValidId(userId) && hasAdminRole();
     }
 
     // 3. Clients Directory

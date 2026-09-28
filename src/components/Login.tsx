@@ -2,6 +2,13 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { UserSession, Role, ROLE_LABELS } from '../types';
 import { Eye, EyeOff, UserPlus, LogIn, CheckCircle2, ShieldAlert } from 'lucide-react';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile
+} from 'firebase/auth';
+import { auth } from '../firebase';
 
 interface LoginProps {
   onLogin: (user: UserSession) => void;
@@ -76,7 +83,24 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
   // Pick a random artwork on login load and keep it static
   const [activeSlide] = useState(() => Math.floor(Math.random() * ARTWORK_SLIDES.length));
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const getAuthErrorMessage = (err: unknown) => {
+    const code = typeof err === 'object' && err && 'code' in err ? String((err as { code?: string }).code) : '';
+    if (code.includes('invalid-credential') || code.includes('wrong-password')) {
+      return 'Correo o contraseña incorrectos. Verifica tus credenciales.';
+    }
+    if (code.includes('user-not-found')) {
+      return 'No encontramos una cuenta con ese correo. Si eres nuevo, regístrate en "Crear Cuenta".';
+    }
+    if (code.includes('email-already-in-use')) {
+      return 'Este correo ya existe en Firebase Auth. Intenta iniciar sesión o restablecer la contraseña.';
+    }
+    if (code.includes('weak-password')) {
+      return 'Firebase requiere una contraseña de al menos 6 caracteres.';
+    }
+    return 'No se pudo autenticar la cuenta. Intenta nuevamente.';
+  };
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccessMsg(null);
@@ -98,32 +122,63 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
         u.username.toLowerCase() === query
     );
 
-    if (!found) {
+    const loginEmail = query.includes('@') ? query : found?.email?.toLowerCase();
+    if (!loginEmail) {
       setError('No encontramos una cuenta con ese correo o usuario. Si eres nuevo, regístrate en "Crear Cuenta".');
       return;
     }
 
-    if (found.estado === 'pendiente_autenticacion') {
-      setError('Tu cuenta se encuentra registrada pero está PENDIENTE DE AUTENTICACIÓN por un Supervisor o Coordinador. Espera a que sea aprobada en el panel de Equipo.');
-      return;
-    }
+    try {
+      let credential;
+      try {
+        credential = await signInWithEmailAndPassword(auth, loginEmail, password);
+      } catch (authError: any) {
+        const canMigrateLegacyUser =
+          found &&
+          found.password &&
+          found.password === password &&
+          (authError?.code === 'auth/user-not-found' || authError?.code === 'auth/invalid-credential');
 
-    if (found.estado === 'inactivo') {
-      setError('Tu usuario se encuentra inactivo. Contacta a un administrador para reactivarlo.');
-      return;
-    }
+        if (!canMigrateLegacyUser) {
+          throw authError;
+        }
 
-    if (found.password && found.password !== password) {
-      setError('Contraseña incorrecta. Por favor verifica tus credenciales.');
-      return;
-    }
+        credential = await createUserWithEmailAndPassword(auth, loginEmail, password);
+        await updateProfile(credential.user, { displayName: found.username });
+      }
 
-    // Success
-    const loggedUser: UserSession = {
-      ...found,
-      lastLoginAt: new Date().toISOString()
-    };
-    onLogin(loggedUser);
+      const firebaseUid = credential.user.uid;
+      const profile = usersList.find((u) => u.id === firebaseUid || u.email?.toLowerCase() === loginEmail) || found;
+
+      if (!profile) {
+        await signOut(auth);
+        setError('Tu cuenta existe en Firebase Auth, pero no tiene perfil en la base de datos. Solicita acceso al coordinador.');
+        return;
+      }
+
+      if (profile.estado === 'pendiente_autenticacion') {
+        await signOut(auth);
+        setError('Tu cuenta se encuentra registrada pero está PENDIENTE DE AUTENTICACIÓN por un Supervisor o Coordinador. Espera a que sea aprobada en el panel de Equipo.');
+        return;
+      }
+
+      if (profile.estado === 'inactivo') {
+        await signOut(auth);
+        setError('Tu usuario se encuentra inactivo. Contacta a un administrador para reactivarlo.');
+        return;
+      }
+
+      const loggedUser: UserSession = {
+        ...profile,
+        id: firebaseUid,
+        email: loginEmail,
+        password: undefined,
+        lastLoginAt: new Date().toISOString()
+      };
+      onLogin(loggedUser);
+    } catch (err) {
+      setError(getAuthErrorMessage(err));
+    }
   };
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
@@ -145,8 +200,8 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
       return;
     }
 
-    if (passClean.length < 3) {
-      setError('La contraseña debe tener al menos 3 caracteres.');
+    if (passClean.length < 6) {
+      setError('La contraseña debe tener al menos 6 caracteres.');
       return;
     }
 
@@ -164,13 +219,15 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
     setIsRegistering(true);
     try {
       const selectedOption = AVAILABLE_ROLES[regRoleIndex];
+      const credential = await createUserWithEmailAndPassword(auth, emailClean, passClean);
+      await updateProfile(credential.user, { displayName: nameClean });
+
       const newUser: UserSession = {
-        id: `u-${Date.now()}`,
+        id: credential.user.uid,
         username: nameClean,
         email: emailClean,
         puesto: selectedOption.puesto,
         role: selectedOption.role,
-        password: passClean,
         estado: 'pendiente_autenticacion',
         createdAt: new Date().toISOString(),
         capacidadMensualHoras: selectedOption.role === 'invitado' ? 0 : 176
@@ -180,7 +237,8 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
         await onRegisterUser(newUser);
       }
 
-      setSuccessMsg('¡Cuenta registrada exitosamente en la base de datos! Está en estado "Pendiente de Autenticación". Un Supervisor o Coordinador la autenticará y activará en breve.');
+      await signOut(auth);
+      setSuccessMsg('¡Cuenta registrada exitosamente! Está en estado "Pendiente de Autenticación". Un Supervisor o Coordinador la autenticará y activará en breve.');
       setEmailOrUser(emailClean);
       setPassword('');
       setRegName('');
@@ -188,7 +246,7 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
       setRegPassword('');
       setActiveTab('login');
     } catch (err) {
-      setError('Error al registrar usuario en la base de datos. Intenta nuevamente.');
+      setError(getAuthErrorMessage(err));
     } finally {
       setIsRegistering(false);
     }

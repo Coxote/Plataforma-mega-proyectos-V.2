@@ -3,7 +3,6 @@ import { UserSession, Project, Role, ROLE_LABELS } from '../types';
 import {
   UserPlus,
   Trash2,
-  Key,
   Briefcase,
   Users,
   UserCheck,
@@ -51,7 +50,6 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
   // Form states for creating a user
   const [newUsername, setNewUsername] = useState('');
   const [newEmail, setNewEmail] = useState('');
-  const [newPassword, setNewPassword] = useState('123');
   const [newRole, setNewRole] = useState<Role>('contentd');
   const [assignedProjectId, setAssignedProjectId] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
@@ -156,7 +154,6 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
       email: cleanEmail,
       puesto: getPuestoFromRole(newRole),
       role: newRole,
-      password: newPassword || '123',
       estado: 'activo',
       autenticadoPor: currentUser.username,
       fechaAutenticacion: new Date().toISOString(),
@@ -166,10 +163,9 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
     };
 
     onAddUser(newUser);
-    setFormSuccess(`Usuario "${cleanUser}" creado y autenticado directamente en la nube.`);
+    setFormSuccess(`Perfil "${cleanUser}" creado en la nube. Para acceso real, el usuario debe registrarse con ese correo en Firebase Auth.`);
     setNewUsername('');
     setNewEmail('');
-    setNewPassword('123');
     setTimeout(() => setFormSuccess(null), 3500);
   };
 
@@ -496,22 +492,6 @@ export const TeamManagement: React.FC<TeamManagementProps> = ({
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
                       placeholder="usuario@empresa.com"
-                      className="w-full bg-[#F4F5F0] hover:bg-stone-100 focus:bg-white border-0 rounded-2xl pl-9 pr-3.5 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-slate-900 outline-none transition-all font-medium"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Contraseña Inicial</label>
-                  <div className="relative">
-                    <span className="absolute left-3.5 top-2.5 text-slate-400">
-                      <Key className="w-3.5 h-3.5" />
-                    </span>
-                    <input
-                      type="text"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Ej: 123"
                       className="w-full bg-[#F4F5F0] hover:bg-stone-100 focus:bg-white border-0 rounded-2xl pl-9 pr-3.5 py-2 text-xs text-slate-900 focus:ring-2 focus:ring-slate-900 outline-none transition-all font-medium"
                     />
                   </div>
