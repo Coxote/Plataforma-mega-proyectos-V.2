@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Project, OrdenVenta, EstadoOV } from '../types';
 import { CustomModal } from './CustomModal';
+import { uploadAndParseOV } from '../services/ovParser';
 
 interface MultiOVManagerProps {
   project: Project;
@@ -132,53 +133,28 @@ export const MultiOVManager: React.FC<MultiOVManagerProps> = ({
     setIsParsing(true);
 
     try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64Data = reader.result as string;
-        try {
-          const res = await fetch('/api/parse-ov-document', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-app-auth-token': 'mega-proyectos-secure-token-2026',
-            },
-            body: JSON.stringify({
-              fileData: base64Data,
-              mimeType: file.type || 'application/pdf',
-            })
-          });
-          const data = await res.json();
-          if (res.ok && data) {
-            if (data.numero) setNumero(data.numero);
-            if (typeof data.subtotal === 'number') setSubtotal(data.subtotal);
-            if (typeof data.impuestos === 'number') setImpuestos(data.impuestos);
-            if (typeof data.comisiones === 'number') setComisiones(data.comisiones);
-            if (typeof data.monto === 'number') setMonto(data.monto);
-            if (data.moneda) setMoneda(data.moneda);
-            if (data.fechaEmision) setFechaEmision(data.fechaEmision);
-            if (data.descripcion) setDescripcion(data.descripcion);
-            if (data.horasPorRol) {
-              setHorasPorRol({
-                supervisor: data.horasPorRol.supervisor ?? 0,
-                coordinador: data.horasPorRol.coordinador ?? 0,
-                sac: data.horasPorRol.sac ?? 0,
-                contents: data.horasPorRol.contents ?? 0,
-                contentd: data.horasPorRol.contentd ?? 0,
-              });
-            }
-          } else {
-            setNoticeMessage(data.error || 'No se pudo analizar el archivo con la IA.');
-          }
-        } catch (err) {
-          console.error(err);
-          setNoticeMessage('Error al conectar con la IA de parsing.');
-        } finally {
-          setIsParsing(false);
-        }
-      };
-      reader.readAsDataURL(file);
+      const data = await uploadAndParseOV(file);
+      if (data.numero) setNumero(data.numero);
+      if (typeof data.subtotal === 'number') setSubtotal(data.subtotal);
+      if (typeof data.impuestos === 'number') setImpuestos(data.impuestos);
+      if (typeof data.comisiones === 'number') setComisiones(data.comisiones);
+      if (typeof data.monto === 'number') setMonto(data.monto);
+      if (data.moneda) setMoneda(data.moneda);
+      if (data.fechaEmision) setFechaEmision(data.fechaEmision);
+      if (data.descripcion) setDescripcion(data.descripcion);
+      if (data.horasPorRol) {
+        setHorasPorRol({
+          supervisor: data.horasPorRol.supervisor ?? 0,
+          coordinador: data.horasPorRol.coordinador ?? 0,
+          sac: data.horasPorRol.sac ?? 0,
+          contents: data.horasPorRol.contents ?? 0,
+          contentd: data.horasPorRol.contentd ?? 0,
+        });
+      }
     } catch (err) {
       console.error(err);
+      setNoticeMessage(err instanceof Error ? err.message : 'Error al conectar con la IA de parsing.');
+    } finally {
       setIsParsing(false);
     }
   };

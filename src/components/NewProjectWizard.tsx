@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { RoleHoursAllocation, UserSession, EstadoOV } from '../types';
 import { CustomModal } from './CustomModal';
+import { uploadAndParseOV } from '../services/ovParser';
 
 const PREDEFINED_TAGS = {
   'Entregable': ['#RedesSociales', '#Branding', '#UI/UX', '#VideoMotion', '#PixelArt', '#GameDev', '#DesarrolloWeb'],
@@ -54,48 +55,26 @@ const OrdenesVentaArrayManager: React.FC<{
     setParsingOVId(ovId);
 
     try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64Data = reader.result as string;
-        try {
-          const res = await fetch('/api/parse-ov-document', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              fileData: base64Data,
-              mimeType: file.type || 'application/pdf',
-            })
-          });
-          const data = await res.json();
-          if (res.ok && data) {
-            if (data.numero) onUpdateOV(ovId, 'numero', data.numero);
-            if (typeof data.subtotal === 'number') onUpdateOV(ovId, 'subtotal', data.subtotal);
-            if (typeof data.impuestos === 'number') onUpdateOV(ovId, 'impuestos', data.impuestos);
-            if (typeof data.comisiones === 'number') onUpdateOV(ovId, 'comisiones', data.comisiones);
-            if (typeof data.monto === 'number') onUpdateOV(ovId, 'monto', data.monto);
-            if (data.moneda) onUpdateOV(ovId, 'moneda', data.moneda);
-            if (data.fechaEmision) onUpdateOV(ovId, 'fechaEmision', data.fechaEmision);
-            if (data.descripcion) onUpdateOV(ovId, 'descripcion', data.descripcion);
-            if (data.horasPorRol) {
-              if (typeof data.horasPorRol.supervisor === 'number') onUpdateOV(ovId, 'horasPorRol_supervisor', data.horasPorRol.supervisor);
-              if (typeof data.horasPorRol.coordinador === 'number') onUpdateOV(ovId, 'horasPorRol_coordinador', data.horasPorRol.coordinador);
-              if (typeof data.horasPorRol.sac === 'number') onUpdateOV(ovId, 'horasPorRol_sac', data.horasPorRol.sac);
-              if (typeof data.horasPorRol.contents === 'number') onUpdateOV(ovId, 'horasPorRol_contents', data.horasPorRol.contents);
-              if (typeof data.horasPorRol.contentd === 'number') onUpdateOV(ovId, 'horasPorRol_contentd', data.horasPorRol.contentd);
-            }
-          } else {
-            setParseError(data.error || 'No se pudo extraer información del archivo de la OV.');
-          }
-        } catch (err) {
-          console.error(err);
-          setParseError('Error de conexión al procesar el archivo.');
-        } finally {
-          setParsingOVId(null);
-        }
-      };
-      reader.readAsDataURL(file);
+      const data = await uploadAndParseOV(file);
+      if (data.numero) onUpdateOV(ovId, 'numero', data.numero);
+      if (typeof data.subtotal === 'number') onUpdateOV(ovId, 'subtotal', data.subtotal);
+      if (typeof data.impuestos === 'number') onUpdateOV(ovId, 'impuestos', data.impuestos);
+      if (typeof data.comisiones === 'number') onUpdateOV(ovId, 'comisiones', data.comisiones);
+      if (typeof data.monto === 'number') onUpdateOV(ovId, 'monto', data.monto);
+      if (data.moneda) onUpdateOV(ovId, 'moneda', data.moneda);
+      if (data.fechaEmision) onUpdateOV(ovId, 'fechaEmision', data.fechaEmision);
+      if (data.descripcion) onUpdateOV(ovId, 'descripcion', data.descripcion);
+      if (data.horasPorRol) {
+        if (typeof data.horasPorRol.supervisor === 'number') onUpdateOV(ovId, 'horasPorRol_supervisor', data.horasPorRol.supervisor);
+        if (typeof data.horasPorRol.coordinador === 'number') onUpdateOV(ovId, 'horasPorRol_coordinador', data.horasPorRol.coordinador);
+        if (typeof data.horasPorRol.sac === 'number') onUpdateOV(ovId, 'horasPorRol_sac', data.horasPorRol.sac);
+        if (typeof data.horasPorRol.contents === 'number') onUpdateOV(ovId, 'horasPorRol_contents', data.horasPorRol.contents);
+        if (typeof data.horasPorRol.contentd === 'number') onUpdateOV(ovId, 'horasPorRol_contentd', data.horasPorRol.contentd);
+      }
     } catch (err) {
       console.error(err);
+      setParseError(err instanceof Error ? err.message : 'Error de conexión al procesar el archivo.');
+    } finally {
       setParsingOVId(null);
     }
   };
