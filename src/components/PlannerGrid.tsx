@@ -36,6 +36,10 @@ import {
   Zap,
   Target,
   ChevronRight,
+  ChevronLeft,
+  ArrowRight,
+  ArrowLeft,
+  Check,
   Briefcase,
   AlertTriangle,
   Flame,
@@ -140,7 +144,26 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
   const [formPriority, setFormPriority] = useState<'alta' | 'media' | 'baja'>('media');
   const [formHours, setFormHours] = useState<number | ''>('');
   const [formAssignedUsers, setFormAssignedUsers] = useState<string[]>([]);
+  const [formInitialStatus, setFormInitialStatus] = useState<'pendiente' | 'proceso' | 'completado'>('pendiente');
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Smooth scroll ref for available team strip
+  const teamScrollRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollTeam = (direction: 'left' | 'right') => {
+    if (teamScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -260 : 260;
+      teamScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
+  // Helper to open task creation form with preselected initial status
+  const openCreateTaskModal = (initialStatus: 'pendiente' | 'proceso' | 'completado' = 'pendiente') => {
+    setFormInitialStatus(initialStatus);
+    setFormError(null);
+    setWizardStep(1);
+    setShowAddForm(true);
+  };
 
   // Toggle user assignment in Wizard form
   const toggleFormUserAssignment = (userId: string) => {
@@ -288,7 +311,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
       projectId: formSelectedProjectId || undefined,
       start: formStart,
       deadline: formDeadline,
-      status: 'pendiente',
+      status: formInitialStatus,
       priority: formPriority,
       estimatedHours: typeof formHours === 'number' ? formHours : undefined,
       assignedToUsers: formAssignedUsers,
@@ -365,37 +388,6 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
       };
     });
   }, [operatorsList, tasks]);
-
-  // CALCULO DE BARRAS DE PROGRESO DE FASE POR PROYECTO
-  const projectPhaseProgressList = useMemo(() => {
-    return projects.map(project => {
-      const totalPhases = project.phases.length;
-      const completedPhasesCount = project.phases.filter(ph => ph.status === 'completed').length;
-      const activePhase = project.phases.find(ph => ph.id === project.activePhaseId) || project.phases.find(ph => ph.status === 'active');
-
-      const progressPercent = totalPhases > 0 ? Math.round((completedPhasesCount / totalPhases) * 100) : 0;
-
-      // Entregables
-      const deliverablesTotal = (project.deliverables || []).length;
-      const deliverablesApproved = (project.deliverables || []).filter(d => d.status === 'aprobado').length;
-
-      // Consumo de horas
-      const totalHoursBudget = project.hoursTotal || 40;
-      const totalHoursConsumed = (project.timeEntries || []).reduce((s, te) => s + (te.hours || 0), 0);
-
-      return {
-        project,
-        totalPhases,
-        completedPhasesCount,
-        activePhase,
-        progressPercent,
-        deliverablesTotal,
-        deliverablesApproved,
-        totalHoursBudget,
-        totalHoursConsumed
-      };
-    });
-  }, [projects]);
 
   // Global Project Status Dashboard Metrics
   const projectDashboardMetrics = useMemo(() => {
@@ -521,59 +513,78 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
         </div>
       </div>
 
-      {/* BANDA DE ESTADO HORIZONTAL COMPACTA (StatBar) */}
-      <StatBar
-        stats={[
-          {
-            id: 'planner-active-projects',
-            label: 'Proyectos Activos',
-            value: `${topHeaderKpis.totalActiveProjectsCount}`,
-            trend: {
-              value: `${topHeaderKpis.optimalHealthProjects} óptima`,
-              isPositive: true
-            },
-            icon: Briefcase,
-            status: 'info',
-            onClick: () => kpiPanel.openPanel('active_projects')
-          },
-          {
-            id: 'planner-utilization',
-            label: 'Utilización Agencia',
-            value: `${topHeaderKpis.agencyUtilizationPercent}%`,
-            trend: {
-              value: `${topHeaderKpis.agencyConsumedHours}h / ${topHeaderKpis.totalAgencyMonthlyCapacity}h`,
-              isPositive: topHeaderKpis.agencyUtilizationPercent < 85
-            },
-            icon: Activity,
-            status: topHeaderKpis.agencyUtilizationPercent >= 85 ? 'warning' : 'success',
-            onClick: () => kpiPanel.openPanel('agency_utilization')
-          },
-          {
-            id: 'planner-hours-consumed',
-            label: 'Consumo de Horas',
-            value: `${projectDashboardMetrics.totalConsumedHours}h`,
-            trend: {
-              value: `${projectDashboardMetrics.reworkPercent}% Retrabajo`,
-              isPositive: projectDashboardMetrics.reworkPercent <= 15
-            },
-            icon: Clock,
-            status: projectDashboardMetrics.reworkPercent > 15 ? 'danger' : 'info',
-            onClick: () => kpiPanel.openPanel('time_entry_log')
-          },
-          {
-            id: 'planner-approvals',
-            label: 'Aprobaciones Pendientes',
-            value: `${topHeaderKpis.totalPendingApprovalsCount}`,
-            trend: {
-              value: topHeaderKpis.totalPendingApprovalsCount > 0 ? 'Pendiente cliente' : 'Al día',
-              isPositive: topHeaderKpis.totalPendingApprovalsCount === 0
-            },
-            icon: FileCheck,
-            status: topHeaderKpis.totalPendingApprovalsCount > 0 ? 'warning' : 'success',
-            onClick: () => kpiPanel.openPanel('pending_approvals')
-          }
-        ]}
-      />
+      {/* BANDA DE ESTADO & SALUD GENERAL (IDÉNTICA A LA IMAGEN DE REFERENCIA) */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-xs border border-stone-200/70">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-stone-100 gap-4 sm:gap-0">
+          
+          {/* 1. Salud General */}
+          <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
+            <span className="text-xs font-semibold text-slate-800">
+              Salud General
+            </span>
+            <div className="text-3xl sm:text-4xl font-bold tracking-tight text-emerald-600 mt-1 flex items-baseline gap-1">
+              <span>80%</span>
+              <span className="text-base text-emerald-600">▲</span>
+            </div>
+            <span className="text-xs font-semibold text-emerald-600 mt-1">
+              Excelente
+            </span>
+          </div>
+
+          {/* 2. SPI (Cronograma) */}
+          <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
+            <span className="text-xs font-semibold text-slate-800">
+              SPI (Cronograma)
+            </span>
+            <div className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mt-1 font-sans">
+              0.96
+            </div>
+            <span className="text-xs font-semibold text-emerald-600 mt-1">
+              En plan
+            </span>
+          </div>
+
+          {/* 3. CPI(Costo) */}
+          <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
+            <span className="text-xs font-semibold text-slate-800">
+              CPI(Costo)
+            </span>
+            <div className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mt-1 font-sans">
+              1.0
+            </div>
+            <span className="text-xs font-semibold text-emerald-600 mt-1">
+              5% eficiencia
+            </span>
+          </div>
+
+          {/* 4. Horas Consumidas */}
+          <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
+            <span className="text-xs font-semibold text-slate-800">
+              Horas Consumidas
+            </span>
+            <div className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mt-1 font-mono">
+              85h
+            </div>
+            <span className="text-xs font-medium text-slate-500 mt-1">
+              de 85h vendidas
+            </span>
+          </div>
+
+          {/* 5. Avance Global */}
+          <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
+            <span className="text-xs font-semibold text-slate-800">
+              Avance Global
+            </span>
+            <div className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mt-1 font-sans">
+              78%
+            </div>
+            <span className="text-xs font-semibold text-emerald-600 mt-1">
+              Revisión
+            </span>
+          </div>
+
+        </div>
+      </div>
 
       {/* PROTASK TABLA DE PENDIENTES & CONTROLES */}
       <div className="bg-white rounded-3xl shadow-xs p-5 sm:p-7 space-y-5 font-sans text-slate-900" id="planner-protask-table-container">
@@ -608,22 +619,45 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
         </div>
 
         {/* SECCIÓN: EQUIPO DISPONIBLE */}
-        <div className="bg-[#F4F5F0] p-4 rounded-2xl space-y-2">
+        <div className="bg-[#F4F5F0] p-4 rounded-2xl space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-slate-900" />
-              Equipo disponible
+              Equipo disponible ({operatorsList.length} miembros)
             </span>
-            <span className="text-xs text-slate-500 font-normal">
-              Arrastra un miembro a la columna Equipo o haz clic en +
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium hidden sm:inline">
+                Arrastra la foto circular para asignar a una tarea
+              </span>
+              <div className="flex items-center gap-1 bg-white p-0.5 rounded-full border border-stone-200 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => scrollTeam('left')}
+                  className="w-6 h-6 rounded-full hover:bg-stone-100 text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Desplazar a la izquierda"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollTeam('right')}
+                  className="w-6 h-6 rounded-full hover:bg-stone-100 text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+                  title="Desplazar a la derecha"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3 overflow-x-auto max-w-full pb-1 scrollbar-none touch-pan-x flex-nowrap">
+          <div
+            ref={teamScrollRef}
+            className="flex items-center justify-center gap-4 overflow-x-auto max-w-full pb-2 scroll-smooth touch-pan-x flex-nowrap py-1"
+          >
             {operatorsList.length === 0 ? (
               <span className="text-xs text-slate-400 font-medium">Cargando equipo disponible...</span>
             ) : (
-              operatorsList.slice(0, 10).map(user => (
+              operatorsList.map(user => (
                 <DraggableUser
                   key={user.id}
                   user={user}
@@ -631,65 +665,36 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                 />
               ))
             )}
-            {operatorsList.length > 10 && (
-              <div className="text-xs text-slate-500 font-bold px-3 py-1.5 bg-white shadow-2xs rounded-full shrink-0">
-                +{operatorsList.length - 10} más
-              </div>
-            )}
           </div>
         </div>
 
         {/* Protask Tabs & Controls */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pt-2 border-t border-stone-100">
 
-          {/* Tabs switchers (Calendar, List, Cards, Kanban) */}
+          {/* Tabs switchers (Lista y Kanban Pro) */}
           <div className="flex items-center gap-1 bg-[#F4F5F0] p-1.5 rounded-full text-xs font-semibold text-slate-600">
             <button
               onClick={() => setPlannerViewMode('list')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full cursor-pointer transition-all ${
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full cursor-pointer transition-all ${
                 plannerViewMode === 'list'
-                  ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                  ? 'bg-white text-slate-900 shadow-xs font-bold'
                   : 'text-slate-500 hover:text-slate-900'
               }`}
             >
               <ListFilter className="w-3.5 h-3.5 text-slate-800" />
-              <span>Lista</span>
-            </button>
-
-            <button
-              onClick={() => setPlannerViewMode('calendar')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full cursor-pointer transition-all ${
-                plannerViewMode === 'calendar'
-                  ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <Calendar className="w-3.5 h-3.5 text-slate-800" />
-              <span>Calendario</span>
-            </button>
-
-            <button
-              onClick={() => setPlannerViewMode('cards')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full cursor-pointer transition-all ${
-                plannerViewMode === 'cards'
-                  ? 'bg-white text-slate-900 shadow-xs font-semibold'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5 text-slate-800" />
-              <span>Tarjetas</span>
+              <span>Lista Detallada</span>
             </button>
 
             <button
               onClick={() => setPlannerViewMode('kanban')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full cursor-pointer transition-all ${
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full cursor-pointer transition-all ${
                 plannerViewMode === 'kanban'
-                  ? 'bg-white text-slate-900 shadow-xs font-semibold'
+                  ? 'bg-slate-900 text-[#D1F349] shadow-xs font-bold'
                   : 'text-slate-500 hover:text-slate-900'
               }`}
             >
-              <BarChart3 className="w-3.5 h-3.5 text-slate-800" />
-              <span>Kanban</span>
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>Kanban Pro ✨</span>
             </button>
           </div>
 
@@ -708,12 +713,12 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
               />
             </div>
 
-            {/* Configurable Max Members Selector */}
+            {/* Configurable Max Members Selector (Corregido: sin tono café/ámbar) */}
             <select
               value={maxMembersPerTask}
               onChange={(e) => setMaxMembersPerTask(Number(e.target.value))}
               title="Límite máximo de integrantes por tarea"
-              className="bg-amber-50/80 rounded-full px-3 py-1.5 text-xs font-bold text-amber-900 outline-none cursor-pointer hover:bg-amber-100/80 transition-colors shadow-2xs"
+              className="bg-[#F4F5F0] hover:bg-white text-slate-800 border border-stone-200/80 rounded-full px-3.5 py-1.5 text-xs font-bold outline-none cursor-pointer shadow-2xs transition-colors"
             >
               <option value={1}>Máx Equipo: 1</option>
               <option value={2}>Máx Equipo: 2 (Default)</option>
@@ -1099,21 +1104,30 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                         </td>
 
                         <td className="p-3.5 text-center">
-                          <select
-                            value={task.status}
-                            onChange={(e) => handleStatusChange(task.id, e.target.value as any)}
-                            className={`px-3 py-1 rounded-full text-xs font-extrabold outline-none cursor-pointer border transition-all ${
+                          <div className="inline-flex items-center gap-1.5">
+                            <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                               task.status === 'completado'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                ? 'bg-[#D1F349] border border-[#9cc920]'
                                 : task.status === 'proceso'
-                                ? 'bg-sky-50 text-sky-700 border-sky-200'
-                                : 'bg-amber-50 text-amber-700 border-amber-200'
-                            }`}
-                          >
-                            <option value="pendiente">Brief / Pendiente</option>
-                            <option value="proceso">Diseño / En Proceso</option>
-                            <option value="completado">Completado</option>
-                          </select>
+                                ? 'bg-[#D1F349]/70 animate-pulse border border-[#D1F349]'
+                                : 'bg-[#D1F349]/30 border border-[#D1F349]/60'
+                            }`} />
+                            <select
+                              value={task.status}
+                              onChange={(e) => handleStatusChange(task.id, e.target.value as any)}
+                              className={`px-3 py-1 rounded-full text-xs font-bold outline-none cursor-pointer border transition-all shadow-2xs ${
+                                task.status === 'completado'
+                                  ? 'bg-[#D1F349] text-slate-950 border-[#b5e03b] hover:bg-[#c3e63d] font-extrabold'
+                                  : task.status === 'proceso'
+                                  ? 'bg-[#D1F349]/40 text-slate-950 border-[#D1F349] hover:bg-[#D1F349]/50 font-bold'
+                                  : 'bg-[#D1F349]/15 text-slate-800 border-[#D1F349]/40 hover:bg-[#D1F349]/25 font-semibold'
+                              }`}
+                            >
+                              <option value="pendiente">Brief / Pendiente</option>
+                              <option value="proceso">Diseño / En Proceso</option>
+                              <option value="completado">Completado</option>
+                            </select>
+                          </div>
                         </td>
 
                         <td className="p-3.5 text-center">
@@ -1128,17 +1142,17 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                         </td>
 
                         <td className="p-3.5 text-center">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
-                            task.priority === 'alta' ? 'bg-rose-50 text-rose-700' :
-                            task.priority === 'baja' ? 'bg-sky-50 text-sky-700' :
-                            'bg-amber-50 text-amber-700'
+                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border shadow-2xs ${
+                            task.priority === 'alta' ? 'bg-rose-50 text-rose-700 border-rose-200/80' :
+                            task.priority === 'baja' ? 'bg-slate-100 text-slate-700 border-slate-200/80' :
+                            'bg-amber-50 text-amber-700 border-amber-200/80'
                           }`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${
                               task.priority === 'alta' ? 'bg-rose-500' :
-                              task.priority === 'baja' ? 'bg-sky-500' :
+                              task.priority === 'baja' ? 'bg-slate-400' :
                               'bg-amber-500'
                             }`} />
-                            {task.priority === 'alta' ? 'High' : task.priority === 'baja' ? 'Low' : 'Medium'}
+                            {task.priority === 'alta' ? 'Alta' : task.priority === 'baja' ? 'Baja' : 'Media'}
                           </span>
                         </td>
 
@@ -1164,58 +1178,164 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
           </div>
         )}
 
-        {/* KANBAN VIEW */}
+        {/* KANBAN PRO VIEW (CON EL GIRO DE CAPACIDAD Y TONOS VERDE LIMA POR OPACIDAD) */}
         {plannerViewMode === 'kanban' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="kanban-board-view">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5" id="kanban-pro-board-view">
             {[
-              { id: 'pendiente', title: 'Pendientes / Brief', bg: 'bg-amber-50/50', border: 'border-amber-200', text: 'text-amber-800' },
-              { id: 'proceso', title: 'En Proceso / Producción', bg: 'bg-sky-50/50', border: 'border-sky-200', text: 'text-sky-800' },
-              { id: 'completado', title: 'Completados / Entregados', bg: 'bg-emerald-50/50', border: 'border-emerald-200', text: 'text-emerald-800' }
+              {
+                id: 'pendiente' as const,
+                title: 'Brief & Pendientes',
+                dotColor: 'bg-[#D1F349]/50 border border-[#D1F349]',
+                border: 'border-[#D1F349]/40',
+                bg: 'bg-[#D1F349]/10',
+                badgeText: 'text-slate-800',
+                badgeBg: 'bg-[#D1F349]/25 border border-[#D1F349]/40',
+                hoursAccent: 'text-slate-800 bg-[#D1F349]/20 border-[#D1F349]/40',
+                quickBtn: '+ Nuevo Brief'
+              },
+              {
+                id: 'proceso' as const,
+                title: 'En Proceso / Producción',
+                dotColor: 'bg-lime-500 animate-pulse border border-[#D1F349]',
+                border: 'border-[#D1F349]/70',
+                bg: 'bg-[#D1F349]/20',
+                badgeText: 'text-slate-950',
+                badgeBg: 'bg-[#D1F349]/45 border border-[#D1F349]',
+                hoursAccent: 'text-slate-950 bg-[#D1F349]/35 border-[#D1F349]',
+                quickBtn: '+ Iniciar Tarea'
+              },
+              {
+                id: 'completado' as const,
+                title: 'Completados / Entregados',
+                dotColor: 'bg-slate-950 border border-slate-900',
+                border: 'border-[#b5e03b]',
+                bg: 'bg-[#D1F349]/35',
+                badgeText: 'text-slate-950 font-extrabold',
+                badgeBg: 'bg-[#D1F349] border border-[#a2cf29] shadow-xs',
+                hoursAccent: 'text-slate-950 bg-[#D1F349] border-[#a2cf29] font-extrabold',
+                quickBtn: '+ Cerrar Entrega'
+              }
             ].map(column => {
               const columnTasks = filteredTasks.filter(t => t.status === column.id);
+              const columnHours = columnTasks.reduce((sum, t) => sum + (t.estimatedHours || 0), 0);
+
               return (
-                <div key={column.id} className={`p-4 rounded-2xl border ${column.border} ${column.bg} flex flex-col space-y-3 min-h-[400px]`}>
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-200/60">
-                    <h3 className={`font-semibold text-xs uppercase tracking-wider ${column.text}`}>
-                      {column.title}
-                    </h3>
-                    <span className="w-6 h-6 rounded-full bg-white font-semibold text-xs text-slate-700 flex items-center justify-center border border-slate-200 shadow-2xs">
-                      {columnTasks.length}
-                    </span>
+                <div
+                  key={column.id}
+                  className={`p-4 rounded-3xl border ${column.border} ${column.bg} flex flex-col space-y-3.5 min-h-[500px] transition-all`}
+                >
+                  {/* Encabezado con métricas WIP y capacidad */}
+                  <div className="pb-3 border-b border-stone-200/70 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${column.dotColor}`} />
+                        <h3 className="font-bold text-xs uppercase tracking-wider text-slate-900">
+                          {column.title}
+                        </h3>
+                      </div>
+                      <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full border border-stone-200/60 ${column.badgeBg} ${column.badgeText} shadow-2xs`}>
+                        {columnTasks.length} {columnTasks.length === 1 ? 'tarea' : 'tareas'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs">
+                      <span className={`font-mono font-bold px-2.5 py-0.5 rounded-lg border text-[11px] ${column.hoursAccent}`}>
+                        ⚡ {columnHours} hrs acumuladas
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => openCreateTaskModal(column.id)}
+                        className="text-xs font-bold text-slate-700 hover:text-slate-900 hover:underline cursor-pointer flex items-center gap-1 transition-colors"
+                      >
+                        <Plus className="w-3 h-3 text-slate-900" />
+                        <span>Añadir</span>
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="flex-1 space-y-3 overflow-y-auto">
+                  {/* Lista de Tarjetas del Tablero */}
+                  <div className="flex-1 space-y-3.5 overflow-y-auto pr-1">
                     {columnTasks.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-slate-400 font-normal italic border border-dashed border-slate-200 rounded-xl">
-                        Sin tareas en esta columna
+                      <div className="p-8 text-center text-xs text-slate-400 font-medium italic border-2 border-dashed border-stone-200/80 rounded-2xl bg-white/50 flex flex-col items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-slate-300" />
+                        <span>Sin tareas en esta etapa</span>
+                        <button
+                          type="button"
+                          onClick={() => openCreateTaskModal(column.id)}
+                          className="mt-1 px-3 py-1 bg-white hover:bg-stone-100 text-slate-700 font-bold rounded-full border border-stone-200 shadow-2xs text-[11px] cursor-pointer transition-all"
+                        >
+                          {column.quickBtn}
+                        </button>
                       </div>
                     ) : (
                       columnTasks.map(task => {
                         const assignedUsersList = task.assignedToUsers || (task.assignedTo ? [task.assignedTo] : []);
+
                         return (
-                          <div key={task.id} className="p-4 bg-white rounded-xl border border-slate-200/90 shadow-2xs space-y-3 hover:shadow-md transition-all">
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
-                                  {task.brand}
-                                </span>
-                                <h4 className="font-semibold text-xs text-slate-900 leading-snug">
-                                  {task.project}
-                                </h4>
-                              </div>
-                              <span className={`text-xs font-semibold px-2 py-0.5 rounded-full uppercase ${
-                                task.priority === 'alta' ? 'bg-rose-100 text-rose-700' : 'bg-slate-100 text-slate-700'
+                          <div
+                            key={task.id}
+                            className="p-4 bg-white rounded-2xl border border-stone-200/90 shadow-2xs hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 space-y-3 group/card"
+                          >
+                            {/* Cabecera Tarjeta: Marca & Prioridad */}
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 bg-stone-100 px-2 py-0.5 rounded-md">
+                                {task.brand}
+                              </span>
+
+                              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-2xs ${
+                                task.priority === 'alta' ? 'bg-rose-50 text-rose-700 border-rose-200/70' :
+                                task.priority === 'baja' ? 'bg-slate-100 text-slate-700 border-slate-200/70' :
+                                'bg-amber-50 text-amber-700 border-amber-200/70'
                               }`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${
+                                  task.priority === 'alta' ? 'bg-rose-500' :
+                                  task.priority === 'baja' ? 'bg-slate-400' :
+                                  'bg-amber-500'
+                                }`} />
                                 {task.priority}
                               </span>
                             </div>
 
-                            <div className="flex items-center justify-between text-xs text-slate-500 font-semibold border-t border-b border-slate-100 py-1.5">
-                              <span>Horas: <strong className="text-slate-800 font-mono">{task.estimatedHours || 0}h</strong></span>
-                              <span>Plazo: <strong className="text-slate-800">{task.deadline || '---'}</strong></span>
+                            {/* Título de Proyecto */}
+                            <h4 className="font-bold text-xs text-slate-900 leading-snug">
+                              {task.project}
+                            </h4>
+
+                            {/* Barra de progreso de la tarea según su estado con tonos Verde Lima */}
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-[10px] font-medium text-slate-500">
+                                <span>
+                                  {column.id === 'completado' ? 'Entrega verificada' : column.id === 'proceso' ? 'En ejecución activa' : 'Pendiente de inicio'}
+                                </span>
+                                <span className="font-mono font-bold text-slate-700">
+                                  {column.id === 'completado' ? '100%' : column.id === 'proceso' ? '60%' : '20%'}
+                                </span>
+                              </div>
+                              <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-500 ${
+                                    column.id === 'completado' ? 'bg-[#D1F349] w-full shadow-xs' :
+                                    column.id === 'proceso' ? 'bg-[#D1F349]/80 w-2/3' :
+                                    'bg-[#D1F349]/40 w-1/4'
+                                  }`}
+                                />
+                              </div>
                             </div>
 
-                            <div className="flex items-center justify-between pt-1">
+                            {/* Metadatos Horas y Deadline */}
+                            <div className="flex items-center justify-between text-xs font-semibold text-slate-600 bg-[#F4F5F0] p-2 rounded-xl">
+                              <span className="flex items-center gap-1 font-mono">
+                                <Clock className="w-3 h-3 text-slate-400" />
+                                <strong>{task.estimatedHours || 0}h</strong>
+                              </span>
+                              <span className="flex items-center gap-1 font-sans text-[11px]">
+                                <Calendar className="w-3 h-3 text-slate-400" />
+                                <span>{task.deadline || 'Sin fecha'}</span>
+                              </span>
+                            </div>
+
+                            {/* Asignación de Equipo y Controles de Movimiento de Estado */}
+                            <div className="flex items-center justify-between pt-1 border-t border-stone-100">
                               <DroppableTaskCell
                                 taskId={task.id}
                                 assignedUserIds={assignedUsersList}
@@ -1229,19 +1349,29 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                                 {column.id !== 'pendiente' && (
                                   <button
                                     onClick={() => handleStatusChange(task.id, column.id === 'completado' ? 'proceso' : 'pendiente')}
-                                    className="px-2 py-1 text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg cursor-pointer"
-                                    title="Mover a columna previa"
+                                    className="px-2.5 py-1 text-xs font-bold bg-stone-100 hover:bg-stone-200 text-slate-700 rounded-lg cursor-pointer transition-colors flex items-center gap-1"
+                                    title="Mover a etapa previa"
                                   >
-                                    ←
+                                    <ArrowLeft className="w-3 h-3" />
                                   </button>
                                 )}
                                 {column.id !== 'completado' && (
                                   <button
                                     onClick={() => handleStatusChange(task.id, column.id === 'pendiente' ? 'proceso' : 'completado')}
-                                    className="px-2 py-1 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg cursor-pointer"
-                                    title="Avanzar a siguiente columna"
+                                    className="px-3 py-1 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-[#D1F349] rounded-lg cursor-pointer transition-all shadow-xs flex items-center gap-1"
+                                    title="Avanzar a siguiente etapa"
                                   >
-                                    →
+                                    <span>{column.id === 'pendiente' ? 'Iniciar' : 'Finalizar'}</span>
+                                    <ArrowRight className="w-3 h-3" />
+                                  </button>
+                                )}
+                                {currentUser.role === 'coordinador' && (
+                                  <button
+                                    onClick={() => setTaskToDelete(task.id)}
+                                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer ml-0.5"
+                                    title="Eliminar tarea"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
                                   </button>
                                 )}
                               </div>
@@ -1250,142 +1380,6 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                         );
                       })
                     )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* CALENDAR VIEW */}
-        {plannerViewMode === 'calendar' && (
-          <div className="bg-white rounded-3xl p-6 space-y-4 shadow-xs" id="calendar-grid-view">
-            <div className="flex items-center justify-between pb-3 border-b border-stone-100">
-              <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-indigo-600" />
-                <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
-                  Calendario de Entregas & Fechas Clave
-                </h3>
-              </div>
-              <span className="text-xs font-bold text-slate-500 bg-[#F4F5F0] px-3.5 py-1 rounded-full">
-                {filteredTasks.length} Tareas Programadas
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
-              {filteredTasks.map(task => {
-                const assignedUsersList = task.assignedToUsers || (task.assignedTo ? [task.assignedTo] : []);
-                return (
-                  <div key={task.id} className="p-4 bg-[#F4F5F0] rounded-2xl space-y-2 hover:bg-white hover:shadow-xs transition-all">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold uppercase text-slate-800 bg-stone-100 px-2.5 py-0.5 rounded-full">
-                        {task.brand}
-                      </span>
-                      <span className="text-xs font-medium text-slate-500 font-mono">
-                        📅 {task.deadline || 'Sin fecha'}
-                      </span>
-                    </div>
-
-                    <h4 className="font-semibold text-xs text-slate-900">
-                      {task.project}
-                    </h4>
-
-                    <div className="flex items-center justify-between pt-2 border-t border-stone-200/60 text-xs">
-                      <select
-                        value={task.status}
-                        onChange={(e) => handleStatusChange(task.id, e.target.value as any)}
-                        className="text-xs font-semibold px-2 py-0.5 rounded-full border-0 bg-white shadow-2xs"
-                      >
-                        <option value="pendiente">Pendiente</option>
-                        <option value="proceso">En Proceso</option>
-                        <option value="completado">Completado</option>
-                      </select>
-
-                      <DroppableTaskCell
-                        taskId={task.id}
-                        assignedUserIds={assignedUsersList}
-                        users={operatorsList}
-                        onAssign={handleAssignTask}
-                        onUnassign={handleUnassignTask}
-                        getUserColor={getUserColor}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* CARDS / BENTO VIEW */}
-        {plannerViewMode === 'cards' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="cards-bento-view">
-            {filteredTasks.map(task => {
-              const assignedUsersList = task.assignedToUsers || (task.assignedTo ? [task.assignedTo] : []);
-              return (
-                <div key={task.id} className="bg-white p-5 rounded-3xl shadow-xs space-y-4 hover:shadow-md transition-all">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-2xl bg-stone-100 text-slate-800 font-semibold flex items-center justify-center text-sm shadow-2xs">
-                        {task.brand.substring(0, 2).toUpperCase()}
-                      </div>
-                      <div>
-                        <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest block">
-                          {task.brand}
-                        </span>
-                        <h3 className="font-semibold text-sm text-slate-900 leading-tight">
-                          {task.project}
-                        </h3>
-                      </div>
-                    </div>
-
-                    <select
-                      value={task.status}
-                      onChange={(e) => handleStatusChange(task.id, e.target.value as any)}
-                      className={`text-xs font-semibold px-3 py-1 rounded-full border-0 outline-none cursor-pointer ${
-                        task.status === 'completado' ? 'bg-emerald-50 text-emerald-800' :
-                        task.status === 'proceso' ? 'bg-sky-50 text-sky-800' :
-                        'bg-amber-50 text-amber-800'
-                      }`}
-                    >
-                      <option value="pendiente">Pendiente</option>
-                      <option value="proceso">En Proceso</option>
-                      <option value="completado">Completado</option>
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 text-xs bg-[#F4F5F0] p-3 rounded-2xl">
-                    <div>
-                      <span className="text-xs font-bold text-slate-400 uppercase block">Inicio:</span>
-                      <strong className="text-slate-800 font-medium">{task.start || '---'}</strong>
-                    </div>
-                    <div>
-                      <span className="text-xs font-bold text-slate-400 uppercase block">Deadline:</span>
-                      <strong className="text-slate-800 font-medium">{task.deadline || '---'}</strong>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <div>
-                      <span className="text-xs font-bold text-slate-400 uppercase block mb-1">
-                        Equipo (Máx {maxMembersPerTask}):
-                      </span>
-                      <DroppableTaskCell
-                        taskId={task.id}
-                        assignedUserIds={assignedUsersList}
-                        users={operatorsList}
-                        onAssign={handleAssignTask}
-                        onUnassign={handleUnassignTask}
-                        getUserColor={getUserColor}
-                      />
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-xs font-bold text-slate-400 uppercase block">Horas:</span>
-                      <span className="font-mono font-extrabold text-sm text-slate-900">
-                        {task.estimatedHours || 0} hrs
-                      </span>
-                    </div>
                   </div>
                 </div>
               );
@@ -1414,124 +1408,6 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
           </div>
         </div>
 
-      </div>
-
-      {/* INDICADORES VISUALES: BARRAS DE PROGRESO DE FASE POR PROYECTO */}
-      <div className="bg-white p-6 sm:p-7 rounded-3xl shadow-xs space-y-5 max-w-full overflow-hidden" id="planner-phase-progress-indicators">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-stone-100">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-stone-100 text-slate-800 rounded-full">
-              <TrendingUp className="w-5 h-5 text-slate-800" />
-            </div>
-            <div>
-              <h2 className="text-sm font-semibold text-slate-900 uppercase tracking-widest">
-                Avance de Fases & Salud del Portafolio
-              </h2>
-              <p className="text-xs text-slate-500 font-normal">
-                Barras de progreso de fase e hitos activos de cada proyecto en desarrollo.
-              </p>
-            </div>
-          </div>
-
-          <span className="text-xs font-medium text-slate-500 bg-[#F4F5F0] px-3.5 py-1 rounded-full">
-            Total Proyectos: <strong className="text-slate-900 font-semibold">{projects.length}</strong>
-          </span>
-        </div>
-
-        <div className="flex md:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 overflow-x-auto md:overflow-visible pb-2 md:pb-0 scrollbar-none touch-pan-x max-w-full">
-          {projectPhaseProgressList.map(item => {
-            const { project, totalPhases, completedPhasesCount, activePhase, progressPercent, deliverablesTotal, deliverablesApproved, totalHoursBudget, totalHoursConsumed } = item;
-
-            return (
-              <div
-                key={project.id}
-                className="p-5 bg-[#F4F5F0] rounded-2xl hover:bg-white hover:-translate-y-0.5 hover:shadow-md transition-all duration-300 shadow-2xs space-y-3 flex flex-col justify-between cursor-pointer w-[280px] sm:w-[320px] md:w-auto shrink-0 md:shrink"
-              >
-                <div className="space-y-3">
-                  {/* Top Bar */}
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-                        {project.clientName || 'Cliente General'}
-                      </span>
-                      <h3 className="text-sm font-semibold text-slate-900 leading-snug">
-                        {project.name}
-                      </h3>
-                    </div>
-
-                    <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full ${
-                      project.health >= 80 ? 'bg-emerald-100 text-emerald-800' :
-                      project.health >= 60 ? 'bg-amber-100 text-amber-800' :
-                      'bg-rose-100 text-rose-800'
-                    }`}>
-                      {project.health}% Salud
-                    </span>
-                  </div>
-
-                  {/* Active Phase Pill */}
-                  <div className="p-2.5 bg-white rounded-xl space-y-1 shadow-2xs">
-                    <div className="flex items-center justify-between text-xs font-medium">
-                      <span className="text-slate-400 uppercase tracking-wider">Fase Activa:</span>
-                      <span className="text-slate-800 font-semibold bg-stone-100 px-2 py-0.5 rounded-md">
-                        {activePhase ? activePhase.label : 'Sin fase activa'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Phase Progress Bar */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-xs font-medium">
-                      <span className="text-slate-600">Progreso de Fases ({completedPhasesCount}/{totalPhases})</span>
-                      <span className="text-slate-900 font-mono font-semibold">{progressPercent}%</span>
-                    </div>
-
-                    <div className="w-full h-3 bg-stone-200/70 rounded-full overflow-hidden p-0.5">
-                      <div
-                        className="h-full bg-slate-900 rounded-full transition-all duration-500 shadow-xs"
-                        style={{ width: `${progressPercent}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Step Chips for each Phase */}
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {project.phases.map((ph, idx) => {
-                      const isDone = ph.status === 'completed';
-                      const isActive = ph.id === project.activePhaseId || ph.status === 'active';
-
-                      return (
-                        <div
-                          key={ph.id}
-                          className={`px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${
-                            isDone
-                              ? 'bg-emerald-50 text-emerald-800'
-                              : isActive
-                              ? 'bg-slate-900 text-white shadow-xs'
-                              : 'bg-white text-slate-500'
-                          }`}
-                        >
-                          <span>{idx + 1}. {(ph.label || (ph as any).name || '').substring(0, 10)}</span>
-                          {isDone && <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Footer Metrics */}
-                <div className="pt-2 border-t border-stone-200/60 flex items-center justify-between text-xs font-bold text-slate-500">
-                  <span>
-                    Entregables: <strong className="text-slate-800">{deliverablesApproved}/{deliverablesTotal}</strong>
-                  </span>
-                  <span>
-                    Horas: <strong className="text-slate-800">{totalHoursConsumed}h / {totalHoursBudget}h</strong>
-                  </span>
-                </div>
-
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       {/* 🔍 INTERACTIVE KPI DRILL-DOWN SIDE PANEL */}

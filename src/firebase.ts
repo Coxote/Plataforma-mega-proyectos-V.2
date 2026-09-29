@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
   getAuth,
   GoogleAuthProvider,
@@ -9,6 +9,7 @@ import {
 } from 'firebase/auth';
 import {
   getFirestore,
+  initializeFirestore,
   doc,
   getDocFromServer,
   collection,
@@ -21,10 +22,25 @@ import {
 import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase App
-export const app = initializeApp(firebaseConfig);
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // CRITICAL: Firestore with specific database ID from config
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+function getFirestoreInstance() {
+  const dbId = firebaseConfig.firestoreDatabaseId;
+  try {
+    return getFirestore(app, dbId);
+  } catch (error) {
+    console.warn('Direct getFirestore failed, attempting initializeFirestore:', error);
+    try {
+      return initializeFirestore(app, {}, dbId);
+    } catch (fallbackError) {
+      console.warn('initializeFirestore fallback failed, trying default instance:', fallbackError);
+      return getFirestore(app);
+    }
+  }
+}
+
+export const db = getFirestoreInstance();
 
 // Initialize Firebase Auth
 export const auth = getAuth(app);

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Project, UserSession } from '../types';
+import { Project, UserSession, getUserAvatarUrl } from '../types';
 import { ProjectStatusBadge } from './ProjectStatusBadge';
 import { runSlaRuleEngine } from '../utils/slaRuleEngine';
 import { getUserColor } from '../dashboardUtils';
@@ -618,84 +618,82 @@ export const CoordinatorDashboard: React.FC<Props> = ({
               className="lg:col-span-4 bg-white rounded-3xl p-6 shadow-xs flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-center justify-between gap-2 pb-3 mb-3 border-b border-stone-100">
+                <div className="flex items-center justify-between gap-2 pb-3 mb-4 border-b border-stone-100">
                   <div>
                     <h3 className="text-sm font-semibold text-[#1E293B] flex items-center gap-2">
-                      <Wallet className="w-4 h-4 text-[#12AB51]" />
+                      <Wallet className="w-4 h-4 text-slate-800" />
                       Métricas Presupuestarias (EAC vs. BAC)
                     </h3>
                     <p className="text-xs text-[#64748B] mt-0.5">
                       Presupuesto Inicial vs. Proyectado al Cierre.
                     </p>
                   </div>
-                  <span className="text-xs font-semibold text-[#12AB51] bg-[#12AB51]/10 px-2 py-0.5 rounded-full">
-                    Eficiente
+                  <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+                    vacValue >= 0 
+                      ? 'bg-lime-50 text-slate-900 border-lime-200' 
+                      : 'bg-rose-50 text-rose-800 border-rose-200'
+                  }`}>
+                    {vacValue >= 0 ? 'Eficiente' : 'Desviado'}
                   </span>
                 </div>
 
-                {/* Gauge / Velocímetro semicircular */}
-                <div className="relative flex flex-col items-center justify-center my-2">
-                  <svg viewBox="0 0 200 120" className="w-52 h-32 overflow-visible">
-                    {/* Segmento 1: Verde (Eficiente < 95%) */}
-                    <path
-                      d="M 20 100 A 80 80 0 0 1 88 23"
-                      fill="none"
-                      stroke="#12AB51"
-                      strokeWidth="14"
-                      strokeLinecap="round"
-                    />
-                    {/* Segmento 2: Ámbar (En Plan 95% - 105%) */}
-                    <path
-                      d="M 94 21 A 80 80 0 0 1 122 25"
-                      fill="none"
-                      stroke="#F59E0B"
-                      strokeWidth="14"
-                    />
-                    {/* Segmento 3: Rojo (Sobre Costo > 105%) */}
-                    <path
-                      d="M 128 28 A 80 80 0 0 1 180 100"
-                      fill="none"
-                      stroke="#EF4444"
-                      strokeWidth="14"
-                      strokeLinecap="round"
-                    />
-                    {/* Pivot point */}
-                    <circle cx="100" cy="100" r="7" fill="#1E293B" />
-                    <circle cx="100" cy="100" r="3" fill="#FFFFFF" />
-
-                    {/* Aguja dinámica */}
-                    <g transform={`rotate(${gaugeAngle}, 100, 100)`}>
-                      <polygon points="98,100 102,100 100,26" fill="#1E293B" />
-                    </g>
-                  </svg>
-
-                  {/* Valor proyectado central */}
-                  <div className="text-center -mt-4">
-                    <span className="text-xs text-[#64748B] font-medium block">Proyectado al Cierre (EAC)</span>
-                    <span className="text-2xl font-bold text-slate-900 tracking-tight">
-                      ${eacValue.toLocaleString()} <span className="text-xs font-normal text-slate-500">USD</span>
+                {/* Gran Indicador Proyectado al Cierre (EAC) */}
+                <div className="bg-[#F4F5F0] rounded-2xl p-4 mb-4">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-slate-500">Proyectado al Cierre (EAC)</span>
+                    <span className="text-[11px] font-semibold text-slate-500">
+                      Línea Base: ${bacValue.toLocaleString()} USD
                     </span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-2xl font-bold text-slate-900 tracking-tight font-display">
+                      ${eacValue.toLocaleString()}
+                    </span>
+                    <span className="text-xs font-semibold text-slate-500">USD</span>
+                    <span className={`ml-auto text-xs font-bold font-mono px-2 py-0.5 rounded-md ${
+                      vacValue >= 0 ? 'bg-white text-slate-900 shadow-2xs' : 'bg-rose-100 text-rose-800'
+                    }`}>
+                      {vacValue >= 0 ? `+${vacPercentage}% holgura` : `${vacPercentage}% sobrecosto`}
+                    </span>
+                  </div>
+
+                  {/* Barra comparativa de precisión (Dual Progress Track) */}
+                  <div className="mt-3.5 space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                      <span>Consumo del Presupuesto (EAC / BAC)</span>
+                      <span className="font-semibold text-slate-800 font-mono">
+                        {Math.min(150, Math.round((eacValue / (bacValue || 1)) * 100))}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-stone-200/80 h-2.5 rounded-full overflow-hidden relative">
+                      <div
+                        className="h-full rounded-full transition-all duration-500 bg-slate-900"
+                        style={{
+                          width: `${Math.min(100, Math.round((eacValue / (bacValue || 1)) * 100))}%`
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Grid comparativa de métricas BAC, VAC, AC */}
-                <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-stone-100 bg-[#F4F5F0] p-3 rounded-2xl">
-                  <div>
-                    <span className="text-[11px] text-[#64748B] block font-medium">Presupuesto Inicial (BAC)</span>
-                    <span className="text-sm font-bold text-slate-800">${bacValue.toLocaleString()} USD</span>
+                {/* Grid comparativa de métricas BAC, VAC, AC, EV */}
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="p-2.5 rounded-xl border border-stone-200/60 bg-white">
+                    <span className="text-[10.5px] text-[#64748B] block font-medium">Presupuesto Inicial (BAC)</span>
+                    <span className="text-xs font-bold text-slate-900 font-mono">${bacValue.toLocaleString()} USD</span>
                   </div>
-                  <div>
-                    <span className="text-[11px] text-[#64748B] block font-medium">Varianza al Cierre (VAC)</span>
-                    <span className="text-sm font-bold text-[#12AB51]">
-                      +${vacValue.toLocaleString()} ({vacPercentage}%)
+                  <div className="p-2.5 rounded-xl border border-stone-200/60 bg-white">
+                    <span className="text-[10.5px] text-[#64748B] block font-medium">Varianza Proyectada (VAC)</span>
+                    <span className={`text-xs font-bold font-mono ${vacValue >= 0 ? 'text-slate-900' : 'text-rose-700'}`}>
+                      {vacValue >= 0 ? `+$${vacValue.toLocaleString()}` : `-$${Math.abs(vacValue).toLocaleString()}`} USD
                     </span>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-3 pt-3 border-t border-[#E2E8F0] flex items-center justify-between text-xs text-[#64748B]">
-                <span>Costo Real (AC): <strong className="text-slate-800">${acValue.toLocaleString()}</strong></span>
-                <span>Valor Ganado (EV): <strong className="text-slate-800">${evValue.toLocaleString()}</strong></span>
+              <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-[#64748B]">
+                <span>Costo Real (AC): <strong className="text-slate-800 font-mono">${acValue.toLocaleString()}</strong></span>
+                <span>Valor Ganado (EV): <strong className="text-slate-800 font-mono">${evValue.toLocaleString()}</strong></span>
               </div>
             </div>
 
@@ -807,7 +805,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                       Cambios vs. línea base y pipeline de CRs.
                     </p>
                   </div>
-                  <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-semibold text-slate-800 bg-stone-100 border border-stone-200/80 px-2.5 py-0.5 rounded-full font-mono">
                     +14.4% Creep
                   </span>
                 </div>
@@ -824,20 +822,20 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-bold text-slate-800">{cr.id}</span>
-                          <span className="text-xs text-slate-600 truncate">{cr.title}</span>
+                          <span className="text-xs font-bold text-slate-900 font-mono">{cr.id}</span>
+                          <span className="text-xs text-slate-700 font-medium truncate">{cr.title}</span>
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">
-                          Impacto: <strong className="text-slate-600">{cr.hours}</strong> • Valor: <strong className="text-slate-600">{cr.cost}</strong>
+                        <div className="text-[11px] text-slate-500 mt-0.5">
+                          Impacto: <strong className="text-slate-800 font-mono">{cr.hours}</strong> • Valor: <strong className="text-slate-800 font-mono">{cr.cost}</strong>
                         </div>
                       </div>
                       <span
-                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+                        className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full shrink-0 border ${
                           cr.type === 'approved'
-                            ? 'text-[#12AB51] bg-[#12AB51]/10'
+                            ? 'bg-lime-50 text-slate-900 border-lime-200'
                             : cr.type === 'pending'
-                            ? 'text-amber-700 bg-amber-100'
-                            : 'text-blue-700 bg-blue-100'
+                            ? 'bg-amber-50 text-amber-900 border-amber-200'
+                            : 'bg-stone-200/70 text-slate-700 border-stone-300'
                         }`}
                       >
                         {cr.status}
@@ -848,8 +846,8 @@ export const CoordinatorDashboard: React.FC<Props> = ({
               </div>
 
               <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-[#64748B]">
-                <span>Línea Base: <strong className="text-slate-800">160h</strong></span>
-                <span>Horas Extra Aprobadas: <strong className="text-purple-600">+23h ($6.9k)</strong></span>
+                <span>Línea Base: <strong className="text-slate-900 font-mono">160h</strong></span>
+                <span>Horas Extra Aprobadas: <strong className="text-slate-900 font-mono">+23h ($6.9k)</strong></span>
               </div>
             </div>
 
@@ -970,7 +968,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                     Hitos y avance porcentual del flujo de trabajo.
                   </p>
                 </div>
-                <span className="text-xs font-semibold text-[#12AB51] bg-[#12AB51]/10 px-2 py-1 rounded-full">
+                <span className="text-xs font-semibold text-slate-900 bg-lime-50 border border-lime-200 px-2.5 py-0.5 rounded-full">
                   Fase 5 en curso
                 </span>
               </div>
@@ -981,15 +979,15 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-medium text-[#1E293B] flex items-center gap-2">
                         {ph.estado === 'completed' ? (
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#12AB51]" />
+                          <CheckCircle2 className="w-3.5 h-3.5 text-slate-900" />
                         ) : ph.estado === 'active' ? (
-                          <Clock className="w-3.5 h-3.5 text-[#c6ef4e] animate-pulse" />
+                          <Clock className="w-3.5 h-3.5 text-slate-900 animate-pulse" />
                         ) : (
                           <span className="w-3.5 h-3.5 rounded-full border border-slate-300 inline-block" />
                         )}
                         {ph.name}
                       </span>
-                      <span className="font-semibold text-slate-700 font-mono">
+                      <span className="font-semibold text-slate-900 font-mono">
                         {ph.completado}%
                       </span>
                     </div>
@@ -999,7 +997,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                         className="h-full rounded-full transition-all duration-300"
                         style={{
                           width: `${ph.completado}%`,
-                          backgroundColor: ph.estado === 'completed' ? '#12AB51' : ph.estado === 'active' ? '#c6ef4e' : '#CBD5E1'
+                          backgroundColor: ph.estado === 'completed' ? '#1E293B' : ph.estado === 'active' ? '#c6ef4e' : '#CBD5E1'
                         }}
                       />
                     </div>
@@ -1010,7 +1008,7 @@ export const CoordinatorDashboard: React.FC<Props> = ({
 
             <div className="pt-3 border-t border-stone-100 text-xs text-[#64748B] flex items-center justify-between">
               <span>Entrega estimada: 25 de Agosto 2026</span>
-              <span className="font-medium text-slate-800">4 de 6 fases completadas</span>
+              <span className="font-medium text-slate-900">4 de 6 fases completadas</span>
             </div>
           </div>
 
@@ -1060,20 +1058,17 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                           const count = matchingRisks.length;
                           const score = prob * impact;
 
-                          let cellBg = '#DCFCE7'; // light green
-                          let textColor = '#166534';
+                          // Verde lima (#c6ef4e) con variación de opacidad según criticidad
+                          let cellBg = 'rgba(198, 239, 78, 0.08)'; // Mínimo
+                          const textColor = '#0F172A'; // Slate 900 oscuro para contraste óptimo
                           if (score >= 16) {
-                            cellBg = '#c6ef4e';
-                            textColor = '#FFFFFF';
+                            cellBg = 'rgba(198, 239, 78, 1.0)'; // Crítico (100% opacidad)
                           } else if (score >= 10) {
-                            cellBg = '#FB923C';
-                            textColor = '#FFFFFF';
+                            cellBg = 'rgba(198, 239, 78, 0.70)'; // Alto (70% opacidad)
                           } else if (score >= 6) {
-                            cellBg = '#FEF08A';
-                            textColor = '#854D0E';
+                            cellBg = 'rgba(198, 239, 78, 0.45)'; // Medio (45% opacidad)
                           } else if (score >= 3) {
-                            cellBg = '#BBF7D0';
-                            textColor = '#14532D';
+                            cellBg = 'rgba(198, 239, 78, 0.22)'; // Bajo (22% opacidad)
                           }
 
                           const isHovered = hoveredHeatmapCell?.prob === prob && hoveredHeatmapCell?.impact === impact;
@@ -1094,11 +1089,11 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                               title={`Probabilidad ${prob} x Impacto ${impact}: ${count} evento(s)`}
                             >
                               {count > 0 ? (
-                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-semibold font-display ${score >= 10 ? 'bg-white text-slate-900 shadow-sm' : 'bg-slate-900 text-white'}`}>
+                                <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold bg-slate-900 text-white shadow-xs">
                                   {count}
                                 </span>
                               ) : (
-                                <span className="opacity-40 text-[9px]">{score}</span>
+                                <span className="opacity-40 text-[9px] font-mono">{score}</span>
                               )}
                             </div>
                           );
@@ -1139,16 +1134,19 @@ export const CoordinatorDashboard: React.FC<Props> = ({
             <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-[#64748B]">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-[#DCFCE7]"></span> Bajo
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[#c6ef4e]/20 border border-[#c6ef4e]/40"></span> Bajo
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-[#FEF08A]"></span> Medio
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[#c6ef4e]/45 border border-[#c6ef4e]/60"></span> Medio
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-[#c6ef4e]"></span> Crítico
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[#c6ef4e]/70"></span> Alto
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[#c6ef4e] shadow-2xs"></span> Crítico
                 </span>
               </div>
-              <span className="font-medium text-slate-800">100% Celdas 1:1</span>
+              <span className="font-medium text-slate-800 font-mono">Heatmap Verde Lima</span>
             </div>
           </div>
 
@@ -1183,14 +1181,19 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                       className="p-3 rounded-2xl bg-[#F4F5F0] hover:bg-stone-200/60 transition-all cursor-pointer flex items-center justify-between gap-3"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${getUserColor(member.role)}`}>
-                          {member.username.substring(0, 2).toUpperCase()}
+                        <div className="w-10 h-10 rounded-full shrink-0 border-2 border-white shadow-2xs overflow-hidden bg-stone-200">
+                          <img
+                            src={getUserAvatarUrl(member.username)}
+                            alt={member.username}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                          />
                         </div>
                         <div className="min-w-0">
-                          <h4 className="text-xs font-semibold text-[#1E293B] truncate">
+                          <h4 className="text-xs font-semibold text-slate-900 truncate">
                             {member.username}
                           </h4>
-                          <p className="text-[11px] text-[#64748B] capitalize truncate">
+                          <p className="text-[11px] text-slate-500 capitalize truncate">
                             {member.role} • {member.activeProjectsCount} proyectos
                           </p>
                         </div>
@@ -1202,16 +1205,16 @@ export const CoordinatorDashboard: React.FC<Props> = ({
                             {member.consumedHours}h
                           </span>
                           <span
-                            className="text-[11px] font-bold px-1.5 py-0.5 rounded-full"
-                            style={{
-                              backgroundColor: isOver ? '#c6ef4e15' : '#12AB5115',
-                              color: isOver ? '#c6ef4e' : '#12AB51'
-                            }}
+                            className={`text-[11px] font-bold px-2 py-0.5 rounded-full border font-mono ${
+                              isOver
+                                ? 'bg-rose-50 text-rose-800 border-rose-200'
+                                : 'bg-lime-50 text-slate-900 border-lime-200'
+                            }`}
                           >
                             {member.effectiveSaturation}%
                           </span>
                         </div>
-                        <span className="text-[10px] text-[#64748B]">
+                        <span className={`text-[10px] font-medium ${isOver ? 'text-rose-700' : 'text-slate-500'}`}>
                           {isOver ? 'Sobrecarga' : 'Capacidad Óptima'}
                         </span>
                       </div>

@@ -590,12 +590,12 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                 </div>
               ) : (
                 groupedRows.map((row) => (
-                  <div key={row.id} className="flex hover:bg-stone-50/70 transition-colors min-h-[72px] sm:min-h-[80px] relative group">
+                  <div key={row.id} className="flex items-stretch hover:bg-stone-50/70 transition-colors h-[76px] sm:h-[84px] relative group">
 
                     {/* Columna Fija Izquierda: Nombre de Proyecto/Usuario */}
                     <div className="w-64 sm:w-72 p-3.5 sm:p-4 border-r border-stone-200/60 shrink-0 flex items-center justify-between bg-white group-hover:bg-stone-50/90 transition-all sticky left-0 z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
                       <div className="min-w-0 flex-1 pr-2">
-                        <div className="flex items-center gap-1.5 mb-1">
+                        <div className="flex items-center gap-1.5 mb-0.5">
                           <span className="font-semibold text-xs text-slate-900 truncate block leading-tight">
                             {row.label}
                           </span>
@@ -605,16 +605,16 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                           {row.sublabel}
                         </p>
 
-                        {/* Barra de progreso bajo el nombre */}
+                        {/* Barra de progreso bajo el nombre (centrada y limpia) */}
                         {groupBy === 'project' && row.progressPercent !== undefined && (
                           <div className="mt-2 flex items-center gap-2">
-                            <div className="flex-1 bg-stone-100 h-1.5 rounded-full overflow-hidden">
+                            <div className="flex-1 bg-stone-200/60 h-2 rounded-full overflow-hidden p-0.5">
                               <div
-                                className="bg-slate-900 h-full rounded-full transition-all"
+                                className="bg-slate-900 h-full rounded-full transition-all duration-500"
                                 style={{ width: `${row.progressPercent}%` }}
                               />
                             </div>
-                            <span className="text-[9.5px] font-semibold text-slate-700 shrink-0">
+                            <span className="text-[10px] font-bold text-slate-800 font-mono shrink-0">
                               {row.progressPercent}%
                             </span>
                           </div>
@@ -642,7 +642,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                       )}
                     </div>
 
-                    {/* Area de Cronograma X-Axis */}
+                    {/* Area de Cronograma X-Axis (centrado vertical exacto) */}
                     <div className="flex-1 relative h-full flex items-center">
 
                       {/* Grid Fondo Días (Lineas Verticales) */}
@@ -657,7 +657,7 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                         ))}
                       </div>
 
-                      {/* Renderizado de Barras de Gantt con posicionamiento exacto sin recortes */}
+                      {/* Renderizado de Barras de Gantt centradas exactamente en el eje vertical */}
                       {row.items.map((item) => {
                         const leftPct = ((item.startDay - 1) / 31) * 100;
                         const widthPct = (item.durationDays / 31) * 100;
@@ -666,27 +666,33 @@ export const GanttView: React.FC<GanttViewProps> = ({ projects = [], users = [] 
                           <div
                             key={item.id}
                             onClick={() => setActiveModalItem(item)}
-                            className={`absolute h-10 sm:h-11 rounded-full px-3 flex items-center justify-between border shadow-2xs text-xs font-semibold transition-all cursor-pointer select-none hover:scale-[1.01] hover:shadow-md z-10 ${item.colorTheme.bg} ${item.colorTheme.border} ${item.colorTheme.text}`}
+                            className={`absolute top-1/2 -translate-y-1/2 h-10 sm:h-11 rounded-full px-3 flex items-center justify-between border shadow-2xs text-xs font-semibold transition-all cursor-pointer select-none hover:scale-[1.01] hover:shadow-md z-10 overflow-hidden ${item.colorTheme.bg} ${item.colorTheme.border} ${item.colorTheme.text}`}
                             style={{
                               left: `${leftPct}%`,
                               width: `${widthPct}%`,
-                              minWidth: '60px',
+                              minWidth: '64px',
                             }}
-                            title={`${item.title} (${item.progressPercent}% avance) - Tap para ver detalles`}
+                            title={`${item.title} (${item.progressPercent}% avance) - Clic para ver detalles`}
                           >
-                            {/* Insignia % Avance (Pill a la izquierda como en Taskken) */}
-                            <div className={`px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider shrink-0 ${item.colorTheme.badgeBg} ${item.colorTheme.badgeText}`}>
+                            {/* Barra interna de avance completado (fill centrado) */}
+                            <div
+                              className="absolute inset-y-0 left-0 bg-black/6 pointer-events-none rounded-full transition-all duration-300"
+                              style={{ width: `${item.progressPercent}%` }}
+                            />
+
+                            {/* Insignia % Avance (Pill a la izquierda) */}
+                            <div className={`relative z-10 px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider shrink-0 shadow-2xs ${item.colorTheme.badgeBg} ${item.colorTheme.badgeText}`}>
                               {item.progressPercent}%
                             </div>
 
                             {/* Título en Centro */}
-                            <span className="truncate px-2 text-center text-xs font-semibold flex-1">
+                            <span className="relative z-10 truncate px-2 text-center text-xs font-semibold flex-1">
                               {item.title}
                             </span>
 
                             {/* Avatares a la derecha dentro de la barra */}
                             {item.assignedUsers.length > 0 && (
-                              <div className="hidden sm:flex -space-x-1.5 shrink-0 pl-1">
+                              <div className="relative z-10 hidden sm:flex -space-x-1.5 shrink-0 pl-1">
                                 {item.assignedUsers.slice(0, 2).map((u, ui) => (
                                   <img
                                     key={ui}

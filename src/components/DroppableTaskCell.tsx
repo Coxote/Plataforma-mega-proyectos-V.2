@@ -47,9 +47,9 @@ export const DroppableTaskCell: React.FC<DroppableTaskCellProps> = ({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => setShowDropdown(!showDropdown)}
-        className={`min-h-[2.5rem] px-2.5 py-1.5 rounded-2xl flex items-center justify-center gap-1.5 transition-all cursor-pointer border ${
+        className={`min-h-[2.5rem] px-2.5 py-1.5 rounded-2xl flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer border ${
           isOver
-            ? 'border-lime-500 bg-lime-500/10'
+            ? 'border-[#D1F349] bg-lime-50/80 ring-2 ring-[#D1F349] ring-offset-1 scale-105 shadow-sm'
             : assignedUsers.length > 0
             ? 'border-slate-200/80 bg-slate-50/50 hover:bg-slate-100/80'
             : 'border-dashed border-slate-300 hover:border-slate-400 bg-white hover:bg-slate-50'

@@ -958,6 +958,17 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     handleResetAndClose();
   };
 
+  // Escape key listener for closing the wizard safely
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleResetAndClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   const rosterUsers = (users || [])
     .filter(u => u.role !== 'invitado')
     .map(u => ({
@@ -981,10 +992,18 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
           <div className="p-8 space-y-6 overflow-y-auto">
             <div className="flex justify-between items-center border-b border-stone-100 pb-4">
               <div>
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  Paso 1 de 2 • Configuración Básica
+                </span>
                 <h2 className="text-xl font-semibold text-slate-900">Configuración Inicial del Proyecto</h2>
                 <p className="text-xs text-slate-500 font-normal mt-0.5">Introduce el nombre y cliente para comenzar.</p>
               </div>
-              <button onClick={handleResetAndClose} className="p-2 text-slate-400 hover:text-slate-600 rounded-full cursor-pointer">
+              <button
+                type="button"
+                onClick={handleResetAndClose}
+                className="p-2.5 text-slate-400 hover:text-slate-700 hover:bg-stone-100 rounded-full cursor-pointer transition-all"
+                title="Cerrar ventana (Esc)"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -1052,6 +1071,30 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
         {/* ======================= PASO 2 ======================= */}
         {step === 2 && (
           <div className="flex flex-col h-full overflow-hidden">
+            {/* Header Superior del Paso 2 con botón de cierre */}
+            <div className="px-8 pt-6 pb-4 border-b border-stone-100 flex justify-between items-center bg-white shrink-0">
+              <div>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Paso 2 de 2 • Arquitectura y Equipo
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#c6ef4e]" />
+                  <span className="text-xs font-semibold text-slate-700 truncate max-w-[280px]">
+                    {draft.projectName || 'Nuevo Proyecto'}
+                  </span>
+                </div>
+                <h2 className="text-xl font-semibold text-slate-900">Configuración Detallada y Equipo</h2>
+              </div>
+              <button
+                type="button"
+                onClick={handleResetAndClose}
+                className="p-2.5 text-slate-400 hover:text-slate-700 hover:bg-stone-100 rounded-full cursor-pointer transition-all"
+                title="Cerrar ventana (Esc)"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
             <div className="flex bg-[#F4F5F0] p-1.5 rounded-2xl mx-8 mt-5 gap-1 overflow-x-auto shrink-0">
               <button
                 onClick={() => setActiveTab('general')}
@@ -1483,21 +1526,30 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
 
             {/* Navegación Footer */}
             <div className="p-6 border-t border-slate-100 bg-white flex justify-between items-center shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  if (activeTab === 'integrantes') {
-                    setActiveTab('fases');
-                  } else if (activeTab === 'fases') {
-                    setActiveTab('general');
-                  } else {
-                    setStep(1);
-                  }
-                }}
-                className="text-xs font-bold text-[#c6ef4e] flex items-center gap-1 hover:underline cursor-pointer"
-              >
-                <ArrowLeft className="w-4 h-4" /> Volver
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleResetAndClose}
+                  className="px-4 py-2.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-stone-100 transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (activeTab === 'integrantes') {
+                      setActiveTab('fases');
+                    } else if (activeTab === 'fases') {
+                      setActiveTab('general');
+                    } else {
+                      setStep(1);
+                    }
+                  }}
+                  className="px-4 py-2.5 rounded-full text-xs font-bold text-slate-700 hover:bg-stone-100 flex items-center gap-1.5 transition-all cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4 text-slate-600" /> Volver
+                </button>
+              </div>
 
               {activeTab !== 'integrantes' ? (
                 <button
@@ -1509,7 +1561,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       setActiveTab('integrantes');
                     }
                   }}
-                  className="px-6 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+                  className="px-6 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-full text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
                 >
                   Siguiente
                 </button>
@@ -1518,7 +1570,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                   type="button"
                   onClick={handleFinish}
                   disabled={!draft.projectName.trim() || !draft.clientName.trim()}
-                  className="px-8 py-3 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer disabled:opacity-40"
+                  className="px-8 py-3 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-full text-xs font-bold transition-all shadow-md cursor-pointer disabled:opacity-40 active:scale-95"
                 >
                   Crear Proyecto
                 </button>
