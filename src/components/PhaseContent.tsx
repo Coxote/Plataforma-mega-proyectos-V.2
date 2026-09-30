@@ -1,4 +1,4 @@
-import { Phase, Project, DeliverableItem, Role, ClientAnnotation, DecisionLogEntry, UserSession, AuditLogEntry, ChecklistItem, Client, DeliverableHistoryEntry } from '../types';
+import { Phase, Project, DeliverableItem, Role, ClientAnnotation, DecisionLogEntry, UserSession, AuditLogEntry, ChecklistItem, Client, DeliverableHistoryEntry, getUserAvatarUrl } from '../types';
 import {
   CheckSquare,
   Square,
@@ -65,6 +65,33 @@ export const getCleanPhaseTitle = (label: string, id: string, index?: number) =>
   return clean;
 };
 
+const getAuditTagInfo = (log: Partial<AuditLogEntry>) => {
+  const explicitTag = (log.tag || '').toUpperCase();
+  const action = (log.action || '').toUpperCase();
+  if (explicitTag === 'ORDEN_VENTA' || action.includes('OV') || action.includes('ORDEN')) {
+    return { tag: 'ORDEN_VENTA', label: 'Orden de Venta', color: 'bg-purple-50 text-purple-700 border-purple-200' };
+  }
+  if (explicitTag === 'ACUERDO_CLIENTE' || action.includes('ACUERDO') || action.includes('DECISION')) {
+    return { tag: 'ACUERDO_CLIENTE', label: 'Acuerdo Cliente', color: 'bg-blue-50 text-blue-700 border-blue-200' };
+  }
+  if (explicitTag === 'ENTREGABLE_SUBIDO' || action.includes('ENTREGABLE')) {
+    return { tag: explicitTag || 'ENTREGABLE', label: action.includes('VISTO') ? 'Revisión' : 'Entregable', color: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+  }
+  if (explicitTag === 'ENTREGABLE_CAMBIOS' || action.includes('MODIFICACION_ENTREGABLE')) {
+    return { tag: 'ENTREGABLE_CAMBIOS', label: 'Cambios', color: 'bg-cyan-50 text-cyan-700 border-cyan-200' };
+  }
+  if (explicitTag === 'CHECKLIST' || action.includes('PASO') || action.includes('CHECKLIST')) {
+    return { tag: 'CHECKLIST', label: 'Checklist', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+  }
+  if (explicitTag === 'CRONOGRAMA' || action.includes('FASE')) {
+    return { tag: 'CRONOGRAMA', label: 'Cronograma', color: 'bg-amber-50 text-amber-800 border-amber-200' };
+  }
+  if (explicitTag === 'HORAS' || action.includes('HORAS')) {
+    return { tag: 'HORAS', label: 'Horas', color: 'bg-slate-100 text-slate-700 border-slate-200' };
+  }
+  return { tag: explicitTag || 'SISTEMA', label: explicitTag || 'Sistema', color: 'bg-stone-100 text-stone-700 border-stone-200' };
+};
+
 export default function PhaseContent({
   activePhase,
   project,
@@ -76,7 +103,7 @@ export default function PhaseContent({
   currentUser,
   clients = [],
 }: PhaseContentProps) {
-  const [activeTab, setActiveTab] = useState<'phase' | 'project' | 'deliverables'>('phase');
+  const [activeTab, setActiveTab] = useState<'phase' | 'project' | 'deliverables' | 'history'>('phase');
   const [govSubTab, setGovSubTab] = useState<'bitacora' | 'raci'>('bitacora');
 
   // New Deliverable Form States
@@ -92,10 +119,6 @@ export default function PhaseContent({
   const [editType, setEditType] = useState<'video' | 'audio' | 'pdf' | 'word' | 'image' | 'markdown' | 'link'>('link');
   const [editUrl, setEditUrl] = useState('');
 
-  // Audit Log Filters in Tab 1
-  const [auditPhaseFilter, setAuditPhaseFilter] = useState<string>('todos');
-  const [auditSearchQuery, setAuditSearchQuery] = useState<string>('');
-
   // Checklist Task text editing in Tab 1
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editingTaskText, setEditingTaskText] = useState<string>('');
@@ -105,6 +128,9 @@ export default function PhaseContent({
   const [decCategory, setDecCategory] = useState<'Alcance' | 'Diseño' | 'Técnico' | 'Presupuesto' | 'Aprobación' | 'Otro'>('Alcance');
   const [decRationale, setDecRationale] = useState('');
   const [decApprovedBy, setDecApprovedBy] = useState('');
+  const [auditPhaseFilter, setAuditPhaseFilter] = useState<string>('todos');
+  const [auditTagFilter, setAuditTagFilter] = useState<string>('todos');
+  const [auditSearchQuery, setAuditSearchQuery] = useState<string>('');
 
   // Phase & Checklist States & Calculations
   const activePhaseIndex = project.phases.findIndex((p) => p.id === activePhase.id);
@@ -421,6 +447,83 @@ export default function PhaseContent({
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const buildHistoryRecords = (): AuditLogEntry[] => [
+    ...(project.auditLog || []),
+    ...(project.timeEntries || []).map((te) => ({
+      id: `te-${te.id}`,
+      timestamp: te.createdAt || te.date || new Date().toISOString(),
+      userId: te.userId,
+      username: te.username || 'Colaborador',
+      userRole: te.role as Role,
+      action: 'REGISTRO_HORAS',
+      entityType: 'Horas',
+      details: `Registro de ${te.hours}h: "${te.description || 'Avance de trabajo'}"`,
+      phaseId: te.phaseId,
+      tag: 'HORAS'
+    }))
+  ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+  const buildHistoryMarkdown = (records: AuditLogEntry[]) => {
+    let md = `# Historial / Bitácora del Proyecto: ${project.name}\n\n`;
+    md += `**Cliente:** ${project.clientName || 'N/A'}\n`;
+    md += `**Exportado:** ${new Date().toLocaleString('es-CL')}\n`;
+    md += `**Registros:** ${records.length}\n\n`;
+    records.forEach((log) => {
+      const tagInfo = getAuditTagInfo(log);
+      md += `## ${new Date(log.timestamp).toLocaleString('es-CL')} - ${log.action}\n`;
+      md += `- **Tag:** ${tagInfo.label}\n`;
+      md += `- **Usuario:** ${log.username || 'Sistema'} (${log.userRole || 'N/A'})\n`;
+      md += `- **Entidad:** ${log.entityType || 'Registro'}\n`;
+      if (log.phaseId) md += `- **Fase:** ${log.phaseId}\n`;
+      md += `- **Detalle:** ${log.details || ''}\n\n`;
+    });
+    return md;
+  };
+
+  const handleDownloadHistoryMD = () => {
+    const records = buildHistoryRecords();
+    const blob = new Blob([buildHistoryMarkdown(records)], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Bitacora_Historial_${(project.name || 'Proyecto').replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadHistoryPDF = () => {
+    const records = buildHistoryRecords();
+    const rows = records.map((log) => {
+      const tagInfo = getAuditTagInfo(log);
+      return `
+        <article style="border-bottom:1px solid #e2e8f0;padding:14px 0;">
+          <div style="font-size:11px;text-transform:uppercase;color:#64748b;letter-spacing:.08em;">${tagInfo.label} · ${log.entityType || 'Registro'}</div>
+          <h2 style="font-size:15px;margin:4px 0;color:#0f172a;">${log.action}</h2>
+          <p style="font-size:12px;color:#334155;margin:0 0 8px;">${log.details || ''}</p>
+          <div style="font-size:11px;color:#64748b;">${log.username || 'Sistema'} · ${new Date(log.timestamp).toLocaleString('es-CL')}${log.phaseId ? ` · Fase: ${log.phaseId}` : ''}</div>
+        </article>
+      `;
+    }).join('');
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head><title>Historial ${project.name}</title></head>
+        <body style="font-family:Inter,Segoe UI,sans-serif;padding:32px;color:#0f172a;">
+          <h1 style="margin:0 0 4px;">Historial / Bitácora del Proyecto</h1>
+          <p style="margin:0 0 24px;color:#64748b;">${project.name} · ${project.clientName || 'Cliente no especificado'} · ${records.length} registros</p>
+          ${rows || '<p>Sin registros.</p>'}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
   };
 
   const isGeneralDisabled = userRole === 'contents' || userRole === 'contentd' || userRole === 'invitado';
@@ -901,7 +1004,8 @@ export default function PhaseContent({
       action: `EXCEPCION_FASE_GATE`,
       entityType: `Fase`,
       details: `Excepción Autorizada: Finalización de Fase "${activePhase.label}" al ${checklistPercent}% por: ${exceptionReason}`,
-      phaseId: activePhase.id
+      phaseId: activePhase.id,
+      tag: 'CRONOGRAMA'
     };
 
     const updatedAuditLog = [exceptionLog, ...(project.auditLog || [])];
@@ -928,6 +1032,28 @@ export default function PhaseContent({
         return pLabel.includes('sprint') || pLabel.includes('qa') || pLabel.includes('desarrollo') || pId === 'a5' || pId === 'a6' || p.status === 'active';
       })
     : project.phases;
+
+  const historyRecords = buildHistoryRecords();
+
+  const historyTagOptions = Array.from(
+    new Set(historyRecords.map((log) => getAuditTagInfo(log).tag).filter(Boolean))
+  );
+
+  const filteredHistoryRecords = historyRecords.filter((log) => {
+    const tagInfo = getAuditTagInfo(log);
+    const phaseLabel = log.phaseId
+      ? getCleanPhaseTitle(
+          project.phases.find(p => p.id === log.phaseId)?.label || log.phaseId,
+          log.phaseId,
+          project.phases.findIndex(p => p.id === log.phaseId)
+        )
+      : '';
+    const haystack = `${log.username || ''} ${log.userRole || ''} ${log.action || ''} ${log.entityType || ''} ${log.details || ''} ${log.phaseId || ''} ${phaseLabel} ${tagInfo.label || ''} ${tagInfo.tag || ''}`.toLowerCase();
+    const matchesSearch = !auditSearchQuery.trim() || haystack.includes(auditSearchQuery.trim().toLowerCase());
+    const matchesTag = auditTagFilter === 'todos' || tagInfo.tag === auditTagFilter;
+    const matchesPhase = auditPhaseFilter === 'todos' || log.phaseId === auditPhaseFilter;
+    return matchesSearch && matchesTag && matchesPhase;
+  });
 
   return (
     <main className="flex flex-col h-full overflow-hidden bg-white" id="phase-content-wrapper">
@@ -1074,6 +1200,21 @@ export default function PhaseContent({
         >
           <MessageSquare className="w-3.5 h-3.5 text-indigo-500" />
           <span>Entregables & Feedback</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('history')}
+          className={`py-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'history'
+              ? 'border-indigo-600 text-indigo-700 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <History className="w-3.5 h-3.5 text-indigo-500" />
+          <span>Historial & Bitácora</span>
+          <span className="text-[10px] bg-indigo-50 text-indigo-700 font-mono font-bold px-1.5 py-0.5 rounded-full border border-indigo-200/60">
+            {historyRecords.length}
+          </span>
         </button>
       </div>
 
@@ -1465,179 +1606,10 @@ export default function PhaseContent({
                     </div>
                   </div>
                 </div>
-
-                {/* Right Column: Historial de Movimientos del Proyecto */}
-              <div className="md:col-span-2 space-y-6">
-                {/* Exit Criteria Gate Card */}
-                <div className="bg-amber-50/80 p-5 rounded-3xl shadow-xs space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-amber-600" />
-                    <h3 className="font-bold text-xs uppercase tracking-widest text-amber-900">
-                      Criterios de Salida de Fase
-                    </h3>
-                  </div>
-                  <p className="text-xs text-amber-800 font-medium leading-relaxed">
-                    {activePhase.exitCriteria || 'Completar el 100% de la checklist obligatoria y contar con el visto bueno del coordinador.'}
-                  </p>
-                </div>
-
-                {/* Historial de Movimientos del Proyecto */}
-                <div className="bg-white p-6 rounded-3xl shadow-xs space-y-4">
-                  <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <History className="w-4 h-4 text-indigo-600" />
-                      <h3 className="font-bold text-xs uppercase tracking-widest text-slate-800">
-                        Historial de Movimientos
-                      </h3>
-                    </div>
-                    <span className="text-xs bg-indigo-50 text-indigo-700 font-mono font-bold px-2 py-0.5 rounded-full">
-                      {(project.auditLog?.length || project.timeEntries?.length || 0)} registros
-                    </span>
-                  </div>
-
-                  {/* Filtros por Fase y Búsqueda en el Historial */}
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <select
-                        value={auditPhaseFilter}
-                        onChange={(e) => setAuditPhaseFilter(e.target.value)}
-                        className="flex-1 bg-[#F4F5F0] rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-medium outline-none border border-stone-200/70 cursor-pointer"
-                      >
-                        <option value="todos">Todas las Fases del Proyecto</option>
-                        {project.phases.map((p, idx) => (
-                          <option key={p.id} value={p.id}>
-                            {getCleanPhaseTitle(p.label, p.id, idx)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div className="relative">
-                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                      <input
-                        type="text"
-                        value={auditSearchQuery}
-                        onChange={(e) => setAuditSearchQuery(e.target.value)}
-                        placeholder="Buscar por usuario, texto o acción..."
-                        className="w-full bg-[#F4F5F0] rounded-xl pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder-slate-400 outline-none border border-stone-200/70"
-                      />
-                      {auditSearchQuery && (
-                        <button
-                          type="button"
-                          onClick={() => setAuditSearchQuery('')}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Lista Completa del Historial */}
-                  {(() => {
-                    const allLogs = (project.auditLog && project.auditLog.length > 0)
-                      ? project.auditLog
-                      : (project.timeEntries || []).map(te => ({
-                          id: `te-${te.id}`,
-                          timestamp: te.createdAt || te.date || new Date().toISOString(),
-                          username: te.username || 'Colaborador',
-                          userRole: te.role || 'contents',
-                          action: 'REGISTRO_HORAS',
-                          details: `Registro de ${te.hours}h: "${te.description || 'Avance de trabajo'}"`,
-                          phaseId: te.phaseId
-                        }));
-
-                    const filtered = allLogs.filter((log) => {
-                      const matchPhase = auditPhaseFilter === 'todos' || log.phaseId === auditPhaseFilter;
-                      const q = auditSearchQuery.toLowerCase().trim();
-                      const matchQuery = !q ||
-                        (log.username || '').toLowerCase().includes(q) ||
-                        (log.action || '').toLowerCase().includes(q) ||
-                        (log.details || '').toLowerCase().includes(q);
-                      return matchPhase && matchQuery;
-                    });
-
-                    if (filtered.length === 0) {
-                      return (
-                        <div className="p-4 text-center bg-[#F4F5F0] rounded-2xl">
-                          <p className="text-xs text-slate-400 italic">No hay registros que coincidan con la búsqueda.</p>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
-                        {filtered.map((log, idx) => {
-                          const d = new Date(log.timestamp);
-                          const formattedDate = !isNaN(d.getTime())
-                            ? `${d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })} • ${d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`
-                            : log.timestamp;
-
-                          const isTextMod = log.action === 'MODIFICACION_TEXTO' || log.action === 'MODIFICACION_ENTREGABLE';
-                          const isCheck = log.action === 'PASO_COMPLETADO' || log.action === 'COMPLETAR_FASE';
-                          const isNew = log.action === 'NUEVO_PASO' || log.action === 'NUEVO_ENTREGABLE' || log.action === 'REGISTRAR_ACUERDO';
-                          const isGate = log.action === 'EXCEPCION_FASE_GATE';
-                          const isReview = log.action === 'VISTO_BUENO_ENTREGABLE';
-
-                          return (
-                            <div
-                              key={log.id || idx}
-                              className="p-3 bg-[#F4F5F0] rounded-2xl text-xs space-y-1.5 border border-stone-200/60"
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <div className="flex items-center gap-1.5 min-w-0">
-                                  <div className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
-                                    {(log.username || 'U').charAt(0).toUpperCase()}
-                                  </div>
-                                  <span className="font-bold text-slate-900 truncate">{log.username || 'Sistema'}</span>
-                                  <span className="text-[10px] text-slate-500 font-mono uppercase bg-white px-1.5 py-0.5 rounded border border-stone-200">
-                                    {log.userRole || 'colaborador'}
-                                  </span>
-                                </div>
-                                <span className="text-[10px] text-slate-400 font-mono shrink-0">
-                                  {formattedDate}
-                                </span>
-                              </div>
-
-                              <div className="text-xs text-slate-700 leading-snug">
-                                {log.details || log.action}
-                              </div>
-
-                              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                                <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                  isTextMod ? 'bg-sky-100 text-sky-800' :
-                                  isCheck ? 'bg-emerald-100 text-emerald-800' :
-                                  isGate ? 'bg-amber-100 text-amber-800' :
-                                  isReview ? 'bg-purple-100 text-purple-800' :
-                                  isNew ? 'bg-indigo-100 text-indigo-800' :
-                                  'bg-stone-200 text-slate-700'
-                                }`}>
-                                  {isTextMod && <Edit2 className="w-2.5 h-2.5" />}
-                                  {isCheck && <CheckCircle2 className="w-2.5 h-2.5" />}
-                                  {isGate && <ShieldAlert className="w-2.5 h-2.5" />}
-                                  {isReview && <Check className="w-2.5 h-2.5" />}
-                                  {log.action}
-                                </span>
-
-                                {log.phaseId && (
-                                  <span className="text-[10px] bg-white border border-stone-200 text-slate-600 px-1.5 py-0.5 rounded-md font-semibold">
-                                    Fase: {log.phaseId}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })()}
-                </div>
               </div>
-            </div>
 
-              {/* Global Download Button Banner (Last Phase / Global Export) */}
-              <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+                {/* Global Download Button Banner (Last Phase / Global Export) */}
+                <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="space-y-1 text-center md:text-left">
                   <div className="flex items-center justify-center md:justify-start gap-2">
                     <Sparkles className="w-5 h-5 text-stone-200" />
@@ -1671,6 +1643,158 @@ export default function PhaseContent({
                 clients={clients}
                 currentUser={currentUser}
               />
+            </div>
+          )}
+
+
+          {/* TAB 3: HISTORIAL / BITÁCORA DEL PROYECTO */}
+          {activeTab === 'history' && (
+            <div className="space-y-5" id="history-tab-content">
+              <div className="bg-slate-950 text-white rounded-3xl p-5 sm:p-6 border border-slate-800 shadow-md overflow-hidden relative">
+                <div className="absolute inset-y-0 right-0 w-72 bg-indigo-500/10 blur-3xl pointer-events-none" />
+                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-indigo-200 text-xs font-extrabold uppercase tracking-widest">
+                      <History className="w-4 h-4" />
+                      Bitácora Detallada
+                    </div>
+                    <h3 className="text-xl font-semibold tracking-tight">Historial del Proyecto</h3>
+                    <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                      Cambios de cronograma, checklist, perfil, órdenes de venta, acuerdos con cliente, entregables, feedback y vistos buenos en orden cronológico.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={handleDownloadHistoryMD}
+                      className="bg-white text-slate-950 hover:bg-stone-100 px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer active:scale-95"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      Descargar MD
+                    </button>
+                    <button
+                      onClick={handleDownloadHistoryPDF}
+                      className="bg-indigo-500 hover:bg-indigo-400 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 cursor-pointer active:scale-95"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      PDF
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-xs p-4 sm:p-5 space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                  <div className="lg:col-span-6 relative">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    <input
+                      value={auditSearchQuery}
+                      onChange={(e) => setAuditSearchQuery(e.target.value)}
+                      placeholder="Buscar por usuario, acción, detalle, fase o tag..."
+                      className="w-full bg-[#F4F5F0] border border-slate-200 rounded-2xl pl-10 pr-3.5 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-400/30 focus:bg-white"
+                    />
+                  </div>
+
+                  <div className="lg:col-span-3 flex items-center gap-2">
+                    <Filter className="w-4 h-4 text-slate-400 shrink-0" />
+                    <select
+                      value={auditTagFilter}
+                      onChange={(e) => setAuditTagFilter(e.target.value)}
+                      className="w-full bg-[#F4F5F0] border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+                    >
+                      <option value="todos">Todos los tags</option>
+                      {historyTagOptions.map((tag) => (
+                        <option key={tag} value={tag}>{getAuditTagInfo({ tag }).label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="lg:col-span-3">
+                    <select
+                      value={auditPhaseFilter}
+                      onChange={(e) => setAuditPhaseFilter(e.target.value)}
+                      className="w-full bg-[#F4F5F0] border border-slate-200 rounded-2xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+                    >
+                      <option value="todos">Todas las fases</option>
+                      {project.phases.map((p, idx) => (
+                        <option key={p.id} value={p.id}>
+                          {getCleanPhaseTitle(p.label, p.id, idx)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-slate-500 border-t border-slate-100 pt-3">
+                  <span>{filteredHistoryRecords.length} de {historyRecords.length} registros</span>
+                  <span>Ordenado por modificación más reciente</span>
+                </div>
+
+                {filteredHistoryRecords.length === 0 ? (
+                  <div className="p-8 text-center bg-[#F4F5F0] rounded-3xl">
+                    <History className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-xs text-slate-500 font-medium">No hay registros que coincidan con el filtro.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredHistoryRecords.map((log) => {
+                      const tagInfo = getAuditTagInfo(log);
+                      const phaseIndex = log.phaseId ? project.phases.findIndex(p => p.id === log.phaseId) : -1;
+                      const phaseLabel = log.phaseId
+                        ? getCleanPhaseTitle(project.phases.find(p => p.id === log.phaseId)?.label || log.phaseId, log.phaseId, phaseIndex)
+                        : null;
+
+                      return (
+                        <article key={log.id} className="p-4 rounded-3xl bg-[#F4F5F0] border border-slate-200/70 flex gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-slate-900 shrink-0 overflow-hidden border border-white/80">
+                            <img
+                              src={log.avatarUrl || getUserAvatarUrl(log.username || 'Sistema')}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div className="min-w-0 flex-1 space-y-2">
+                            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                              <div>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="font-bold text-slate-900 text-sm">{log.username || 'Sistema'}</span>
+                                  <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold uppercase tracking-wider ${tagInfo.color}`}>
+                                    {tagInfo.label}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-500 font-medium">{log.userRole || 'rol'} · {log.entityType || 'Registro'}</p>
+                              </div>
+                              <div className="text-xs text-slate-500 font-mono shrink-0 flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5" />
+                                {new Date(log.timestamp).toLocaleDateString('es-CL', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric'
+                                })} · {new Date(log.timestamp).toLocaleTimeString('es-CL', {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </div>
+                            </div>
+
+                            <div>
+                              <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider">{log.action}</h4>
+                              <p className="text-xs text-slate-700 leading-relaxed mt-1">{log.details}</p>
+                            </div>
+
+                            {phaseLabel && (
+                              <span className="inline-flex items-center gap-1 text-[10px] bg-white text-slate-600 border border-slate-200 px-2 py-1 rounded-full font-semibold">
+                                <FileCheck className="w-3 h-3" />
+                                Fase: {phaseLabel}
+                              </span>
+                            )}
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

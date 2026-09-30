@@ -275,6 +275,8 @@ export interface AuditLogEntry {
   entityType: string;  // ej: "Fase", "Archivo", "Horas", "BrandBible"
   details: string;     // Descripción legible de lo que cambió
   phaseId?: string;    // Fase que modificó
+  tag?: string;        // Tag visible: "CHECKLIST", "CRONOGRAMA", "ORDEN_VENTA", "ACUERDO_CLIENTE", "ENTREGABLE_SUBIDO", "ENTREGABLE_CAMBIOS", "VISTO_BUENO"
+  avatarUrl?: string;
 }
 
 // 3. Matriz RACI (Deprecated, pero mantenida la firma de tipo básica por compatibilidad si es necesario)
