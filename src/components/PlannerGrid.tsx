@@ -428,6 +428,19 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
     };
   }, [projects, tasks]);
 
+  // Horas Planificadas Operativas del Planner
+  const totalPlannedHours = useMemo(() => {
+    return tasks.reduce((sum, t) => sum + (t.estimatedHours || 0), 0);
+  }, [tasks]);
+
+  const completedPlannedHours = useMemo(() => {
+    return tasks.filter(t => t.status === 'completado').reduce((sum, t) => sum + (t.estimatedHours || 0), 0);
+  }, [tasks]);
+
+  const inProgressPlannedHours = useMemo(() => {
+    return tasks.filter(t => t.status === 'proceso').reduce((sum, t) => sum + (t.estimatedHours || 0), 0);
+  }, [tasks]);
+
   // Top Header High-Level Project KPI Widgets
   const topHeaderKpis = useMemo(() => {
     // 1. Total Active Projects (proyectos con fases sin completar o estado no finalizado)
@@ -513,73 +526,76 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
         </div>
       </div>
 
-      {/* BANDA DE ESTADO & SALUD GENERAL (IDÉNTICA A LA IMAGEN DE REFERENCIA) */}
-      <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-xs border border-stone-200/70">
+      {/* BANDA DE ESTADO & SALUD GENERAL (ESTILO DE LA IMAGEN DE REFERENCIA CON LOS DATOS REALES DEL PLANNER) */}
+      <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-xs border border-stone-200/70" id="planner-metrics-header-band">
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-y sm:divide-y-0 sm:divide-x divide-stone-100 gap-4 sm:gap-0">
           
-          {/* 1. Salud General */}
-          <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
-            <span className="text-xs font-semibold text-slate-800">
-              Salud General
+          {/* 1. Proyectos Activos */}
+          <div
+            onClick={() => kpiPanel.openPanel('active_projects')}
+            className="px-3 sm:px-6 py-1 flex flex-col justify-center cursor-pointer group"
+          >
+            <span className="text-xs font-semibold text-slate-800 group-hover:text-slate-900 transition-colors">
+              Proyectos Activos
             </span>
-            <div className="text-3xl sm:text-4xl font-bold tracking-tight text-emerald-600 mt-1 flex items-baseline gap-1">
-              <span>80%</span>
+            <div className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mt-1 flex items-baseline gap-1">
+              <span>{topHeaderKpis.totalActiveProjectsCount}</span>
               <span className="text-base text-emerald-600">▲</span>
             </div>
             <span className="text-xs font-semibold text-emerald-600 mt-1">
-              Excelente
+              {topHeaderKpis.optimalHealthProjects} en salud óptima
             </span>
           </div>
 
-          {/* 2. SPI (Cronograma) */}
+          {/* 2. Tareas Planificadas */}
           <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
             <span className="text-xs font-semibold text-slate-800">
-              SPI (Cronograma)
+              Tareas Planificadas
             </span>
             <div className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mt-1 font-sans">
-              0.96
-            </div>
-            <span className="text-xs font-semibold text-emerald-600 mt-1">
-              En plan
-            </span>
-          </div>
-
-          {/* 3. CPI(Costo) */}
-          <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
-            <span className="text-xs font-semibold text-slate-800">
-              CPI(Costo)
-            </span>
-            <div className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mt-1 font-sans">
-              1.0
-            </div>
-            <span className="text-xs font-semibold text-emerald-600 mt-1">
-              5% eficiencia
-            </span>
-          </div>
-
-          {/* 4. Horas Consumidas */}
-          <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
-            <span className="text-xs font-semibold text-slate-800">
-              Horas Consumidas
-            </span>
-            <div className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mt-1 font-mono">
-              85h
+              {projectDashboardMetrics.totalTasksCount}
             </div>
             <span className="text-xs font-medium text-slate-500 mt-1">
-              de 85h vendidas
+              {projectDashboardMetrics.pendingTasksCount} pendientes por iniciar
             </span>
           </div>
 
-          {/* 5. Avance Global */}
+          {/* 3. En Producción */}
           <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
             <span className="text-xs font-semibold text-slate-800">
-              Avance Global
+              En Producción
             </span>
             <div className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mt-1 font-sans">
-              78%
+              {projectDashboardMetrics.inProgressTasksCount}
+            </div>
+            <span className="text-xs font-semibold text-sky-600 mt-1">
+              {inProgressPlannedHours}h en ejecución activa
+            </span>
+          </div>
+
+          {/* 4. Horas Planificadas */}
+          <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
+            <span className="text-xs font-semibold text-slate-800">
+              Horas Planificadas
+            </span>
+            <div className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mt-1 font-mono">
+              {totalPlannedHours}h
+            </div>
+            <span className="text-xs font-semibold text-slate-600 mt-1">
+              {completedPlannedHours}h completadas
+            </span>
+          </div>
+
+          {/* 5. Tareas Completadas */}
+          <div className="px-3 sm:px-6 py-1 flex flex-col justify-center">
+            <span className="text-xs font-semibold text-slate-800">
+              Tareas Completadas
+            </span>
+            <div className="text-3xl sm:text-4xl font-bold tracking-tight text-slate-900 mt-1 font-sans">
+              {projectDashboardMetrics.completedTasksCount}
             </div>
             <span className="text-xs font-semibold text-emerald-600 mt-1">
-              Revisión
+              {projectDashboardMetrics.taskCompletionPercent}% avance del sprint
             </span>
           </div>
 
@@ -689,7 +705,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
               onClick={() => setPlannerViewMode('kanban')}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full cursor-pointer transition-all ${
                 plannerViewMode === 'kanban'
-                  ? 'bg-slate-900 text-[#D1F349] shadow-xs font-bold'
+                  ? 'bg-slate-900 text-white shadow-xs font-bold'
                   : 'text-slate-500 hover:text-slate-900'
               }`}
             >
@@ -1178,41 +1194,44 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
           </div>
         )}
 
-        {/* KANBAN PRO VIEW (CON EL GIRO DE CAPACIDAD Y TONOS VERDE LIMA POR OPACIDAD) */}
+        {/* KANBAN PRO VIEW (CON 3 RECUADROS DE COLORES DIFERENCIADOS NO VERDES) */}
         {plannerViewMode === 'kanban' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5" id="kanban-pro-board-view">
             {[
               {
                 id: 'pendiente' as const,
                 title: 'Brief & Pendientes',
-                dotColor: 'bg-[#D1F349]/50 border border-[#D1F349]',
-                border: 'border-[#D1F349]/40',
-                bg: 'bg-[#D1F349]/10',
-                badgeText: 'text-slate-800',
-                badgeBg: 'bg-[#D1F349]/25 border border-[#D1F349]/40',
-                hoursAccent: 'text-slate-800 bg-[#D1F349]/20 border-[#D1F349]/40',
+                dotColor: 'bg-amber-500',
+                border: 'border-amber-200/90',
+                bg: 'bg-amber-50/50',
+                badgeText: 'text-amber-900',
+                badgeBg: 'bg-amber-100/90 border border-amber-300/80',
+                hoursAccent: 'text-amber-900 bg-amber-100/80 border-amber-300/80',
+                progressColor: 'bg-amber-500',
                 quickBtn: '+ Nuevo Brief'
               },
               {
                 id: 'proceso' as const,
                 title: 'En Proceso / Producción',
-                dotColor: 'bg-lime-500 animate-pulse border border-[#D1F349]',
-                border: 'border-[#D1F349]/70',
-                bg: 'bg-[#D1F349]/20',
-                badgeText: 'text-slate-950',
-                badgeBg: 'bg-[#D1F349]/45 border border-[#D1F349]',
-                hoursAccent: 'text-slate-950 bg-[#D1F349]/35 border-[#D1F349]',
+                dotColor: 'bg-sky-500 animate-pulse',
+                border: 'border-sky-200/90',
+                bg: 'bg-sky-50/50',
+                badgeText: 'text-sky-900',
+                badgeBg: 'bg-sky-100/90 border border-sky-300/80',
+                hoursAccent: 'text-sky-900 bg-sky-100/80 border-sky-300/80',
+                progressColor: 'bg-sky-500',
                 quickBtn: '+ Iniciar Tarea'
               },
               {
                 id: 'completado' as const,
                 title: 'Completados / Entregados',
-                dotColor: 'bg-slate-950 border border-slate-900',
-                border: 'border-[#b5e03b]',
-                bg: 'bg-[#D1F349]/35',
-                badgeText: 'text-slate-950 font-extrabold',
-                badgeBg: 'bg-[#D1F349] border border-[#a2cf29] shadow-xs',
-                hoursAccent: 'text-slate-950 bg-[#D1F349] border-[#a2cf29] font-extrabold',
+                dotColor: 'bg-indigo-600',
+                border: 'border-indigo-200/90',
+                bg: 'bg-indigo-50/50',
+                badgeText: 'text-indigo-900 font-extrabold',
+                badgeBg: 'bg-indigo-100/90 border border-indigo-300/80 shadow-2xs',
+                hoursAccent: 'text-indigo-900 bg-indigo-100/80 border-indigo-300/80 font-bold',
+                progressColor: 'bg-indigo-600',
                 quickBtn: '+ Cerrar Entrega'
               }
             ].map(column => {
@@ -1301,7 +1320,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                               {task.project}
                             </h4>
 
-                            {/* Barra de progreso de la tarea según su estado con tonos Verde Lima */}
+                            {/* Barra de progreso de la tarea según su estado */}
                             <div className="space-y-1">
                               <div className="flex items-center justify-between text-[10px] font-medium text-slate-500">
                                 <span>
@@ -1313,10 +1332,10 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                               </div>
                               <div className="w-full h-1.5 bg-stone-100 rounded-full overflow-hidden">
                                 <div
-                                  className={`h-full rounded-full transition-all duration-500 ${
-                                    column.id === 'completado' ? 'bg-[#D1F349] w-full shadow-xs' :
-                                    column.id === 'proceso' ? 'bg-[#D1F349]/80 w-2/3' :
-                                    'bg-[#D1F349]/40 w-1/4'
+                                  className={`h-full rounded-full transition-all duration-500 ${column.progressColor} ${
+                                    column.id === 'completado' ? 'w-full shadow-xs' :
+                                    column.id === 'proceso' ? 'w-2/3' :
+                                    'w-1/4'
                                   }`}
                                 />
                               </div>
@@ -1358,7 +1377,7 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
                                 {column.id !== 'completado' && (
                                   <button
                                     onClick={() => handleStatusChange(task.id, column.id === 'pendiente' ? 'proceso' : 'completado')}
-                                    className="px-3 py-1 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-[#D1F349] rounded-lg cursor-pointer transition-all shadow-xs flex items-center gap-1"
+                                    className="px-3 py-1 text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white rounded-lg cursor-pointer transition-all shadow-xs flex items-center gap-1"
                                     title="Avanzar a siguiente etapa"
                                   >
                                     <span>{column.id === 'pendiente' ? 'Iniciar' : 'Finalizar'}</span>

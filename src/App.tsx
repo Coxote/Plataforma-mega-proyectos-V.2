@@ -990,6 +990,7 @@ export default function App() {
                 showSaveToast={showSaveToast}
                 userRole={currentUser.role}
                 currentUser={currentUser}
+                clients={clients}
               />
             )}
           </div>

@@ -1,4 +1,4 @@
-import { Phase, Project, DeliverableItem, Role, ClientAnnotation, DecisionLogEntry, UserSession, AuditLogEntry, ChecklistItem } from '../types';
+import { Phase, Project, DeliverableItem, Role, ClientAnnotation, DecisionLogEntry, UserSession, AuditLogEntry, ChecklistItem, Client, DeliverableHistoryEntry } from '../types';
 import {
   CheckSquare,
   Square,
@@ -29,9 +29,16 @@ import {
   History,
   BookOpen,
   Check,
-  ShieldAlert
+  ShieldAlert,
+  Edit2,
+  Filter,
+  Search,
+  X,
+  Lock,
+  FileCheck
 } from 'lucide-react';
 import React, { useState } from 'react';
+import { jsPDF } from 'jspdf';
 import { RaciMatrix } from './RaciMatrix';
 import { PerfilGeneral } from './PerfilGeneral';
 import { ProjectFinancialOverview } from './ProjectFinancialOverview';
@@ -47,6 +54,7 @@ interface PhaseContentProps {
   showSaveToast: boolean;
   userRole: Role;
   currentUser?: UserSession;
+  clients?: Client[];
 }
 
 export const getCleanPhaseTitle = (label: string, id: string, index?: number) => {
@@ -58,6 +66,75 @@ export const getCleanPhaseTitle = (label: string, id: string, index?: number) =>
   return clean;
 };
 
+// Helper para clasificar y estilizar tags de la bitácora histórica
+export const getAuditTagInfo = (log: AuditLogEntry | any) => {
+  const explicitTag = (log.tag || '').toUpperCase();
+  const action = (log.action || '').toUpperCase();
+  const details = (log.details || '').toLowerCase();
+
+  if (explicitTag === 'ORDEN_VENTA' || action.includes('ORDEN_VENTA') || action.includes('OV')) {
+    return {
+      tag: 'ORDEN_VENTA',
+      label: 'ORDEN DE VENTA',
+      color: 'bg-purple-50 text-purple-700 border-purple-200/80',
+      badgeDot: 'bg-purple-600',
+      category: 'ov'
+    };
+  }
+  if (explicitTag === 'ACUERDO_CLIENTE' || action.includes('ACUERDO') || action.includes('DECISIÓN') || action.includes('DECISION')) {
+    return {
+      tag: 'ACUERDO_CLIENTE',
+      label: 'ACUERDO CLIENTE',
+      color: 'bg-amber-50 text-amber-800 border-amber-200/80',
+      badgeDot: 'bg-amber-600',
+      category: 'acuerdo'
+    };
+  }
+  if (explicitTag === 'VISTO_BUENO' || action.includes('VISTO_BUENO')) {
+    return {
+      tag: 'VISTO_BUENO',
+      label: 'VISTO BUENO',
+      color: 'bg-emerald-50 text-emerald-800 border-emerald-300',
+      badgeDot: 'bg-emerald-600',
+      category: 'vistobueno'
+    };
+  }
+  if (explicitTag === 'ENTREGABLE_SUBIDO' || action === 'NUEVO_ENTREGABLE' || action === 'ENTREGABLE_SUBIDO') {
+    return {
+      tag: 'ENTREGABLE_SUBIDO',
+      label: 'ENTREGABLE SUBIDO',
+      color: 'bg-sky-50 text-sky-800 border-sky-200/80',
+      badgeDot: 'bg-sky-600',
+      category: 'entregable'
+    };
+  }
+  if (explicitTag === 'ENTREGABLE_CAMBIOS' || action.includes('ENTREGABLE') || action.includes('COMENTARIO') || action.includes('ESTADO_ENTREGABLE')) {
+    return {
+      tag: 'ENTREGABLE_CAMBIOS',
+      label: 'ENTREGABLE CAMBIOS',
+      color: 'bg-cyan-50 text-cyan-800 border-cyan-200/80',
+      badgeDot: 'bg-cyan-600',
+      category: 'entregable_cambios'
+    };
+  }
+  if (explicitTag === 'CRONOGRAMA' || action.includes('CRONOGRAMA') || details.includes('fecha inicio') || details.includes('fecha final')) {
+    return {
+      tag: 'CRONOGRAMA',
+      label: 'CRONOGRAMA',
+      color: 'bg-indigo-50 text-indigo-800 border-indigo-200/80',
+      badgeDot: 'bg-indigo-600',
+      category: 'cronograma'
+    };
+  }
+  return {
+    tag: 'CHECKLIST',
+    label: 'CHECKLIST',
+    color: 'bg-lime-50 text-lime-900 border-lime-300',
+    badgeDot: 'bg-lime-600',
+    category: 'checklist'
+  };
+};
+
 export default function PhaseContent({
   activePhase,
   project,
@@ -67,15 +144,32 @@ export default function PhaseContent({
   showSaveToast,
   userRole,
   currentUser,
+  clients = [],
 }: PhaseContentProps) {
-  const [activeTab, setActiveTab] = useState<'phase' | 'project' | 'deliverables'>('phase');
+  const [activeTab, setActiveTab] = useState<'phase' | 'project' | 'deliverables' | 'history'>('phase');
   const [govSubTab, setGovSubTab] = useState<'bitacora' | 'raci'>('bitacora');
 
   // New Deliverable Form States
   const [delivTitle, setDelivTitle] = useState('');
+  const [delivDescription, setDelivDescription] = useState('');
   const [delivType, setDelivType] = useState<'video' | 'audio' | 'pdf' | 'word' | 'image' | 'markdown' | 'link'>('link');
   const [delivUrl, setDelivUrl] = useState('');
-  const [delivVisible, setDelivVisible] = useState(true);
+
+  // Deliverable Editing States
+  const [editingDeliverableId, setEditingDeliverableId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editType, setEditType] = useState<'video' | 'audio' | 'pdf' | 'word' | 'image' | 'markdown' | 'link'>('link');
+  const [editUrl, setEditUrl] = useState('');
+
+  // Audit Log Filters in Tab 4 (Historial & Bitácora)
+  const [auditPhaseFilter, setAuditPhaseFilter] = useState<string>('todos');
+  const [auditTagFilter, setAuditTagFilter] = useState<string>('todos');
+  const [auditSearchQuery, setAuditSearchQuery] = useState<string>('');
+
+  // Checklist Task text editing in Tab 1
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingTaskText, setEditingTaskText] = useState<string>('');
 
   // Decision Log Form States
   const [decTitle, setDecTitle] = useState('');
@@ -98,6 +192,7 @@ export default function PhaseContent({
 
   // New task input state for checklist
   const [newPhaseTaskText, setNewPhaseTaskText] = useState('');
+  const [delivPhaseId, setDelivPhaseId] = useState<string>(activePhase.id);
 
   // Handle updating individual checklist item fields (milestones, dates, learnings)
   const handleUpdateChecklistItemField = (
@@ -106,6 +201,9 @@ export default function PhaseContent({
     value: string
   ) => {
     if (userRole === 'invitado') return;
+    const currentItem = (activePhase.checklist || []).find((c) => c.id === itemId);
+    if (!currentItem || currentItem[field] === value) return;
+
     const updatedPhases = project.phases.map((p) => {
       if (p.id === activePhase.id) {
         const updatedChecklist = (p.checklist || []).map((item) => {
@@ -119,18 +217,89 @@ export default function PhaseContent({
       return p;
     });
 
+    const fieldLabels: Record<string, string> = {
+      milestones: 'Hitos y Avances',
+      learnings: 'Lecciones Aprendidas',
+      startDate: 'Fecha Inicio',
+      endDate: 'Fecha Finalización',
+      text: 'Texto del Paso'
+    };
+
+    const isCronograma = field === 'startDate' || field === 'endDate';
+    const cleanTitle = getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex);
+    const newAuditEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      timestamp: new Date().toISOString(),
+      userId: currentUser?.id || 'sys',
+      username: currentUser?.username || 'Usuario',
+      userRole: (currentUser?.role || userRole) as Role,
+      action: isCronograma ? 'MODIFICACION_CRONOGRAMA' : 'MODIFICACION_TEXTO',
+      entityType: isCronograma ? 'Cronograma' : 'Checklist',
+      tag: isCronograma ? 'CRONOGRAMA' : 'CHECKLIST',
+      details: `Modificó ${fieldLabels[field] || field} en "${currentItem.text}" (${cleanTitle}): "${value.slice(0, 60)}${value.length > 60 ? '...' : ''}"`,
+      phaseId: activePhase.id
+    };
+
     onUpdateProject({
       ...project,
       phases: updatedPhases,
+      auditLog: [newAuditEntry, ...(project.auditLog || [])]
     });
+  };
+
+  // Save edited task text directly
+  const handleSaveEditedTaskText = (taskId: string, originalText: string) => {
+    if (userRole === 'invitado') return;
+    const newText = editingTaskText.trim();
+    if (!newText || newText === originalText) {
+      setEditingTaskId(null);
+      return;
+    }
+
+    const cleanTitle = getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex);
+    const updatedPhases = project.phases.map((p) => {
+      if (p.id === activePhase.id) {
+        const updatedChecklist = (p.checklist || []).map((item) => {
+          if (item.id === taskId) {
+            return { ...item, text: newText };
+          }
+          return item;
+        });
+        return { ...p, checklist: updatedChecklist };
+      }
+      return p;
+    });
+
+    const newAuditEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      timestamp: new Date().toISOString(),
+      userId: currentUser?.id || 'sys',
+      username: currentUser?.username || 'Usuario',
+      userRole: (currentUser?.role || userRole) as Role,
+      action: 'MODIFICACION_TEXTO',
+      entityType: 'Checklist',
+      tag: 'CHECKLIST',
+      details: `Modificó el texto del paso en ${cleanTitle}: de "${originalText}" a "${newText}".`,
+      phaseId: activePhase.id
+    };
+
+    onUpdateProject({
+      ...project,
+      phases: updatedPhases,
+      auditLog: [newAuditEntry, ...(project.auditLog || [])]
+    });
+    setEditingTaskId(null);
+    setEditingTaskText('');
+    onSave();
   };
 
   // Add a new checklist step to current phase
   const handleAddChecklistTask = () => {
     if (!newPhaseTaskText.trim() || userRole === 'invitado') return;
+    const cleanText = newPhaseTaskText.trim();
     const newItem: ChecklistItem = {
       id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-      text: newPhaseTaskText.trim(),
+      text: cleanText,
       completed: false,
       startDate: activePhase.startDate || new Date().toISOString().split('T')[0],
       endDate: activePhase.endDate || '',
@@ -138,6 +307,7 @@ export default function PhaseContent({
       learnings: ''
     };
 
+    const cleanTitle = getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex);
     const updatedPhases = project.phases.map((p) => {
       if (p.id === activePhase.id) {
         return { ...p, checklist: [...(p.checklist || []), newItem] };
@@ -145,11 +315,26 @@ export default function PhaseContent({
       return p;
     });
 
+    const newAuditEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      timestamp: new Date().toISOString(),
+      userId: currentUser?.id || 'sys',
+      username: currentUser?.username || 'Usuario',
+      userRole: (currentUser?.role || userRole) as Role,
+      action: 'NUEVO_PASO',
+      entityType: 'Checklist',
+      tag: 'CHECKLIST',
+      details: `Agregó nuevo paso al checklist de ${cleanTitle}: "${cleanText}".`,
+      phaseId: activePhase.id
+    };
+
     onUpdateProject({
       ...project,
       phases: updatedPhases,
+      auditLog: [newAuditEntry, ...(project.auditLog || [])]
     });
     setNewPhaseTaskText('');
+    onSave();
   };
 
   // Mark phase as completed
@@ -175,6 +360,7 @@ export default function PhaseContent({
       userRole: userRole || 'coordinador',
       action: 'COMPLETAR_FASE',
       entityType: 'Fase',
+      tag: 'CHECKLIST',
       details: `Fase "${cleanTitle}" marcada como finalizada.`,
       phaseId: activePhase.id
     };
@@ -184,6 +370,163 @@ export default function PhaseContent({
       phases: updatedPhases,
       auditLog: [newAuditEntry, ...(project.auditLog || [])]
     });
+    onCompletePhase();
+  };
+
+  // Manual save triggered from Header (guarda información del cronograma y checklist y genera registro en auditoría)
+  const handleManualSave = () => {
+    const cleanTitle = getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex);
+    const newAuditEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      timestamp: new Date().toISOString(),
+      userId: currentUser?.id || 'sys',
+      username: currentUser?.username || 'Usuario',
+      userRole: (currentUser?.role || userRole) as Role,
+      action: 'GUARDAR_CRONOGRAMA_CHECKLIST',
+      entityType: 'Checklist',
+      tag: 'CHECKLIST',
+      details: `Guardó la información del checklist y cronograma de ${cleanTitle}. (${completedChecklistCount}/${checklistTotal} tareas listas, ${checklistPercent}%).`,
+      phaseId: activePhase.id
+    };
+
+    onUpdateProject({
+      ...project,
+      auditLog: [newAuditEntry, ...(project.auditLog || [])]
+    });
+    onSave();
+  };
+
+  // Descarga de Bitácora / Historial en formato Markdown (.md)
+  const handleDownloadHistoryMD = () => {
+    const allLogs = (project.auditLog && project.auditLog.length > 0)
+      ? project.auditLog
+      : (project.timeEntries || []).map(te => ({
+          id: `te-${te.id}`,
+          timestamp: te.createdAt || te.date || new Date().toISOString(),
+          username: te.username || 'Colaborador',
+          userRole: te.role || 'contents',
+          action: 'REGISTRO_HORAS',
+          tag: 'HORAS',
+          details: `Registro de ${te.hours}h: "${te.description || 'Avance de trabajo'}"`,
+          phaseId: te.phaseId
+        }));
+
+    let md = `# Expediente & Bitácora Histórica del Proyecto\n\n`;
+    md += `**Proyecto:** ${project.name}\n`;
+    md += `**Cliente:** ${project.clientName || 'N/A'}\n`;
+    md += `**Fecha de Exportación:** ${new Date().toLocaleDateString('es-CL')} ${new Date().toLocaleTimeString('es-CL')}\n`;
+    md += `**Total de Movimientos:** ${allLogs.length} eventos registrados\n\n`;
+    md += `---\n\n`;
+    md += `### Bitácora Cronológica de Movimientos\n\n`;
+    md += `| Fecha y Hora | Usuario | Rol | Tag / Tipo | Fase | Detalle del Registro |\n`;
+    md += `|---|---|---|---|---|---|\n`;
+
+    allLogs.forEach((log) => {
+      const d = new Date(log.timestamp);
+      const dateFormatted = !isNaN(d.getTime())
+        ? `${d.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`
+        : log.timestamp;
+      const tagInfo = getAuditTagInfo(log);
+      const phaseObj = project.phases.find(p => p.id === log.phaseId);
+      const phaseLabel = phaseObj ? getCleanPhaseTitle(phaseObj.label, phaseObj.id) : (log.phaseId || 'General');
+      const cleanDetails = (log.details || log.action || '').replace(/\|/g, '-').replace(/\n/g, ' ');
+
+      md += `| ${dateFormatted} | ${log.username || 'Sistema'} | ${log.userRole || '-'} | [${tagInfo.label}] | ${phaseLabel} | ${cleanDetails} |\n`;
+    });
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Bitacora_Historial_${(project.name || 'Proyecto').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.md`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Descarga de Bitácora / Historial en formato PDF (.pdf)
+  const handleDownloadHistoryPDF = () => {
+    const allLogs = (project.auditLog && project.auditLog.length > 0)
+      ? project.auditLog
+      : (project.timeEntries || []).map(te => ({
+          id: `te-${te.id}`,
+          timestamp: te.createdAt || te.date || new Date().toISOString(),
+          username: te.username || 'Colaborador',
+          userRole: te.role || 'contents',
+          action: 'REGISTRO_HORAS',
+          tag: 'HORAS',
+          details: `Registro de ${te.hours}h: "${te.description || 'Avance de trabajo'}"`,
+          phaseId: te.phaseId
+        }));
+
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    // Banner principal
+    doc.setFillColor(15, 23, 42); // slate-900
+    doc.rect(0, 0, 210, 26, 'F');
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    doc.text('BITÁCORA & EXPEDIENTE DE MOVIMIENTOS', 14, 11);
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Proyecto: ${project.name}  |  Cliente: ${project.clientName || 'N/A'}  |  Exportado: ${new Date().toLocaleDateString('es-CL')} ${new Date().toLocaleTimeString('es-CL')}`, 14, 19);
+
+    let y = 33;
+    const pageHeight = 280;
+
+    allLogs.forEach((log) => {
+      if (y > pageHeight - 20) {
+        doc.addPage();
+        y = 15;
+      }
+
+      const d = new Date(log.timestamp);
+      const dateFormatted = !isNaN(d.getTime())
+        ? `${d.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
+        : log.timestamp;
+      const tagInfo = getAuditTagInfo(log);
+      const phaseObj = project.phases.find(p => p.id === log.phaseId);
+      const phaseLabel = phaseObj ? getCleanPhaseTitle(phaseObj.label, phaseObj.id) : (log.phaseId || 'General');
+
+      // Card box
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(12, y, 186, 16, 1.5, 1.5, 'FD');
+
+      // Tag pill
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(30, 41, 59);
+      doc.text(`[${tagInfo.label}]`, 15, y + 5);
+
+      // User & Role
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(71, 85, 105);
+      doc.text(`Por: ${log.username || 'Usuario'} (${log.userRole || 'rol'})  •  Fase: ${phaseLabel}`, 75, y + 5);
+
+      // Date
+      doc.setFontSize(7);
+      doc.setTextColor(148, 163, 184);
+      doc.text(dateFormatted, 162, y + 5);
+
+      // Detail line
+      doc.setFontSize(7.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(15, 23, 42);
+      const splitText = doc.splitTextToSize(log.details || log.action, 178);
+      doc.text(splitText.slice(0, 2), 15, y + 11);
+
+      y += 19;
+    });
+
+    doc.save(`Bitacora_Historial_${(project.name || 'Proyecto').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   // Download single phase report (.md document)
@@ -351,11 +694,14 @@ export default function PhaseContent({
   // Handle checklist toggles
   const handleToggleChecklist = (itemId: string) => {
     if (userRole === 'invitado') return;
+    const currentItem = (activePhase.checklist || []).find((c) => c.id === itemId);
+    const newCompleted = !currentItem?.completed;
+
     const updatedPhases = project.phases.map((p) => {
       if (p.id === activePhase.id) {
         const updatedChecklist = p.checklist.map((item) => {
           if (item.id === itemId) {
-            return { ...item, completed: !item.completed };
+            return { ...item, completed: newCompleted };
           }
           return item;
         });
@@ -364,51 +710,202 @@ export default function PhaseContent({
       return p;
     });
 
+    const cleanTitle = getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex);
+    const newAuditEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      timestamp: new Date().toISOString(),
+      userId: currentUser?.id || 'sys',
+      username: currentUser?.username || 'Usuario',
+      userRole: (currentUser?.role || userRole) as Role,
+      action: newCompleted ? 'PASO_COMPLETADO' : 'PASO_REABIERTO',
+      entityType: 'Checklist',
+      details: `${newCompleted ? 'Completó' : 'Reabrió'} el paso "${currentItem?.text || 'Paso'}" en ${cleanTitle}.`,
+      phaseId: activePhase.id
+    };
+
     onUpdateProject({
       ...project,
       phases: updatedPhases,
+      auditLog: [newAuditEntry, ...(project.auditLog || [])]
     });
+    onSave();
   };
 
-  // Add a new deliverable
+  // Add a new deliverable (uploaded by design or social media, pending internal review check)
   const handleAddDeliverable = (e: React.FormEvent) => {
     e.preventDefault();
     if (!delivTitle.trim()) return;
 
+    const nowIso = new Date().toISOString();
+    const uploader = currentUser?.username || (userRole === 'coordinador' ? 'Coordinador de Proyectos' : 'Diseño / Social Media');
+    const uploaderRole = currentUser?.role || userRole || 'contentd';
+    const targetPhaseId = delivPhaseId || activePhase.id;
+    const targetPhase = project.phases.find(p => p.id === targetPhaseId);
+    const cleanPTitle = targetPhase ? getCleanPhaseTitle(targetPhase.label, targetPhase.id) : activePhase.label;
+
+    const initialHistoryEntry: DeliverableHistoryEntry = {
+      id: `hist-${Date.now()}`,
+      timestamp: nowIso,
+      action: 'subido',
+      username: uploader,
+      userRole: uploaderRole,
+      details: `Subió el entregable inicial "${delivTitle.trim()}" (${delivType}) para revisión interna.`
+    };
+
     const newItem: DeliverableItem = {
       id: `deliv-${Date.now()}`,
-      title: delivTitle,
+      title: delivTitle.trim(),
+      description: delivDescription.trim() || undefined,
       type: delivType,
       externalUrl: delivUrl.trim() || undefined,
-      uploadedBy: userRole === 'coordinador' ? 'Coordinador de Proyectos' : 'Content / SAC',
-      createdAt: new Date().toISOString(),
-      isVisibleToClient: delivVisible,
+      uploadedBy: uploader,
+      uploadedByRole: uploaderRole,
+      createdAt: nowIso,
+      phaseId: targetPhaseId,
+      status: 'en_revision',
+      internalCheckPassed: false, // Inicia sin visto bueno
+      isVisibleToClient: false,    // No visible al cliente hasta visto bueno interno
+      history: [initialHistoryEntry],
       annotations: [],
     };
 
     const updatedDeliverables = [...(project.deliverables || []), newItem];
-    const newAuditLog = [
-      {
-        id: `audit-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        userId: 'internal',
-        username: 'Equipo de Trabajo',
-        userRole: userRole,
-        action: 'Publicó Entregable',
-        entityType: 'Entregable',
-        details: `Se publicó "${delivTitle}" (${delivType}). Visibilidad: ${delivVisible ? 'Público' : 'Privado'}.`,
-      },
-      ...(project.auditLog || [])
-    ];
+    const newAuditLog: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      timestamp: nowIso,
+      userId: currentUser?.id || 'internal',
+      username: uploader,
+      userRole: uploaderRole as Role,
+      action: 'ENTREGABLE_SUBIDO',
+      entityType: 'Entregable',
+      tag: 'ENTREGABLE_SUBIDO',
+      details: `Subió arte/entregable "${delivTitle.trim()}" (${delivType}) en fase ${cleanPTitle}. Enlace: ${delivUrl.trim()}. Pendiente de visto bueno interno.`,
+      phaseId: targetPhaseId
+    };
 
     onUpdateProject({
       ...project,
       deliverables: updatedDeliverables,
-      auditLog: newAuditLog,
+      auditLog: [newAuditLog, ...(project.auditLog || [])],
     });
 
     setDelivTitle('');
+    setDelivDescription('');
     setDelivUrl('');
+    onSave();
+  };
+
+  // Visto bueno interno (check de revisado internamente para hacer visible al cliente automáticamente)
+  const handleInternalReviewCheck = (deliverableId: string) => {
+    if (userRole === 'invitado') return;
+    const target = (project.deliverables || []).find((d) => d.id === deliverableId);
+    if (!target) return;
+
+    const reviewerName = currentUser?.username || 'Coordinador';
+    const reviewerRole = currentUser?.role || userRole || 'coordinador';
+    const nowIso = new Date().toISOString();
+    const nextCheckState = !target.internalCheckPassed;
+
+    const reviewHistEntry: DeliverableHistoryEntry = {
+      id: `hist-${Date.now()}`,
+      timestamp: nowIso,
+      action: nextCheckState ? 'revision_interna_aprobada' : 'modificado',
+      username: reviewerName,
+      userRole: reviewerRole,
+      details: nextCheckState
+        ? `Revisado y aprobado internamente con visto bueno. Se habilitó automáticamente para el cliente.`
+        : `Se desmarcó el visto bueno interno. Entregable vuelve a estar oculto para el cliente.`
+    };
+
+    const updatedDeliverables = (project.deliverables || []).map((d) => {
+      if (d.id === deliverableId) {
+        return {
+          ...d,
+          internalCheckPassed: nextCheckState,
+          reviewedBy: nextCheckState ? reviewerName : undefined,
+          reviewedAt: nextCheckState ? nowIso : undefined,
+          isVisibleToClient: nextCheckState, // Automáticamente visible para el cliente al dar check
+          history: [...(d.history || []), reviewHistEntry]
+        };
+      }
+      return d;
+    });
+
+    const newAuditLog: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      timestamp: nowIso,
+      userId: currentUser?.id || 'sys',
+      username: reviewerName,
+      userRole: reviewerRole as Role,
+      action: nextCheckState ? 'VISTO_BUENO_INTERNO' : 'REVOCAR_VISTO_BUENO',
+      entityType: 'Entregable',
+      tag: 'VISTO_BUENO',
+      details: nextCheckState
+        ? `Dio check de visto bueno interno a "${target.title}". Ahora es visible automáticamente para el cliente.`
+        : `Desmarcó visto bueno interno a "${target.title}". Ahora es oculto para el cliente.`,
+      phaseId: target.phaseId || activePhase.id
+    };
+
+    onUpdateProject({
+      ...project,
+      deliverables: updatedDeliverables,
+      auditLog: [newAuditLog, ...(project.auditLog || [])]
+    });
+    onSave();
+  };
+
+  // Guardar edición de entregable (modificación de texto, link, descripción)
+  const handleSaveEditedDeliverable = (deliverableId: string) => {
+    if (userRole === 'invitado') return;
+    const target = (project.deliverables || []).find((d) => d.id === deliverableId);
+    if (!target) return;
+
+    const editorName = currentUser?.username || 'Usuario';
+    const editorRole = currentUser?.role || userRole;
+    const nowIso = new Date().toISOString();
+
+    const editHistEntry: DeliverableHistoryEntry = {
+      id: `hist-${Date.now()}`,
+      timestamp: nowIso,
+      action: 'modificado',
+      username: editorName,
+      userRole: editorRole,
+      details: `Modificó datos del entregable: título, descripción o enlace.`
+    };
+
+    const updatedDeliverables = (project.deliverables || []).map((d) => {
+      if (d.id === deliverableId) {
+        return {
+          ...d,
+          title: editTitle.trim() || d.title,
+          description: editDescription.trim(),
+          type: editType,
+          externalUrl: editUrl.trim() || undefined,
+          history: [...(d.history || []), editHistEntry]
+        };
+      }
+      return d;
+    });
+
+    const newAuditLog: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      timestamp: nowIso,
+      userId: currentUser?.id || 'sys',
+      username: editorName,
+      userRole: editorRole as Role,
+      action: 'MODIFICACION_ENTREGABLE',
+      entityType: 'Entregable',
+      tag: 'ENTREGABLE_CAMBIOS',
+      details: `Modificó datos del entregable "${editTitle.trim() || target.title}" (${editType}).`,
+      phaseId: target.phaseId || activePhase.id
+    };
+
+    onUpdateProject({
+      ...project,
+      deliverables: updatedDeliverables,
+      auditLog: [newAuditLog, ...(project.auditLog || [])]
+    });
+    setEditingDeliverableId(null);
     onSave();
   };
 
@@ -419,7 +916,7 @@ export default function PhaseContent({
     onSave();
   };
 
-  // Toggle visibility of deliverable to client
+  // Toggle visibility of deliverable to client manually
   const handleToggleVisibility = (id: string) => {
     const updated = (project.deliverables || []).map((d) => {
       if (d.id === id) {
@@ -464,19 +961,21 @@ export default function PhaseContent({
       return d;
     });
 
-    const actionText = newStatus === 'aprobado' ? 'Aprobó' : newStatus === 'rechazado' ? 'Rechazó/Pidió Corrección' : 'Cambió estado a ' + newStatus;
+    const actionText = newStatus === 'aprobado' ? 'Aprobó' : newStatus === 'rechazado' ? 'Rechazó / Solicitó Corrección' : 'Cambió estado a ' + newStatus;
     const authorName = userRole === 'invitado' ? 'Cliente / Invitado' : 'Equipo Interno';
 
-    const newAuditLog = [
+    const newAuditLog: AuditLogEntry[] = [
       {
-        id: `audit-${Date.now()}`,
+        id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
         timestamp: new Date().toISOString(),
-        userId: 'internal',
-        username: authorName,
-        userRole: userRole,
-        action: 'Estado Entregable',
+        userId: currentUser?.id || 'sys',
+        username: currentUser?.username || authorName,
+        userRole: (currentUser?.role || userRole) as Role,
+        action: 'ESTADO_ENTREGABLE',
         entityType: 'Entregable',
+        tag: 'ENTREGABLE_CAMBIOS',
         details: `${authorName} ${actionText} el entregable "${target.title}".`,
+        phaseId: target.phaseId || activePhase.id
       },
       ...(project.auditLog || [])
     ];
@@ -514,6 +1013,7 @@ export default function PhaseContent({
   const handleAddDeliverableAnnotation = (deliverableId: string, commentText: string) => {
     if (!commentText.trim()) return;
     const authorName = userRole === 'invitado' ? 'Cliente / Invitado' : 'Coordinador / Equipo';
+    const target = (project.deliverables || []).find((d) => d.id === deliverableId);
 
     const newAnnotation: ClientAnnotation = {
       id: `ann-${Date.now()}`,
@@ -533,7 +1033,24 @@ export default function PhaseContent({
       return d;
     });
 
-    onUpdateProject({ ...project, deliverables: updatedDeliverables });
+    const newAuditEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+      timestamp: new Date().toISOString(),
+      userId: currentUser?.id || 'sys',
+      username: currentUser?.username || authorName,
+      userRole: (currentUser?.role || userRole) as Role,
+      action: 'COMENTARIO_CAMBIO_ENTREGABLE',
+      entityType: 'Entregable',
+      tag: 'ENTREGABLE_CAMBIOS',
+      details: `Registró solicitud de cambio u observación en "${target?.title || 'Entregable'}": "${commentText.trim()}".`,
+      phaseId: target?.phaseId || activePhase.id
+    };
+
+    onUpdateProject({
+      ...project,
+      deliverables: updatedDeliverables,
+      auditLog: [newAuditEntry, ...(project.auditLog || [])]
+    });
     onSave();
   };
 
@@ -732,46 +1249,53 @@ export default function PhaseContent({
           {userRole !== 'invitado' && (
             <>
               <button
-                onClick={onSave}
-                className="bg-stone-100 hover:bg-stone-200 text-slate-700 font-bold rounded-xl px-3.5 py-2 text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                onClick={handleManualSave}
+                className="bg-stone-100 hover:bg-stone-200 text-slate-700 font-bold rounded-xl px-3.5 py-2 text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
                 id="btn-save-progress"
+                title="Guardar información y registrar en bitácora histórica"
               >
-                <Save className="w-3.5 h-3.5" />
+                <Save className="w-3.5 h-3.5 text-lime-600" />
                 Guardar
               </button>
-              <button
-                onClick={handleCompletePhaseClick}
-                className={`font-bold rounded-xl px-4 py-2 text-xs transition-all flex items-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer ${
-                  activePhase.status === 'completed'
-                    ? 'bg-emerald-600 text-white'
-                    : (checklistTotal === 0 || checklistPercent === 100)
-                    ? 'bg-[#c6ef4e] hover:bg-[#b5e03b] text-black'
-                    : 'bg-amber-600 hover:bg-amber-700 text-white'
-                }`}
-                id="btn-complete-phase"
-                title={
-                  activePhase.status === 'completed'
-                    ? 'Fase completada'
-                    : checklistPercent === 100
-                    ? 'Checklist al 100% - Lista para finalizar'
-                    : `Checklist al ${checklistPercent}% - Requiere 100% o Excepción Autorizada`
-                }
-              >
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>
-                  {activePhase.status === 'completed'
-                    ? 'Fase Completada'
-                    : (checklistTotal === 0 || checklistPercent === 100)
-                    ? 'Finalizar Fase (100%)'
-                    : `Finalizar Fase (${checklistPercent}%)`}
-                </span>
-              </button>
+              {/* Botón Finalizar Fase Intuitivo */}
+              {activePhase.status === 'completed' ? (
+                <div
+                  className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-bold rounded-xl px-4 py-2 text-xs flex items-center gap-1.5 shadow-2xs select-none"
+                  id="btn-complete-phase"
+                >
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Fase Finalizada</span>
+                </div>
+              ) : (checklistTotal === 0 || checklistPercent === 100) ? (
+                <button
+                  onClick={handleCompletePhaseClick}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl px-4 py-2 text-xs transition-all flex items-center gap-1.5 shadow-xs active:scale-[0.99] cursor-pointer"
+                  id="btn-complete-phase"
+                  title="Checklist al 100% - Lista para finalizar fase"
+                >
+                  <Check className="w-4 h-4 text-white" />
+                  <span>Finalizar Fase (100% Listo)</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleCompletePhaseClick}
+                  className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 font-bold rounded-xl px-3.5 py-2 text-xs transition-all flex items-center gap-2 shadow-2xs active:scale-[0.99] cursor-pointer"
+                  id="btn-complete-phase"
+                  title={`Checklist al ${checklistPercent}%. Requiere 100% o Excepción Autorizada de Coordinación.`}
+                >
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Finalizar Fase</span>
+                  <span className="bg-amber-200/80 text-amber-900 font-mono text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                    {checklistPercent}%
+                  </span>
+                </button>
+              )}
             </>
           )}
         </div>
       </header>
 
-      {/* 3. NAVIGATION TABS (3 Core Hubs) */}
+      {/* 3. NAVIGATION TABS (4 Hubs) */}
       <div className="px-6 border-b border-stone-100 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0 bg-white" id="form-tabs">
         <button
           onClick={() => setActiveTab('phase')}
@@ -808,6 +1332,21 @@ export default function PhaseContent({
           <MessageSquare className="w-3.5 h-3.5 text-indigo-500" />
           <span>Entregables & Feedback</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('history')}
+          className={`py-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'history'
+              ? 'border-indigo-600 text-indigo-700 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <History className="w-3.5 h-3.5 text-indigo-500" />
+          <span>Historial & Bitácora</span>
+          <span className="text-[10px] bg-indigo-50 text-indigo-700 font-mono font-bold px-1.5 py-0.5 rounded-full border border-indigo-200/60">
+            {(project.auditLog?.length || 0)}
+          </span>
+        </button>
       </div>
 
       {/* WORKSPACE CONTENT SCROLL CONTAINER */}
@@ -818,228 +1357,228 @@ export default function PhaseContent({
           {activeTab === 'phase' && (
             <div className="space-y-6" id="phase-tab-content">
 
-              {/* 4 KPI CARDS ROW */}
-              <div className={`grid grid-cols-1 sm:grid-cols-2 ${isProveedor ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-4`} id="kpi-cards-grid">
-                {/* Card 1: SALUD DEL PROYECTO */}
-                <div className="bg-white rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-stone-100 flex items-center justify-center text-slate-800">
-                        <TrendingUp className="w-4 h-4" />
-                      </div>
-                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        SALUD DEL PROYECTO
+              {/* BANDA DE ESTADO & SALUD GENERAL (ESTILO UNIFICADO DEL DASHBOARD) */}
+              <div
+                id="phase-unified-kpi-block"
+                className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-stone-200/70"
+              >
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-0 lg:divide-x lg:divide-slate-100">
+                  {/* Columna 1: Salud de la Fase */}
+                  <div className="flex flex-col items-center text-center px-2">
+                    <span className="text-xs font-semibold text-slate-800 tracking-tight whitespace-nowrap h-5 flex items-center justify-center">
+                      Salud de Fase
+                    </span>
+                    <div className="h-10 flex items-center justify-center gap-1 my-1">
+                      <span
+                        className="leading-none font-bold tracking-tight text-3xl font-display"
+                        style={{
+                          color: finalHealth >= 80 ? '#10b981' : finalHealth >= 50 ? '#f59e0b' : '#f43f5e'
+                        }}
+                      >
+                        {finalHealth}%
+                      </span>
+                      <span
+                        className="text-sm font-bold leading-none select-none"
+                        style={{
+                          color: finalHealth >= 80 ? '#10b981' : finalHealth >= 50 ? '#f59e0b' : '#f43f5e'
+                        }}
+                      >
+                        {finalHealth >= 80 ? '▲' : '▼'}
                       </span>
                     </div>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      finalHealth < 50
-                        ? 'bg-rose-50 text-rose-700'
-                        : finalHealth < 80
-                        ? 'bg-amber-50 text-amber-700'
-                        : 'bg-emerald-50 text-emerald-700'
-                    }`}>
-                      {finalHealth}%
+                    <span
+                      className="text-[11px] font-semibold tracking-tight whitespace-nowrap h-4 flex items-center justify-center"
+                      style={{
+                        color: finalHealth >= 80 ? '#059669' : finalHealth >= 50 ? '#d97706' : '#e11d48'
+                      }}
+                    >
+                      {finalHealth >= 80 ? 'Óptimo' : finalHealth >= 50 ? 'En riesgo' : 'Crítico'}
                     </span>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="text-2xl font-semibold font-display text-slate-900 tracking-tight">
-                      {finalHealth < 50 ? 'Crítico' : finalHealth < 80 ? 'En riesgo' : 'Óptimo'}
+                  {/* Columna 2: Consumo de Horas */}
+                  <div className="flex flex-col items-center text-center px-2">
+                    <span className="text-xs font-semibold text-slate-800 tracking-tight whitespace-nowrap h-5 flex items-center justify-center">
+                      Consumo de Horas
+                    </span>
+                    <div className="h-10 flex items-center justify-center my-1">
+                      <span className="text-slate-900 leading-none font-bold tracking-tight text-3xl font-display">
+                        {totalConsumedHours}h
+                      </span>
+                      <span className="text-xs font-semibold text-slate-400 ml-1">/ {totalHours}h</span>
                     </div>
-                    <div className="h-2 w-full bg-[#F4F5F0] rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${
-                          finalHealth < 50 ? 'bg-rose-500' : finalHealth < 80 ? 'bg-amber-500' : 'bg-emerald-500'
-                        }`}
-                        style={{ width: `${finalHealth}%` }}
-                      />
+                    <span className="text-[11px] font-semibold tracking-tight whitespace-nowrap h-4 flex items-center justify-center text-slate-500">
+                      {totalHours > 0 ? Math.round((totalConsumedHours / totalHours) * 100) : 0}% consumido
+                    </span>
+                  </div>
+
+                  {/* Columna 3: Retrabajo */}
+                  <div className="flex flex-col items-center text-center px-2">
+                    <span className="text-xs font-semibold text-slate-800 tracking-tight whitespace-nowrap h-5 flex items-center justify-center">
+                      Retrabajo
+                    </span>
+                    <div className="h-10 flex items-center justify-center my-1">
+                      <span className="text-slate-900 leading-none font-bold tracking-tight text-3xl font-display">
+                        {retrabajoStats.porcentajeRetrabajo.toFixed(1)}%
+                      </span>
                     </div>
-                    <p className="text-xs text-slate-500 font-normal leading-tight">
-                      {finalHealth < 50
-                        ? 'Requiere atención inmediata. Se sugieren reuniones de contención.'
-                        : finalHealth < 80
-                        ? 'Desviaciones menores detectadas en los plazos.'
-                        : 'Proyecto ejecutándose de acuerdo a lo planificado.'}
+                    <span className="text-[11px] font-semibold tracking-tight whitespace-nowrap h-4 flex items-center justify-center text-slate-500">
+                      {retrabajoStats.horasRetrabajo}h ({retrabajoStats.porOrigen.cliente}h cliente)
+                    </span>
+                  </div>
+
+                  {/* Columna 4: Costo Estimado (o Horas Fase para proveedor) */}
+                  <div className="flex flex-col items-center text-center px-2">
+                    <span className="text-xs font-semibold text-slate-800 tracking-tight whitespace-nowrap h-5 flex items-center justify-center">
+                      {isProveedor ? 'Horas Fase' : 'Costo Estimado'}
+                    </span>
+                    <div className="h-10 flex items-center justify-center my-1">
+                      <span className="text-slate-900 leading-none font-bold tracking-tight text-2xl lg:text-3xl font-display">
+                        {isProveedor
+                          ? `${totalPhaseHoursLogged}h`
+                          : `$${(project.totalIncome || 16991).toLocaleString('es-CL')}`}
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-semibold tracking-tight whitespace-nowrap h-4 flex items-center justify-center text-slate-500">
+                      {isProveedor ? 'Registradas en fase' : 'USD Contratado'}
+                    </span>
+                  </div>
+
+                  {/* Columna 5: Avance de Checklist */}
+                  <div className="flex flex-col items-center text-center px-2 col-span-2 sm:col-span-1">
+                    <span className="text-xs font-semibold text-slate-800 tracking-tight whitespace-nowrap h-5 flex items-center justify-center">
+                      Avance Checklist
+                    </span>
+                    <div className="h-10 flex items-center justify-center my-1">
+                      <span
+                        className="leading-none font-bold tracking-tight text-3xl font-display"
+                        style={{
+                          color: checklistPercent === 100 ? '#10b981' : checklistPercent >= 50 ? '#3b82f6' : '#f59e0b'
+                        }}
+                      >
+                        {checklistPercent}%
+                      </span>
+                    </div>
+                    <span
+                      className="text-[11px] font-semibold tracking-tight whitespace-nowrap h-4 flex items-center justify-center"
+                      style={{
+                        color: checklistPercent === 100 ? '#059669' : '#64748b'
+                      }}
+                    >
+                      {completedChecklistCount} de {checklistTotal} pasos
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* CRITERIOS DE SALIDA DE FASE GATE */}
+              <div className="bg-amber-50/80 p-4 sm:p-5 rounded-3xl shadow-xs border border-amber-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="w-9 h-9 rounded-2xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-xs uppercase tracking-widest text-amber-900">
+                      Criterios de Salida de Fase ({getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)})
+                    </h4>
+                    <p className="text-xs text-amber-800 font-medium leading-relaxed mt-0.5">
+                      {activePhase.exitCriteria || 'Completar el 100% de la checklist obligatoria y contar con el visto bueno del coordinador.'}
                     </p>
                   </div>
                 </div>
-
-                {/* Card 2: CONSUMO DE HORAS PROYECTO */}
-                <div className="bg-white rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-stone-100 flex items-center justify-center text-slate-800">
-                      <Clock className="w-4 h-4" />
-                    </div>
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                      CONSUMO DE HORAS
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="text-2xl font-semibold font-display text-slate-900 tracking-tight">
-                      {totalConsumedHours}h <span className="text-xs text-slate-400 font-medium">/ {totalHours}h</span>
-                    </div>
-                    <StackedHoursBar timeEntries={timeEntries} hoursTotal={totalHours} showTitle={false} />
-                  </div>
+                <div className="shrink-0 self-end sm:self-auto">
+                  <span className={`text-xs font-bold px-3 py-1 rounded-full border ${checklistPercent === 100 ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300'}`}>
+                    {checklistPercent === 100 ? '✔ Criterios Cumplidos (100%)' : `⏳ En Progreso (${checklistPercent}%)`}
+                  </span>
                 </div>
-
-                {/* Card 3: RETRABAJO DEL PROYECTO */}
-                <div className="bg-white rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-xl bg-stone-100 flex items-center justify-center text-slate-800">
-                      <RotateCcw className="w-4 h-4" />
-                    </div>
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                      RETRABAJO
-                    </span>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="text-2xl font-semibold font-display text-slate-900 tracking-tight">
-                      {retrabajoStats.porcentajeRetrabajo.toFixed(1)}%
-                    </div>
-                    <div className="grid grid-cols-3 gap-1 text-xs text-center font-normal">
-                      <div className="bg-stone-100 p-1.5 rounded-xl">
-                        <span className="text-slate-500 block text-xs font-medium">Cliente</span>
-                        <strong className="text-slate-900 font-semibold">{retrabajoStats.porOrigen.cliente}h</strong>
-                      </div>
-                      <div className="bg-[#F4F5F0] p-1.5 rounded-xl">
-                        <span className="text-slate-500 block text-xs font-medium">Interno</span>
-                        <strong className="text-slate-800 font-semibold">{retrabajoStats.porOrigen.interno}h</strong>
-                      </div>
-                      <div className="bg-[#F4F5F0] p-1.5 rounded-xl">
-                        <span className="text-slate-500 block text-xs font-medium">Proveedor</span>
-                        <strong className="text-slate-800 font-semibold">{retrabajoStats.porOrigen.proveedor}h</strong>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Card 4: COSTO ESTIMADO (Oculto para proveedor) */}
-                {!isProveedor && (
-                  <div className="bg-white rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-stone-100 flex items-center justify-center text-slate-800">
-                        <DollarSign className="w-4 h-4" />
-                      </div>
-                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        COSTO ESTIMADO
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="text-2xl font-semibold font-display text-slate-900 tracking-tight">
-                        ${(project.totalIncome || 16991).toLocaleString('es-CL')}{' '}
-                        <span className="text-xs text-slate-400 font-medium">USD</span>
-                      </div>
-                      <div className="text-xs text-slate-500 font-medium bg-[#F4F5F0] p-2.5 rounded-2xl flex items-center justify-between">
-                        <span className="text-slate-400">Presupuesto Base</span>
-                        <strong className="text-slate-700 font-semibold">$3.627,20 USD</strong>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
-              {/* SECTION HEADER */}
-              <h3 className="text-base font-semibold text-slate-900 tracking-tight pt-2">
-                {getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)}: Checklist y Control de Fase
-              </h3>
+              {/* CHECKLIST FULL-WIDTH CARD */}
+              <div className="bg-white p-6 sm:p-7 rounded-3xl shadow-xs space-y-6 border border-stone-200/70">
+                {/* Phase Control Header & Metrics */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-5">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <ClipboardList className="w-5 h-5 text-slate-800" />
+                      <h3 className="text-base font-semibold text-slate-900 tracking-tight">
+                        Checklist de {getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)}
+                      </h3>
+                    </div>
+                    <p className="text-xs text-slate-500 font-normal">
+                      Control de tareas, hitos, fechas y lecciones aprendidas de la fase.
+                    </p>
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                {/* Left Column: Checklist of the Phase */}
-                <div className="md:col-span-3 space-y-6">
-                  <div className="bg-white p-6 sm:p-7 rounded-3xl shadow-xs space-y-6">
-                    {/* Phase Control Header & Metrics */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-5">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <ClipboardList className="w-5 h-5 text-slate-800" />
-                          <h3 className="text-base font-semibold text-slate-900 tracking-tight">
-                            Checklist de {getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)}
-                          </h3>
-                        </div>
-                        <p className="text-xs text-slate-500 font-normal">
-                          Control de tareas, hitos, fechas y lecciones aprendidas de la fase.
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2 flex-wrap shrink-0">
-                        {/* Total Time Badge */}
-                        <div className="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 shadow-xs">
-                          <Clock className="w-3.5 h-3.5 text-stone-300" />
-                          <span><strong className="text-white font-mono text-sm">{totalPhaseHoursLogged} hrs</strong></span>
-                        </div>
-
-                        {/* Download Phase Button */}
-                        <button
-                          onClick={() => handleDownloadPhase(activePhase)}
-                          className="bg-stone-100 hover:bg-stone-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                          title="Descargar documentación de esta fase en formato Markdown"
-                        >
-                          <Download className="w-3.5 h-3.5 text-slate-600" />
-                          Descargar
-                        </button>
-
-                        {/* Mark Completed Button */}
-                        {userRole !== 'invitado' && (
-                          <button
-                            onClick={handleCompletePhaseClick}
-                            className={`font-bold px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer ${
-                              activePhase.status === 'completed'
-                                ? 'bg-emerald-100 text-emerald-800 cursor-default'
-                                : (checklistTotal === 0 || checklistPercent === 100)
-                                ? 'bg-lime-500 hover:bg-lime-600 text-slate-950'
-                                : 'bg-amber-500 hover:bg-amber-600 text-white'
-                            }`}
-                            title={
-                              activePhase.status === 'completed'
-                                ? 'Fase completada'
-                                : checklistPercent === 100
-                                ? 'Checklist al 100% - Lista para finalizar'
-                                : `Checklist al ${checklistPercent}% - Requiere 100% o Excepción Autorizada`
-                            }
-                          >
-                            {activePhase.status === 'completed' ? (
-                              <>
-                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                Finalizada
-                              </>
-                            ) : (
-                              <>
-                                <Check className="w-3.5 h-3.5" />
-                                <span>
-                                  {checklistTotal === 0 || checklistPercent === 100
-                                    ? 'Finalizar Fase (100%)'
-                                    : `Finalizar Fase (${checklistPercent}%)`}
-                                </span>
-                              </>
-                            )}
-                          </button>
-                        )}
-                      </div>
+                  <div className="flex items-center gap-2 flex-wrap shrink-0">
+                    {/* Total Time Badge */}
+                    <div className="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 shadow-xs">
+                      <Clock className="w-3.5 h-3.5 text-stone-300" />
+                      <span><strong className="text-white font-mono text-sm">{totalPhaseHoursLogged} hrs</strong></span>
                     </div>
 
-                    {/* Checklist Items List with Milestones, Dates, Learnings */}
-                    <div className="space-y-4" id="expanded-checklist-section">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                          Pasos del Checklist
-                        </span>
-                        <span className="text-xs font-bold text-lime-700 bg-lime-50 px-2.5 py-0.5 rounded-full">
-                          {checklistPercent}% Completado ({completedChecklistCount} de {checklistTotal})
-                        </span>
-                      </div>
+                    {/* Download Phase Button */}
+                    <button
+                      onClick={() => handleDownloadPhase(activePhase)}
+                      className="bg-stone-100 hover:bg-stone-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      title="Descargar documentación de esta fase en formato Markdown"
+                    >
+                      <Download className="w-3.5 h-3.5 text-slate-600" />
+                      Descargar
+                    </button>
 
-                      <div className="h-2 w-full bg-[#F4F5F0] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-lime-500 transition-all duration-500 rounded-full"
-                          style={{ width: `${checklistPercent}%` }}
-                        />
-                      </div>
-
-                      {checklistItems.length === 0 ? (
-                        <div className="p-6 text-center bg-[#F4F5F0] rounded-2xl">
-                          <p className="text-xs text-slate-400 italic">No hay pasos agregados aún a este checklist.</p>
+                    {/* Mark Completed Button Intuitivo */}
+                    {userRole !== 'invitado' && (
+                      activePhase.status === 'completed' ? (
+                        <div className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-2xs select-none">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Finalizada</span>
                         </div>
+                      ) : (checklistTotal === 0 || checklistPercent === 100) ? (
+                        <button
+                          onClick={handleCompletePhaseClick}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                          title="Checklist al 100% - Lista para finalizar fase"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Finalizar Fase (100% Listo)</span>
+                        </button>
                       ) : (
+                        <button
+                          onClick={handleCompletePhaseClick}
+                          className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 font-bold px-3.5 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                          title={`Checklist al ${checklistPercent}%. Requiere 100% o Excepción Autorizada.`}
+                        >
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Finalizar Fase ({checklistPercent}%)</span>
+                        </button>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                {/* Checklist Items List with Milestones, Dates, Learnings */}
+                <div className="space-y-4" id="expanded-checklist-section">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                      Pasos del Checklist
+                    </span>
+                    <span className="text-xs font-bold text-lime-700 bg-lime-50 px-2.5 py-0.5 rounded-full">
+                      {checklistPercent}% Completado ({completedChecklistCount} de {checklistTotal})
+                    </span>
+                  </div>
+
+                  <div className="h-2 w-full bg-[#F4F5F0] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-lime-500 transition-all duration-500 rounded-full"
+                      style={{ width: `${checklistPercent}%` }}
+                    />
+                  </div>
+
+                  {checklistItems.length === 0 ? (
+                    <div className="p-6 text-center bg-[#F4F5F0] rounded-2xl">
+                      <p className="text-xs text-slate-400 italic">No hay pasos agregados aún a este checklist.</p>
+                    </div>
+                  ) : (
                         <div className="space-y-4">
                           {checklistItems.map((item, idx) => (
                             <div
@@ -1050,26 +1589,73 @@ export default function PhaseContent({
                                   : 'bg-[#F4F5F0]'
                               }`}
                             >
-                              {/* Step Header + Checkbox */}
+                              {/* Step Header + Checkbox + Edit Task Text */}
                               <div className="flex items-center justify-between gap-3 border-b border-stone-200/60 pb-2">
-                                <button
-                                  disabled={userRole === 'invitado'}
-                                  onClick={() => handleToggleChecklist(item.id)}
-                                  className="flex items-center gap-3 text-left group cursor-pointer"
-                                >
-                                  <span className="shrink-0">
-                                    {item.completed ? (
-                                      <CheckSquare className="w-5 h-5 text-slate-800" />
-                                    ) : (
-                                      <Square className="w-5 h-5 text-slate-400 group-hover:text-slate-700 transition-colors" />
+                                {editingTaskId === item.id ? (
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <input
+                                      type="text"
+                                      autoFocus
+                                      value={editingTaskText}
+                                      onChange={(e) => setEditingTaskText(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleSaveEditedTaskText(item.id, item.text);
+                                        if (e.key === 'Escape') setEditingTaskId(null);
+                                      }}
+                                      className="flex-1 bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 font-semibold outline-none focus:ring-2 focus:ring-slate-900"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSaveEditedTaskText(item.id, item.text)}
+                                      className="p-1 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 cursor-pointer"
+                                      title="Guardar cambio de texto"
+                                    >
+                                      <Check className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingTaskId(null)}
+                                      className="p-1 rounded-md bg-stone-200 text-slate-600 hover:bg-stone-300 cursor-pointer"
+                                      title="Cancelar"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <button
+                                      disabled={userRole === 'invitado'}
+                                      onClick={() => handleToggleChecklist(item.id)}
+                                      className="flex items-center gap-3 text-left group cursor-pointer min-w-0"
+                                    >
+                                      <span className="shrink-0">
+                                        {item.completed ? (
+                                          <CheckSquare className="w-5 h-5 text-slate-800" />
+                                        ) : (
+                                          <Square className="w-5 h-5 text-slate-400 group-hover:text-slate-700 transition-colors" />
+                                        )}
+                                      </span>
+                                      <span className={`text-xs font-semibold text-slate-900 truncate ${item.completed ? 'line-through text-slate-500' : ''}`}>
+                                        Paso {idx + 1}: {item.text}
+                                      </span>
+                                    </button>
+                                    {userRole !== 'invitado' && (
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setEditingTaskId(item.id);
+                                          setEditingTaskText(item.text);
+                                        }}
+                                        className="text-slate-400 hover:text-slate-800 p-1 rounded-md hover:bg-stone-200/80 transition-colors cursor-pointer shrink-0"
+                                        title="Modificar texto del paso (se registrará en el historial de auditoría)"
+                                      >
+                                        <Edit2 className="w-3 h-3" />
+                                      </button>
                                     )}
-                                  </span>
-                                  <span className={`text-xs font-semibold text-slate-900 ${item.completed ? 'line-through text-slate-500' : ''}`}>
-                                    Paso {idx + 1}: {item.text}
-                                  </span>
-                                </button>
+                                  </div>
+                                )}
 
-                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
                                   item.completed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                                 }`}>
                                   {item.completed ? 'Completado' : 'Pendiente'}
@@ -1167,76 +1753,6 @@ export default function PhaseContent({
                   </div>
                 </div>
 
-                {/* Right Column: Historial de Movimientos del Proyecto */}
-              <div className="md:col-span-2 space-y-6">
-                {/* Exit Criteria Gate Card */}
-                <div className="bg-amber-50/80 p-5 rounded-3xl shadow-xs space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-amber-600" />
-                    <h3 className="font-bold text-xs uppercase tracking-widest text-amber-900">
-                      Criterios de Salida de Fase
-                    </h3>
-                  </div>
-                  <p className="text-xs text-amber-800 font-medium leading-relaxed">
-                    {activePhase.exitCriteria || 'Completar el 100% de la checklist obligatoria y contar con el visto bueno del coordinador.'}
-                  </p>
-                </div>
-
-                {/* Historial de Movimientos del Proyecto */}
-                <div className="bg-white p-6 rounded-3xl shadow-xs space-y-4">
-                  <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-                    <div className="flex items-center gap-2">
-                      <History className="w-4 h-4 text-indigo-600" />
-                      <h3 className="font-bold text-xs uppercase tracking-widest text-slate-800">
-                        Historial de Movimientos
-                      </h3>
-                    </div>
-                    <span className="text-xs bg-indigo-50 text-indigo-700 font-mono font-bold px-2 py-0.5 rounded-full">
-                      {(project.auditLog?.length || project.timeEntries?.length || 0)} registros
-                    </span>
-                  </div>
-
-                  {(!project.auditLog || project.auditLog.length === 0) && (!project.timeEntries || project.timeEntries.length === 0) ? (
-                    <div className="p-4 text-center bg-[#F4F5F0] rounded-2xl">
-                      <p className="text-xs text-slate-400 italic">No hay movimientos o registros recientes aún.</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
-                      {(project.auditLog && project.auditLog.length > 0
-                        ? project.auditLog
-                        : (project.timeEntries || []).map(te => ({
-                            id: `te-${te.id}`,
-                            timestamp: te.createdAt || te.date || new Date().toISOString(),
-                            username: te.username || 'Colaborador',
-                            userRole: te.role || 'contents',
-                            action: 'REGISTRO_HORAS',
-                            details: `Registro de ${te.hours}h: "${te.description || 'Avance de trabajo'}"`,
-                            phaseId: te.phaseId
-                          }))
-                      ).map((log, idx) => (
-                        <div key={log.id || idx} className="p-3 bg-[#F4F5F0] rounded-2xl text-xs space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="font-bold text-slate-800">{log.username || 'Sistema'}</span>
-                            <span className="text-xs text-slate-400 font-mono">
-                              {new Date(log.timestamp).toLocaleDateString('es-CL', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                            </span>
-                          </div>
-                          <div className="text-xs text-slate-600 leading-snug">
-                            {log.details || log.action}
-                          </div>
-                          {log.phaseId && (
-                            <span className="inline-block text-xs bg-stone-200 text-slate-600 px-1.5 py-0.5 rounded-md font-semibold mt-1">
-                              Fase: {log.phaseId}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
               {/* Global Download Button Banner (Last Phase / Global Export) */}
               <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="space-y-1 text-center md:text-left">
@@ -1269,6 +1785,8 @@ export default function PhaseContent({
                 project={project}
                 onUpdateProject={onUpdateProject}
                 userRole={userRole}
+                clients={clients}
+                currentUser={currentUser}
               />
             </div>
           )}
@@ -1320,74 +1838,112 @@ export default function PhaseContent({
 
               {/* Add New Deliverable Form */}
               {userRole !== 'invitado' && (
-                <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
-                  <div className="flex items-center gap-2 border-b border-stone-100 pb-3">
-                    <Plus className="w-4 h-4 text-slate-800" />
-                    <h3 className="font-semibold text-xs uppercase tracking-widest text-slate-500">
-                      Publicar Nuevo Entregable para el Cliente
-                    </h3>
+                <div className="bg-white rounded-3xl p-6 sm:p-7 shadow-xs space-y-4 border border-stone-200/70">
+                  <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Plus className="w-4 h-4 text-slate-800" />
+                      <h3 className="font-semibold text-xs uppercase tracking-widest text-slate-700">
+                        Subir Archivo / Entregable para Revisión del Cliente
+                      </h3>
+                    </div>
+                    <span className="text-[11px] text-slate-500 font-medium bg-[#F4F5F0] px-3 py-1 rounded-full">
+                      Subido por: <strong>{currentUser?.username || 'Equipo Creativo'}</strong>
+                    </span>
                   </div>
 
-                  <form onSubmit={handleAddDeliverable} className="grid grid-cols-1 md:grid-cols-12 gap-4">
-                    <div className="md:col-span-4 space-y-1">
-                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Título del Archivo / Pieza</label>
-                      <input
-                        type="text"
-                        placeholder="Ej: Wireframe Completo de Landing..."
-                        value={delivTitle}
-                        onChange={(e) => setDelivTitle(e.target.value)}
-                        className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all font-normal"
-                        required
-                      />
-                    </div>
+                  <form onSubmit={handleAddDeliverable} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5">
+                      <div className="md:col-span-5 space-y-1">
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Título del Archivo / Pieza *
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Ej: Arte Gráfico Post Carrusel Campaña..."
+                          value={delivTitle}
+                          onChange={(e) => setDelivTitle(e.target.value)}
+                          className="w-full bg-[#F4F5F0] rounded-xl px-3.5 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all font-semibold"
+                          required
+                        />
+                      </div>
 
-                    <div className="md:col-span-3 space-y-1">
-                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">Tipo de Entregable</label>
-                      <select
-                        value={delivType}
-                        onChange={(e: any) => setDelivType(e.target.value)}
-                        className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all font-normal"
-                      >
-                        <option value="link">Enlace Web (Link)</option>
-                        <option value="video">Archivo de Video</option>
-                        <option value="audio">Archivo de Audio</option>
-                        <option value="pdf">Documento PDF</option>
-                        <option value="word">Documento Word</option>
-                        <option value="image">Fotografía / Imagen</option>
-                        <option value="markdown">Formato Markdown</option>
-                      </select>
-                    </div>
+                      <div className="md:col-span-4 space-y-1">
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Tipo de Entregable *
+                        </label>
+                        <select
+                          value={delivType}
+                          onChange={(e: any) => setDelivType(e.target.value)}
+                          className="w-full bg-[#F4F5F0] rounded-xl px-3.5 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all font-medium cursor-pointer"
+                        >
+                          <option value="image">Diseño / Arte Gráfico (JPG/PNG)</option>
+                          <option value="video">Video / Reel / Audiovisual</option>
+                          <option value="word">Social Media Copy / Arte</option>
+                          <option value="pdf">Documento PDF / Manual de Marca</option>
+                          <option value="link">Enlace Web / Figma / Canva / Prototipo</option>
+                          <option value="audio">Archivo de Audio / Spot</option>
+                          <option value="markdown">Documentación Markdown</option>
+                        </select>
+                      </div>
 
-                    <div className="md:col-span-5 space-y-1">
-                      <label className="text-xs font-medium text-slate-500 uppercase tracking-wider">URL del Entregable (Figma, Drive, Staging, etc.)</label>
-                      <div className="flex gap-2">
+                      <div className="md:col-span-3 space-y-1">
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Fase Asociada
+                        </label>
+                        <select
+                          value={delivPhaseId}
+                          onChange={(e) => setDelivPhaseId(e.target.value)}
+                          className="w-full bg-[#F4F5F0] rounded-xl px-3.5 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all font-medium cursor-pointer"
+                        >
+                          {project.phases.map((p, idx) => (
+                            <option key={p.id} value={p.id}>
+                              {getCleanPhaseTitle(p.label, p.id, idx)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="md:col-span-12 space-y-1">
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Link del Entregable (Figma, Google Drive, Canva, Dropbox, Loom, etc.) *
+                        </label>
                         <input
                           type="url"
-                          placeholder="https://..."
+                          required
+                          placeholder="https://www.figma.com/... o https://drive.google.com/..."
                           value={delivUrl}
                           onChange={(e) => setDelivUrl(e.target.value)}
-                          className="flex-1 bg-[#F4F5F0] rounded-2xl px-4 py-2.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all font-normal"
+                          className="w-full bg-[#F4F5F0] rounded-xl px-3.5 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all font-normal font-mono"
                         />
-                        <button
-                          type="submit"
-                          className="bg-slate-900 hover:bg-slate-800 text-white font-medium px-5 rounded-full text-xs transition-all active:scale-95 cursor-pointer shadow-xs shrink-0"
-                        >
-                          Publicar
-                        </button>
+                      </div>
+
+                      <div className="md:col-span-12 space-y-1">
+                        <label className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                          Descripción del Entregable & Contexto para el Cliente
+                        </label>
+                        <textarea
+                          rows={2}
+                          placeholder="Describe la propuesta, copys recomendados, variantes de color o especificaciones para el visto bueno..."
+                          value={delivDescription}
+                          onChange={(e) => setDelivDescription(e.target.value)}
+                          className="w-full bg-[#F4F5F0] rounded-xl px-3.5 py-2 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-slate-900 focus:bg-white transition-all font-normal resize-none"
+                        />
                       </div>
                     </div>
 
-                    <div className="md:col-span-12 flex items-center gap-2 pt-1">
-                      <input
-                        type="checkbox"
-                        id="deliv-visible-check"
-                        checked={delivVisible}
-                        onChange={(e) => setDelivVisible(e.target.checked)}
-                        className="w-4 h-4 accent-indigo-600 cursor-pointer rounded"
-                      />
-                      <label htmlFor="deliv-visible-check" className="text-xs font-semibold text-slate-600 cursor-pointer">
-                        Hacer visible inmediatamente para el Cliente / Invitado en su Portal
-                      </label>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-stone-100">
+                      <p className="text-xs text-slate-500 font-normal flex items-center gap-1.5">
+                        <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0" />
+                        <span>Quedará en <strong>revisión interna</strong>. Tras el check de visto bueno interno, se activará automáticamente para el cliente.</span>
+                      </p>
+
+                      <button
+                        type="submit"
+                        className="bg-slate-900 hover:bg-slate-800 text-white font-semibold px-6 py-2.5 rounded-full text-xs transition-all active:scale-95 cursor-pointer shadow-xs shrink-0 self-end sm:self-auto flex items-center gap-1.5"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Publicar para Revisión Interna</span>
+                      </button>
                     </div>
                   </form>
                 </div>
@@ -1395,9 +1951,14 @@ export default function PhaseContent({
 
               {/* Deliverables List and Customer Annotations Review */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-xs uppercase tracking-widest text-slate-500">
-                  Historial de Entregables Publicados y Feedback Recibido
-                </h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-xs uppercase tracking-widest text-slate-500">
+                    Historial de Entregables Publicados y Feedback Recibido
+                  </h3>
+                  <span className="text-xs font-bold text-slate-600 bg-white px-3 py-1 rounded-full border border-stone-200">
+                    {(project.deliverables || []).filter((item) => userRole !== 'invitado' || item.isVisibleToClient).length} entregables
+                  </span>
+                </div>
 
                 {(() => {
                   const visibleList = (project.deliverables || []).filter(
@@ -1406,23 +1967,23 @@ export default function PhaseContent({
 
                   if (visibleList.length === 0) {
                     return (
-                      <div className="bg-white rounded-3xl p-10 text-center shadow-xs text-slate-400 text-xs font-normal">
+                      <div className="bg-white rounded-3xl p-10 text-center shadow-xs text-slate-400 text-xs font-normal border border-stone-200/70">
                         No hay entregables visibles para mostrar en este momento.
                       </div>
                     );
                   }
 
                   return (
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                       {visibleList.map((item) => {
                         const statusColor =
                           item.status === 'aprobado'
-                            ? 'bg-emerald-50 text-emerald-800'
+                            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                             : item.status === 'rechazado'
-                            ? 'bg-rose-50 text-rose-800'
+                            ? 'bg-rose-50 text-rose-800 border border-rose-200'
                             : item.status === 'en_revision'
-                            ? 'bg-amber-50 text-amber-800'
-                            : 'bg-stone-100 text-slate-700';
+                            ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                            : 'bg-stone-100 text-slate-700 border border-stone-200';
 
                         const statusLabel =
                           item.status === 'aprobado'
@@ -1433,40 +1994,58 @@ export default function PhaseContent({
                             ? '⏳ En Revisión'
                             : '○ Pendiente';
 
+                        const isEditingThis = editingDeliverableId === item.id;
+                        const phaseName = project.phases.find(p => p.id === item.phaseId);
+                        const cleanPTitle = phaseName ? getCleanPhaseTitle(phaseName.label, phaseName.id) : null;
+
                         return (
-                          <div key={item.id} className="bg-white rounded-3xl p-6 shadow-xs space-y-4">
+                          <div key={item.id} className="bg-white rounded-3xl p-6 shadow-xs space-y-4 border border-stone-200/70">
+                            {/* Header de la tarjeta */}
                             <div className="flex flex-wrap items-start justify-between gap-3 border-b border-stone-100 pb-3">
-                              <div className="space-y-1">
+                              <div className="space-y-1.5 flex-1 min-w-[240px]">
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <span className="text-xs font-semibold uppercase px-3 py-1 bg-[#F4F5F0] text-slate-700 rounded-full tracking-wider">
+                                  <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 bg-[#F4F5F0] text-slate-700 rounded-md tracking-wider">
                                     {item.type}
                                   </span>
-                                  <span className={`text-xs font-semibold uppercase px-3 py-1 rounded-full ${statusColor}`}>
+                                  <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-md ${statusColor}`}>
                                     {statusLabel}
                                   </span>
+                                  {cleanPTitle && (
+                                    <span className="text-[10px] font-semibold text-slate-500 bg-stone-100 px-2 py-0.5 rounded-md">
+                                      {cleanPTitle}
+                                    </span>
+                                  )}
                                   <span className="text-xs text-slate-400 font-mono">
-                                    {new Date(item.createdAt).toLocaleDateString('es-CL')}
+                                    Subido el {new Date(item.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })}
                                   </span>
                                 </div>
-                                <h4 className="font-semibold text-base text-slate-900 leading-snug">{item.title}</h4>
+
+                                <h4 className="font-bold text-base text-slate-900 leading-snug">{item.title}</h4>
+
+                                {item.description && (
+                                  <p className="text-xs text-slate-600 leading-relaxed font-normal bg-[#F4F5F0] p-3 rounded-xl border border-stone-200/60">
+                                    {item.description}
+                                  </p>
+                                )}
+
                                 {item.externalUrl && (
                                   <a
                                     href={item.externalUrl}
                                     target="_blank"
                                     referrerPolicy="no-referrer"
                                     rel="noopener noreferrer"
-                                    className="text-xs text-slate-800 hover:text-slate-950 font-semibold flex items-center gap-1.5 inline-flex mt-1 underline"
+                                    className="text-xs text-indigo-700 hover:text-indigo-900 font-semibold flex items-center gap-1.5 inline-flex mt-1 underline"
                                   >
-                                    <ExternalLink className="w-3.5 h-3.5 text-slate-800" />
-                                    <span>Abrir recurso externo</span>
+                                    <ExternalLink className="w-3.5 h-3.5 text-indigo-600" />
+                                    <span>Abrir enlace del recurso ({item.externalUrl.slice(0, 45)}...)</span>
                                   </a>
                                 )}
                               </div>
 
-                              {/* Controls (Approval, Visibility, Delete) */}
-                              <div className="flex items-center gap-2 flex-wrap">
-                                {/* Status change actions */}
-                                <div className="flex items-center gap-1 bg-[#F4F5F0] p-1 rounded-full">
+                              {/* Acciones principales (Aprobar Cliente, Editar, Borrar) */}
+                              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                                {/* Status change actions por parte del cliente o equipo */}
+                                <div className="flex items-center gap-1 bg-[#F4F5F0] p-1 rounded-full border border-stone-200/70">
                                   <button
                                     onClick={() => handleUpdateDeliverableStatus(item.id, 'aprobado')}
                                     className={`px-3 py-1 rounded-full text-xs font-semibold cursor-pointer transition-all ${
@@ -1474,7 +2053,7 @@ export default function PhaseContent({
                                         ? 'bg-emerald-600 text-white shadow-xs'
                                         : 'text-slate-600 hover:bg-emerald-100 hover:text-emerald-800'
                                     }`}
-                                    title="Aprobar entregable"
+                                    title="Aprobar entregable formalmente"
                                   >
                                     Aprobar
                                   </button>
@@ -1486,7 +2065,7 @@ export default function PhaseContent({
                                         ? 'bg-rose-600 text-white shadow-xs'
                                         : 'text-slate-600 hover:bg-rose-100 hover:text-rose-800'
                                     }`}
-                                    title="Solicitar correcciones"
+                                    title="Solicitar correcciones o cambios"
                                   >
                                     Pedir Ajuste
                                   </button>
@@ -1498,7 +2077,7 @@ export default function PhaseContent({
                                         ? 'bg-amber-500 text-white shadow-xs'
                                         : 'text-slate-600 hover:bg-amber-100 hover:text-amber-800'
                                     }`}
-                                    title="En revisión"
+                                    title="Marcar en revisión"
                                   >
                                     En Revisión
                                   </button>
@@ -1507,37 +2086,244 @@ export default function PhaseContent({
                                 {userRole !== 'invitado' && (
                                   <>
                                     <button
-                                      onClick={() => handleToggleVisibility(item.id)}
-                                      className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer ${
-                                        item.isVisibleToClient
-                                          ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                                          : 'bg-stone-100 text-slate-500 hover:bg-stone-200'
-                                      }`}
-                                      title={item.isVisibleToClient ? 'Ocultar al cliente' : 'Mostrar al cliente'}
+                                      type="button"
+                                      onClick={() => {
+                                        if (isEditingThis) {
+                                          setEditingDeliverableId(null);
+                                        } else {
+                                          setEditingDeliverableId(item.id);
+                                          setEditTitle(item.title);
+                                          setEditDescription(item.description || '');
+                                          setEditType(item.type);
+                                          setEditUrl(item.externalUrl || '');
+                                        }
+                                      }}
+                                      className="p-2 text-slate-500 hover:text-slate-800 hover:bg-stone-100 rounded-full transition-all cursor-pointer border border-stone-200"
+                                      title="Modificar entregable"
                                     >
-                                      {item.isVisibleToClient ? (
-                                        <>
-                                          <Eye className="w-3.5 h-3.5 text-emerald-600" />
-                                          <span>Público</span>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <EyeOff className="w-3.5 h-3.5 text-slate-500" />
-                                          <span>Oculto</span>
-                                        </>
-                                      )}
+                                      <Edit2 className="w-3.5 h-3.5" />
                                     </button>
 
                                     {userRole === 'coordinador' && (
                                       <button
                                         onClick={() => handleDeleteDeliverable(item.id)}
-                                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-all cursor-pointer"
+                                        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-all cursor-pointer border border-stone-200"
                                         title="Eliminar entregable"
                                       >
-                                        <Trash className="w-4 h-4 text-slate-600 hover:text-rose-600" />
+                                        <Trash className="w-3.5 h-3.5" />
                                       </button>
                                     )}
                                   </>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Formulario de edición si está activo */}
+                            {isEditingThis && (
+                              <div className="p-4 bg-sky-50/60 rounded-2xl border border-sky-200 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-bold text-sky-900 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Edit2 className="w-3.5 h-3.5 text-sky-700" /> Modificar Datos del Entregable
+                                  </span>
+                                  <button
+                                    onClick={() => setEditingDeliverableId(null)}
+                                    className="text-slate-400 hover:text-slate-700"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                  <div>
+                                    <label className="block font-semibold text-slate-700 mb-1">Título</label>
+                                    <input
+                                      type="text"
+                                      value={editTitle}
+                                      onChange={(e) => setEditTitle(e.target.value)}
+                                      className="w-full bg-white border border-sky-300 rounded-xl px-3 py-1.5 outline-none font-semibold"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block font-semibold text-slate-700 mb-1">Tipo</label>
+                                    <select
+                                      value={editType}
+                                      onChange={(e: any) => setEditType(e.target.value)}
+                                      className="w-full bg-white border border-sky-300 rounded-xl px-3 py-1.5 outline-none cursor-pointer"
+                                    >
+                                      <option value="image">Diseño / Arte Gráfico</option>
+                                      <option value="video">Video / Reel</option>
+                                      <option value="word">Social Media Copy / Arte</option>
+                                      <option value="pdf">Documento PDF</option>
+                                      <option value="link">Enlace Web / Figma</option>
+                                      <option value="audio">Audio / Spot</option>
+                                    </select>
+                                  </div>
+                                  <div className="sm:col-span-2">
+                                    <label className="block font-semibold text-slate-700 mb-1">Link del Entregable</label>
+                                    <input
+                                      type="url"
+                                      value={editUrl}
+                                      onChange={(e) => setEditUrl(e.target.value)}
+                                      className="w-full bg-white border border-sky-300 rounded-xl px-3 py-1.5 outline-none font-mono"
+                                    />
+                                  </div>
+                                  <div className="sm:col-span-2">
+                                    <label className="block font-semibold text-slate-700 mb-1">Descripción</label>
+                                    <textarea
+                                      rows={2}
+                                      value={editDescription}
+                                      onChange={(e) => setEditDescription(e.target.value)}
+                                      className="w-full bg-white border border-sky-300 rounded-xl px-3 py-1.5 outline-none"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="flex justify-end gap-2 pt-1">
+                                  <button
+                                    onClick={() => setEditingDeliverableId(null)}
+                                    className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-600 hover:bg-stone-200 cursor-pointer"
+                                  >
+                                    Cancelar
+                                  </button>
+                                  <button
+                                    onClick={() => handleSaveEditedDeliverable(item.id)}
+                                    className="px-4 py-1.5 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 cursor-pointer shadow-xs"
+                                  >
+                                    Guardar Modificación
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* BANDA DE VISTO BUENO INTERNO (CHECK DE REVISADO PARA VISIBILIDAD AUTOMÁTICA) */}
+                            <div className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                              item.internalCheckPassed
+                                ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
+                                : 'bg-amber-50/70 border-amber-200 text-amber-900'
+                            }`}>
+                              <div className="flex items-center gap-3">
+                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                                  item.internalCheckPassed ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-white'
+                                }`}>
+                                  {item.internalCheckPassed ? (
+                                    <Check className="w-4 h-4" />
+                                  ) : (
+                                    <Clock className="w-4 h-4" />
+                                  )}
+                                </div>
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-bold text-xs">
+                                      {item.internalCheckPassed
+                                        ? 'Visto Bueno Interno Aprobado'
+                                        : 'Pendiente de Revisión Interna'}
+                                    </span>
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                      item.internalCheckPassed
+                                        ? 'bg-emerald-100 text-emerald-800'
+                                        : 'bg-amber-100 text-amber-800'
+                                    }`}>
+                                      {item.internalCheckPassed ? 'Visible para Cliente' : 'Oculto al Cliente'}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] opacity-90 mt-0.5">
+                                    {item.internalCheckPassed
+                                      ? `Revisado y aprobado por ${item.reviewedBy || 'Coordinador'} el ${item.reviewedAt ? new Date(item.reviewedAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'recientemente'}.`
+                                      : 'Normalmente el equipo de diseño o social media sube el arte. Requiere check de revisado internamente para ser visible automáticamente para el cliente.'}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {userRole !== 'invitado' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleInternalReviewCheck(item.id)}
+                                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs shrink-0 self-start sm:self-auto ${
+                                    item.internalCheckPassed
+                                      ? 'bg-white hover:bg-stone-100 text-slate-700 border border-stone-200'
+                                      : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                  }`}
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>{item.internalCheckPassed ? 'Desmarcar Check' : 'Dar Check de Revisado Interno'}</span>
+                                </button>
+                              )}
+                            </div>
+
+                            {/* HISTORIAL COMPLETO DE ENTREGAS & TRAZABILIDAD (QUIEN SUBIÓ, QUÉ DÍA, MODIFICACIONES Y CHECK) */}
+                            <div className="p-4 bg-[#F4F5F0] rounded-2xl border border-stone-200/60 space-y-2.5">
+                              <div className="flex items-center justify-between border-b border-stone-200/80 pb-2">
+                                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                                  <History className="w-3.5 h-3.5 text-indigo-600" />
+                                  Historial de Entregas & Trazabilidad
+                                </span>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {item.history?.length || 1} eventos registrados
+                                </span>
+                              </div>
+
+                              <div className="space-y-2 text-xs">
+                                {/* 1. Quien subió el arte */}
+                                <div className="flex items-start gap-2 text-slate-700">
+                                  <span className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                                    ↑
+                                  </span>
+                                  <div>
+                                    <p className="leading-snug">
+                                      <strong>Subido por:</strong> <span className="font-semibold text-slate-900">{item.uploadedBy || 'Equipo Creativo'}</span> ({item.uploadedByRole || 'Diseño / Social Media'})
+                                    </p>
+                                    <span className="text-[10px] text-slate-400 font-mono">
+                                      Fecha y hora: {new Date(item.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })} • {new Date(item.createdAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* 2. Quien lo revisó y dio check */}
+                                <div className="flex items-start gap-2 text-slate-700">
+                                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5 ${
+                                    item.internalCheckPassed ? 'bg-emerald-600 text-white' : 'bg-stone-300 text-slate-600'
+                                  }`}>
+                                    ✓
+                                  </span>
+                                  <div>
+                                    <p className="leading-snug">
+                                      <strong>Visto Bueno Interno:</strong>{' '}
+                                      {item.internalCheckPassed ? (
+                                        <span className="font-semibold text-emerald-800">
+                                          Revisado y con check otorgado por {item.reviewedBy || 'Coordinador'}
+                                        </span>
+                                      ) : (
+                                        <span className="text-amber-800 font-medium">
+                                          Pendiente de revisado interno
+                                        </span>
+                                      )}
+                                    </p>
+                                    {item.reviewedAt && (
+                                      <span className="text-[10px] text-slate-400 font-mono">
+                                        Fecha y hora del check: {new Date(item.reviewedAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })} • {new Date(item.reviewedAt).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* 3. Modificaciones si hubo */}
+                                {item.history && item.history.filter(h => h.action === 'modificado').length > 0 && (
+                                  <div className="pt-1 space-y-1.5 border-t border-stone-200/60">
+                                    <span className="text-[10px] font-bold uppercase text-slate-500 block">Modificaciones registradas:</span>
+                                    {item.history.filter(h => h.action === 'modificado').map((h, hIdx) => (
+                                      <div key={h.id || hIdx} className="flex items-start gap-2 bg-white p-2 rounded-xl border border-stone-200/60">
+                                        <Edit2 className="w-3.5 h-3.5 text-sky-600 shrink-0 mt-0.5" />
+                                        <div className="text-[11px] leading-snug">
+                                          <p>
+                                            <strong>{h.username}</strong> ({h.userRole || 'colaborador'}) {h.details}
+                                          </p>
+                                          <span className="text-[10px] text-slate-400 font-mono">
+                                            {new Date(h.timestamp).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })} • {new Date(h.timestamp).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
                                 )}
                               </div>
                             </div>

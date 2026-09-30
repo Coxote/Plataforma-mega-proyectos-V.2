@@ -275,6 +275,7 @@ export interface AuditLogEntry {
   entityType: string;  // ej: "Fase", "Archivo", "Horas", "BrandBible"
   details: string;     // Descripción legible de lo que cambió
   phaseId?: string;    // Fase que modificó
+  tag?: string;        // Tag visible: "CHECKLIST", "CRONOGRAMA", "ORDEN_VENTA", "ACUERDO_CLIENTE", "ENTREGABLE_SUBIDO", "ENTREGABLE_CAMBIOS", "VISTO_BUENO"
 }
 
 // 3. Matriz RACI (Deprecated, pero mantenida la firma de tipo básica por compatibilidad si es necesario)
@@ -296,20 +297,35 @@ export interface ClientAnnotation {
   status: 'pendiente' | 'resuelto';
 }
 
-// Entregables del proyecto
+// Entregables del proyecto y su historial
+export interface DeliverableHistoryEntry {
+  id: string;
+  timestamp: string;
+  action: 'subido' | 'modificado' | 'revision_interna_aprobada' | 'observaciones_cliente' | 'aprobado_cliente';
+  username: string;
+  userRole?: string;
+  details: string;
+}
+
 export interface DeliverableItem {
   id: string;
   title: string;
+  description?: string;
   type: 'video' | 'audio' | 'pdf' | 'word' | 'image' | 'markdown' | 'link';
   fileUrl?: string;
   externalUrl?: string;
   uploadedBy: string;
+  uploadedByRole?: string;
   createdAt: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  internalCheckPassed?: boolean;
   isVisibleToClient: boolean;
   annotations: ClientAnnotation[];
   phaseId?: string;
   status?: 'pendiente' | 'en_revision' | 'aprobado' | 'rechazado';
   assignedTo?: string;
+  history?: DeliverableHistoryEntry[];
 }
 
 // 4. Brand Bible Ultra-Detallada y Expandida
