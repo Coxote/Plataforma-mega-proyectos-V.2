@@ -143,7 +143,7 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
           capacidadMensualHoras: 176
         }
       : null;
-    const profileCandidate = found || rodrigoBootstrapProfile;
+    const profileCandidate = rodrigoBootstrapProfile || found;
 
     const canUseLocalDemoLogin =
       !isRodrigoBootstrap &&
