@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Project, OrdenVenta, EstadoOV, Client, DecisionLogEntry, UserSession, AuditLogEntry } from '../types';
+import { Project, OrdenVenta, EstadoOV, Client, DecisionLogEntry, UserSession } from '../types';
 import {
   User,
   Hash,
@@ -82,21 +82,16 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({
   const [ovToDelete, setOvToDelete] = useState<string | null>(null);
   const [ovRestrictionModal, setOvRestrictionModal] = useState(false);
 
-  const saveUpdatedOVs = (updatedList: OrdenVenta[], auditEntry?: AuditLogEntry) => {
+  const saveUpdatedOVs = (updatedList: OrdenVenta[]) => {
     const calcTotalIncome = updatedList.reduce((sum, o) => sum + (o.monto || 0), 0);
     const ovNumbersConcat = updatedList.map((o) => o.numero).join(', ') || updatedList[0]?.numero || 'OV-001';
-
-    const updatedAuditLog = auditEntry
-      ? [auditEntry, ...(project.auditLog || [])]
-      : (project.auditLog || []);
 
     onUpdateProject({
       ...project,
       ordenesVenta: updatedList,
       totalIncome: calcTotalIncome,
       saleOrderNumber: ovNumbersConcat,
-      ovNumber: ovNumbersConcat,
-      auditLog: updatedAuditLog
+      ovNumber: ovNumbersConcat
     });
   };
 
@@ -116,19 +111,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({
       estado: 'creada'
     };
 
-    const newAuditEntry: AuditLogEntry = {
-      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-      timestamp: new Date().toISOString(),
-      userId: currentUser?.id || 'sys',
-      username: currentUser?.username || 'Coordinador',
-      userRole: (currentUser?.role || userRole || 'coordinador') as any,
-      action: 'ORDEN_VENTA_CREADA',
-      entityType: 'OrdenVenta',
-      tag: 'ORDEN_VENTA',
-      details: `Agregó la Orden de Venta ${cleanNum} por $${newOV.monto.toLocaleString('es-CL')} ${newOV.moneda} (${newOV.horasAsociadas} hrs). Alcance: "${newOV.descripcion}".`
-    };
-
-    saveUpdatedOVs([...ordenesVentaList, newOV], newAuditEntry);
+    saveUpdatedOVs([...ordenesVentaList, newOV]);
     setNewOvNumber('');
     setNewOvMonto('');
     setNewOvHoras('');
@@ -146,41 +129,12 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({
 
   const confirmDeleteOV = () => {
     if (!ovToDelete) return;
-    const targetOv = ordenesVentaList.find((o) => o.id === ovToDelete);
-    const newAuditEntry: AuditLogEntry = {
-      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-      timestamp: new Date().toISOString(),
-      userId: currentUser?.id || 'sys',
-      username: currentUser?.username || 'Coordinador',
-      userRole: (currentUser?.role || userRole || 'coordinador') as any,
-      action: 'ORDEN_VENTA_ELIMINADA',
-      entityType: 'OrdenVenta',
-      tag: 'ORDEN_VENTA',
-      details: `Eliminó la Orden de Venta ${targetOv?.numero || ovToDelete} ($${targetOv?.monto || 0} ${targetOv?.moneda || 'USD'}).`
-    };
-
-    saveUpdatedOVs(ordenesVentaList.filter((o) => o.id !== ovToDelete), newAuditEntry);
+    saveUpdatedOVs(ordenesVentaList.filter((o) => o.id !== ovToDelete));
     setOvToDelete(null);
   };
 
   const handleQuickStatusChange = (ovId: string, newStatus: EstadoOV) => {
-    const targetOv = ordenesVentaList.find((o) => o.id === ovId);
-    const newAuditEntry: AuditLogEntry = {
-      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-      timestamp: new Date().toISOString(),
-      userId: currentUser?.id || 'sys',
-      username: currentUser?.username || 'Coordinador',
-      userRole: (currentUser?.role || userRole || 'coordinador') as any,
-      action: 'ORDEN_VENTA_ESTADO',
-      entityType: 'OrdenVenta',
-      tag: 'ORDEN_VENTA',
-      details: `Modificó el estado comercial de la Orden de Venta ${targetOv?.numero || ovId} a "${newStatus.toUpperCase()}".`
-    };
-
-    saveUpdatedOVs(
-      ordenesVentaList.map((o) => (o.id === ovId ? { ...o, estado: newStatus } : o)),
-      newAuditEntry
-    );
+    saveUpdatedOVs(ordenesVentaList.map((o) => (o.id === ovId ? { ...o, estado: newStatus } : o)));
   };
 
   // 3. Cálculos de Desglose de Horas Presupuestadas vs. Ejecutadas (Minimalista)
@@ -278,16 +232,15 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({
     };
 
     const updatedDecisions = [newEntry, ...(project.decisionLog || [])];
-    const newAuditEntry: AuditLogEntry = {
-      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+    const newAuditEntry = {
+      id: `audit-${Date.now()}`,
       timestamp: new Date().toISOString(),
       userId: currentUser?.id || 'sys',
       username: authorName,
       userRole: (currentUser?.role || 'coordinador') as any,
-      action: 'ACUERDO_CLIENTE',
+      action: 'REGISTRAR_ACUERDO',
       entityType: 'DecisionLog',
-      tag: 'ACUERDO_CLIENTE',
-      details: `Registró acuerdo en categoría "${decCategory}": "${decTitle}". Aprobado por: ${newEntry.approvedBy}. Detalle: "${newEntry.description}".`
+      details: `Registró acuerdo "${decTitle}" en categoría ${decCategory}. Aprobado por: ${newEntry.approvedBy}`
     };
 
     onUpdateProject({

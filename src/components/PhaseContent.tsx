@@ -38,7 +38,6 @@ import {
   FileCheck
 } from 'lucide-react';
 import React, { useState } from 'react';
-import { jsPDF } from 'jspdf';
 import { RaciMatrix } from './RaciMatrix';
 import { PerfilGeneral } from './PerfilGeneral';
 import { ProjectFinancialOverview } from './ProjectFinancialOverview';
@@ -66,75 +65,6 @@ export const getCleanPhaseTitle = (label: string, id: string, index?: number) =>
   return clean;
 };
 
-// Helper para clasificar y estilizar tags de la bitácora histórica
-export const getAuditTagInfo = (log: AuditLogEntry | any) => {
-  const explicitTag = (log.tag || '').toUpperCase();
-  const action = (log.action || '').toUpperCase();
-  const details = (log.details || '').toLowerCase();
-
-  if (explicitTag === 'ORDEN_VENTA' || action.includes('ORDEN_VENTA') || action.includes('OV')) {
-    return {
-      tag: 'ORDEN_VENTA',
-      label: 'ORDEN DE VENTA',
-      color: 'bg-purple-50 text-purple-700 border-purple-200/80',
-      badgeDot: 'bg-purple-600',
-      category: 'ov'
-    };
-  }
-  if (explicitTag === 'ACUERDO_CLIENTE' || action.includes('ACUERDO') || action.includes('DECISIÓN') || action.includes('DECISION')) {
-    return {
-      tag: 'ACUERDO_CLIENTE',
-      label: 'ACUERDO CLIENTE',
-      color: 'bg-amber-50 text-amber-800 border-amber-200/80',
-      badgeDot: 'bg-amber-600',
-      category: 'acuerdo'
-    };
-  }
-  if (explicitTag === 'VISTO_BUENO' || action.includes('VISTO_BUENO')) {
-    return {
-      tag: 'VISTO_BUENO',
-      label: 'VISTO BUENO',
-      color: 'bg-emerald-50 text-emerald-800 border-emerald-300',
-      badgeDot: 'bg-emerald-600',
-      category: 'vistobueno'
-    };
-  }
-  if (explicitTag === 'ENTREGABLE_SUBIDO' || action === 'NUEVO_ENTREGABLE' || action === 'ENTREGABLE_SUBIDO') {
-    return {
-      tag: 'ENTREGABLE_SUBIDO',
-      label: 'ENTREGABLE SUBIDO',
-      color: 'bg-sky-50 text-sky-800 border-sky-200/80',
-      badgeDot: 'bg-sky-600',
-      category: 'entregable'
-    };
-  }
-  if (explicitTag === 'ENTREGABLE_CAMBIOS' || action.includes('ENTREGABLE') || action.includes('COMENTARIO') || action.includes('ESTADO_ENTREGABLE')) {
-    return {
-      tag: 'ENTREGABLE_CAMBIOS',
-      label: 'ENTREGABLE CAMBIOS',
-      color: 'bg-cyan-50 text-cyan-800 border-cyan-200/80',
-      badgeDot: 'bg-cyan-600',
-      category: 'entregable_cambios'
-    };
-  }
-  if (explicitTag === 'CRONOGRAMA' || action.includes('CRONOGRAMA') || details.includes('fecha inicio') || details.includes('fecha final')) {
-    return {
-      tag: 'CRONOGRAMA',
-      label: 'CRONOGRAMA',
-      color: 'bg-indigo-50 text-indigo-800 border-indigo-200/80',
-      badgeDot: 'bg-indigo-600',
-      category: 'cronograma'
-    };
-  }
-  return {
-    tag: 'CHECKLIST',
-    label: 'CHECKLIST',
-    color: 'bg-lime-50 text-lime-900 border-lime-300',
-    badgeDot: 'bg-lime-600',
-    category: 'checklist'
-  };
-};
-
 export default function PhaseContent({
   activePhase,
   project,
@@ -146,7 +76,7 @@ export default function PhaseContent({
   currentUser,
   clients = [],
 }: PhaseContentProps) {
-  const [activeTab, setActiveTab] = useState<'phase' | 'project' | 'deliverables' | 'history'>('phase');
+  const [activeTab, setActiveTab] = useState<'phase' | 'project' | 'deliverables'>('phase');
   const [govSubTab, setGovSubTab] = useState<'bitacora' | 'raci'>('bitacora');
 
   // New Deliverable Form States
@@ -162,9 +92,8 @@ export default function PhaseContent({
   const [editType, setEditType] = useState<'video' | 'audio' | 'pdf' | 'word' | 'image' | 'markdown' | 'link'>('link');
   const [editUrl, setEditUrl] = useState('');
 
-  // Audit Log Filters in Tab 4 (Historial & Bitácora)
+  // Audit Log Filters in Tab 1
   const [auditPhaseFilter, setAuditPhaseFilter] = useState<string>('todos');
-  const [auditTagFilter, setAuditTagFilter] = useState<string>('todos');
   const [auditSearchQuery, setAuditSearchQuery] = useState<string>('');
 
   // Checklist Task text editing in Tab 1
@@ -225,7 +154,6 @@ export default function PhaseContent({
       text: 'Texto del Paso'
     };
 
-    const isCronograma = field === 'startDate' || field === 'endDate';
     const cleanTitle = getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex);
     const newAuditEntry: AuditLogEntry = {
       id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
@@ -233,9 +161,8 @@ export default function PhaseContent({
       userId: currentUser?.id || 'sys',
       username: currentUser?.username || 'Usuario',
       userRole: (currentUser?.role || userRole) as Role,
-      action: isCronograma ? 'MODIFICACION_CRONOGRAMA' : 'MODIFICACION_TEXTO',
-      entityType: isCronograma ? 'Cronograma' : 'Checklist',
-      tag: isCronograma ? 'CRONOGRAMA' : 'CHECKLIST',
+      action: 'MODIFICACION_TEXTO',
+      entityType: 'Checklist',
       details: `Modificó ${fieldLabels[field] || field} en "${currentItem.text}" (${cleanTitle}): "${value.slice(0, 60)}${value.length > 60 ? '...' : ''}"`,
       phaseId: activePhase.id
     };
@@ -278,7 +205,6 @@ export default function PhaseContent({
       userRole: (currentUser?.role || userRole) as Role,
       action: 'MODIFICACION_TEXTO',
       entityType: 'Checklist',
-      tag: 'CHECKLIST',
       details: `Modificó el texto del paso en ${cleanTitle}: de "${originalText}" a "${newText}".`,
       phaseId: activePhase.id
     };
@@ -323,7 +249,6 @@ export default function PhaseContent({
       userRole: (currentUser?.role || userRole) as Role,
       action: 'NUEVO_PASO',
       entityType: 'Checklist',
-      tag: 'CHECKLIST',
       details: `Agregó nuevo paso al checklist de ${cleanTitle}: "${cleanText}".`,
       phaseId: activePhase.id
     };
@@ -360,7 +285,6 @@ export default function PhaseContent({
       userRole: userRole || 'coordinador',
       action: 'COMPLETAR_FASE',
       entityType: 'Fase',
-      tag: 'CHECKLIST',
       details: `Fase "${cleanTitle}" marcada como finalizada.`,
       phaseId: activePhase.id
     };
@@ -370,163 +294,6 @@ export default function PhaseContent({
       phases: updatedPhases,
       auditLog: [newAuditEntry, ...(project.auditLog || [])]
     });
-    onCompletePhase();
-  };
-
-  // Manual save triggered from Header (guarda información del cronograma y checklist y genera registro en auditoría)
-  const handleManualSave = () => {
-    const cleanTitle = getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex);
-    const newAuditEntry: AuditLogEntry = {
-      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-      timestamp: new Date().toISOString(),
-      userId: currentUser?.id || 'sys',
-      username: currentUser?.username || 'Usuario',
-      userRole: (currentUser?.role || userRole) as Role,
-      action: 'GUARDAR_CRONOGRAMA_CHECKLIST',
-      entityType: 'Checklist',
-      tag: 'CHECKLIST',
-      details: `Guardó la información del checklist y cronograma de ${cleanTitle}. (${completedChecklistCount}/${checklistTotal} tareas listas, ${checklistPercent}%).`,
-      phaseId: activePhase.id
-    };
-
-    onUpdateProject({
-      ...project,
-      auditLog: [newAuditEntry, ...(project.auditLog || [])]
-    });
-    onSave();
-  };
-
-  // Descarga de Bitácora / Historial en formato Markdown (.md)
-  const handleDownloadHistoryMD = () => {
-    const allLogs = (project.auditLog && project.auditLog.length > 0)
-      ? project.auditLog
-      : (project.timeEntries || []).map(te => ({
-          id: `te-${te.id}`,
-          timestamp: te.createdAt || te.date || new Date().toISOString(),
-          username: te.username || 'Colaborador',
-          userRole: te.role || 'contents',
-          action: 'REGISTRO_HORAS',
-          tag: 'HORAS',
-          details: `Registro de ${te.hours}h: "${te.description || 'Avance de trabajo'}"`,
-          phaseId: te.phaseId
-        }));
-
-    let md = `# Expediente & Bitácora Histórica del Proyecto\n\n`;
-    md += `**Proyecto:** ${project.name}\n`;
-    md += `**Cliente:** ${project.clientName || 'N/A'}\n`;
-    md += `**Fecha de Exportación:** ${new Date().toLocaleDateString('es-CL')} ${new Date().toLocaleTimeString('es-CL')}\n`;
-    md += `**Total de Movimientos:** ${allLogs.length} eventos registrados\n\n`;
-    md += `---\n\n`;
-    md += `### Bitácora Cronológica de Movimientos\n\n`;
-    md += `| Fecha y Hora | Usuario | Rol | Tag / Tipo | Fase | Detalle del Registro |\n`;
-    md += `|---|---|---|---|---|---|\n`;
-
-    allLogs.forEach((log) => {
-      const d = new Date(log.timestamp);
-      const dateFormatted = !isNaN(d.getTime())
-        ? `${d.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`
-        : log.timestamp;
-      const tagInfo = getAuditTagInfo(log);
-      const phaseObj = project.phases.find(p => p.id === log.phaseId);
-      const phaseLabel = phaseObj ? getCleanPhaseTitle(phaseObj.label, phaseObj.id) : (log.phaseId || 'General');
-      const cleanDetails = (log.details || log.action || '').replace(/\|/g, '-').replace(/\n/g, ' ');
-
-      md += `| ${dateFormatted} | ${log.username || 'Sistema'} | ${log.userRole || '-'} | [${tagInfo.label}] | ${phaseLabel} | ${cleanDetails} |\n`;
-    });
-
-    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Bitacora_Historial_${(project.name || 'Proyecto').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.md`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // Descarga de Bitácora / Historial en formato PDF (.pdf)
-  const handleDownloadHistoryPDF = () => {
-    const allLogs = (project.auditLog && project.auditLog.length > 0)
-      ? project.auditLog
-      : (project.timeEntries || []).map(te => ({
-          id: `te-${te.id}`,
-          timestamp: te.createdAt || te.date || new Date().toISOString(),
-          username: te.username || 'Colaborador',
-          userRole: te.role || 'contents',
-          action: 'REGISTRO_HORAS',
-          tag: 'HORAS',
-          details: `Registro de ${te.hours}h: "${te.description || 'Avance de trabajo'}"`,
-          phaseId: te.phaseId
-        }));
-
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
-    // Banner principal
-    doc.setFillColor(15, 23, 42); // slate-900
-    doc.rect(0, 0, 210, 26, 'F');
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
-    doc.text('BITÁCORA & EXPEDIENTE DE MOVIMIENTOS', 14, 11);
-
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Proyecto: ${project.name}  |  Cliente: ${project.clientName || 'N/A'}  |  Exportado: ${new Date().toLocaleDateString('es-CL')} ${new Date().toLocaleTimeString('es-CL')}`, 14, 19);
-
-    let y = 33;
-    const pageHeight = 280;
-
-    allLogs.forEach((log) => {
-      if (y > pageHeight - 20) {
-        doc.addPage();
-        y = 15;
-      }
-
-      const d = new Date(log.timestamp);
-      const dateFormatted = !isNaN(d.getTime())
-        ? `${d.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}`
-        : log.timestamp;
-      const tagInfo = getAuditTagInfo(log);
-      const phaseObj = project.phases.find(p => p.id === log.phaseId);
-      const phaseLabel = phaseObj ? getCleanPhaseTitle(phaseObj.label, phaseObj.id) : (log.phaseId || 'General');
-
-      // Card box
-      doc.setFillColor(248, 250, 252);
-      doc.setDrawColor(226, 232, 240);
-      doc.roundedRect(12, y, 186, 16, 1.5, 1.5, 'FD');
-
-      // Tag pill
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(30, 41, 59);
-      doc.text(`[${tagInfo.label}]`, 15, y + 5);
-
-      // User & Role
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(71, 85, 105);
-      doc.text(`Por: ${log.username || 'Usuario'} (${log.userRole || 'rol'})  •  Fase: ${phaseLabel}`, 75, y + 5);
-
-      // Date
-      doc.setFontSize(7);
-      doc.setTextColor(148, 163, 184);
-      doc.text(dateFormatted, 162, y + 5);
-
-      // Detail line
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(15, 23, 42);
-      const splitText = doc.splitTextToSize(log.details || log.action, 178);
-      doc.text(splitText.slice(0, 2), 15, y + 11);
-
-      y += 19;
-    });
-
-    doc.save(`Bitacora_Historial_${(project.name || 'Proyecto').replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   // Download single phase report (.md document)
@@ -776,10 +543,9 @@ export default function PhaseContent({
       userId: currentUser?.id || 'internal',
       username: uploader,
       userRole: uploaderRole as Role,
-      action: 'ENTREGABLE_SUBIDO',
+      action: 'NUEVO_ENTREGABLE',
       entityType: 'Entregable',
-      tag: 'ENTREGABLE_SUBIDO',
-      details: `Subió arte/entregable "${delivTitle.trim()}" (${delivType}) en fase ${cleanPTitle}. Enlace: ${delivUrl.trim()}. Pendiente de visto bueno interno.`,
+      details: `Subió arte/entregable "${delivTitle.trim()}" (${delivType}) en fase ${cleanPTitle}. Pendiente de visto bueno interno.`,
       phaseId: targetPhaseId
     };
 
@@ -837,9 +603,8 @@ export default function PhaseContent({
       userId: currentUser?.id || 'sys',
       username: reviewerName,
       userRole: reviewerRole as Role,
-      action: nextCheckState ? 'VISTO_BUENO_INTERNO' : 'REVOCAR_VISTO_BUENO',
+      action: nextCheckState ? 'VISTO_BUENO_ENTREGABLE' : 'REVOCAR_VISTO_BUENO',
       entityType: 'Entregable',
-      tag: 'VISTO_BUENO',
       details: nextCheckState
         ? `Dio check de visto bueno interno a "${target.title}". Ahora es visible automáticamente para el cliente.`
         : `Desmarcó visto bueno interno a "${target.title}". Ahora es oculto para el cliente.`,
@@ -895,8 +660,7 @@ export default function PhaseContent({
       userRole: editorRole as Role,
       action: 'MODIFICACION_ENTREGABLE',
       entityType: 'Entregable',
-      tag: 'ENTREGABLE_CAMBIOS',
-      details: `Modificó datos del entregable "${editTitle.trim() || target.title}" (${editType}).`,
+      details: `Modificó el entregable "${editTitle.trim() || target.title}" (${editType}).`,
       phaseId: target.phaseId || activePhase.id
     };
 
@@ -961,21 +725,19 @@ export default function PhaseContent({
       return d;
     });
 
-    const actionText = newStatus === 'aprobado' ? 'Aprobó' : newStatus === 'rechazado' ? 'Rechazó / Solicitó Corrección' : 'Cambió estado a ' + newStatus;
+    const actionText = newStatus === 'aprobado' ? 'Aprobó' : newStatus === 'rechazado' ? 'Rechazó/Pidió Corrección' : 'Cambió estado a ' + newStatus;
     const authorName = userRole === 'invitado' ? 'Cliente / Invitado' : 'Equipo Interno';
 
-    const newAuditLog: AuditLogEntry[] = [
+    const newAuditLog = [
       {
-        id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+        id: `audit-${Date.now()}`,
         timestamp: new Date().toISOString(),
-        userId: currentUser?.id || 'sys',
-        username: currentUser?.username || authorName,
-        userRole: (currentUser?.role || userRole) as Role,
-        action: 'ESTADO_ENTREGABLE',
+        userId: 'internal',
+        username: authorName,
+        userRole: userRole,
+        action: 'Estado Entregable',
         entityType: 'Entregable',
-        tag: 'ENTREGABLE_CAMBIOS',
         details: `${authorName} ${actionText} el entregable "${target.title}".`,
-        phaseId: target.phaseId || activePhase.id
       },
       ...(project.auditLog || [])
     ];
@@ -1013,7 +775,6 @@ export default function PhaseContent({
   const handleAddDeliverableAnnotation = (deliverableId: string, commentText: string) => {
     if (!commentText.trim()) return;
     const authorName = userRole === 'invitado' ? 'Cliente / Invitado' : 'Coordinador / Equipo';
-    const target = (project.deliverables || []).find((d) => d.id === deliverableId);
 
     const newAnnotation: ClientAnnotation = {
       id: `ann-${Date.now()}`,
@@ -1033,24 +794,7 @@ export default function PhaseContent({
       return d;
     });
 
-    const newAuditEntry: AuditLogEntry = {
-      id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
-      timestamp: new Date().toISOString(),
-      userId: currentUser?.id || 'sys',
-      username: currentUser?.username || authorName,
-      userRole: (currentUser?.role || userRole) as Role,
-      action: 'COMENTARIO_CAMBIO_ENTREGABLE',
-      entityType: 'Entregable',
-      tag: 'ENTREGABLE_CAMBIOS',
-      details: `Registró solicitud de cambio u observación en "${target?.title || 'Entregable'}": "${commentText.trim()}".`,
-      phaseId: target?.phaseId || activePhase.id
-    };
-
-    onUpdateProject({
-      ...project,
-      deliverables: updatedDeliverables,
-      auditLog: [newAuditEntry, ...(project.auditLog || [])]
-    });
+    onUpdateProject({ ...project, deliverables: updatedDeliverables });
     onSave();
   };
 
@@ -1249,12 +993,11 @@ export default function PhaseContent({
           {userRole !== 'invitado' && (
             <>
               <button
-                onClick={handleManualSave}
-                className="bg-stone-100 hover:bg-stone-200 text-slate-700 font-bold rounded-xl px-3.5 py-2 text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                onClick={onSave}
+                className="bg-stone-100 hover:bg-stone-200 text-slate-700 font-bold rounded-xl px-3.5 py-2 text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                 id="btn-save-progress"
-                title="Guardar información y registrar en bitácora histórica"
               >
-                <Save className="w-3.5 h-3.5 text-lime-600" />
+                <Save className="w-3.5 h-3.5" />
                 Guardar
               </button>
               {/* Botón Finalizar Fase Intuitivo */}
@@ -1295,7 +1038,7 @@ export default function PhaseContent({
         </div>
       </header>
 
-      {/* 3. NAVIGATION TABS (4 Hubs) */}
+      {/* 3. NAVIGATION TABS (3 Core Hubs) */}
       <div className="px-6 border-b border-stone-100 flex items-center gap-2 overflow-x-auto scrollbar-none shrink-0 bg-white" id="form-tabs">
         <button
           onClick={() => setActiveTab('phase')}
@@ -1331,21 +1074,6 @@ export default function PhaseContent({
         >
           <MessageSquare className="w-3.5 h-3.5 text-indigo-500" />
           <span>Entregables & Feedback</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('history')}
-          className={`py-3 px-3 text-xs font-bold border-b-2 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-            activeTab === 'history'
-              ? 'border-indigo-600 text-indigo-700 font-extrabold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <History className="w-3.5 h-3.5 text-indigo-500" />
-          <span>Historial & Bitácora</span>
-          <span className="text-[10px] bg-indigo-50 text-indigo-700 font-mono font-bold px-1.5 py-0.5 rounded-full border border-indigo-200/60">
-            {(project.auditLog?.length || 0)}
-          </span>
         </button>
       </div>
 
@@ -1471,114 +1199,99 @@ export default function PhaseContent({
                 </div>
               </div>
 
-              {/* CRITERIOS DE SALIDA DE FASE GATE */}
-              <div className="bg-amber-50/80 p-4 sm:p-5 rounded-3xl shadow-xs border border-amber-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-start sm:items-center gap-3">
-                  <div className="w-9 h-9 rounded-2xl bg-amber-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs uppercase tracking-widest text-amber-900">
-                      Criterios de Salida de Fase ({getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)})
-                    </h4>
-                    <p className="text-xs text-amber-800 font-medium leading-relaxed mt-0.5">
-                      {activePhase.exitCriteria || 'Completar el 100% de la checklist obligatoria y contar con el visto bueno del coordinador.'}
-                    </p>
-                  </div>
-                </div>
-                <div className="shrink-0 self-end sm:self-auto">
-                  <span className={`text-xs font-bold px-3 py-1 rounded-full border ${checklistPercent === 100 ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-amber-100 text-amber-800 border-amber-300'}`}>
-                    {checklistPercent === 100 ? '✔ Criterios Cumplidos (100%)' : `⏳ En Progreso (${checklistPercent}%)`}
-                  </span>
-                </div>
-              </div>
+              {/* SECTION HEADER */}
+              <h3 className="text-base font-semibold text-slate-900 tracking-tight pt-2">
+                {getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)}: Checklist y Control de Fase
+              </h3>
 
-              {/* CHECKLIST FULL-WIDTH CARD */}
-              <div className="bg-white p-6 sm:p-7 rounded-3xl shadow-xs space-y-6 border border-stone-200/70">
-                {/* Phase Control Header & Metrics */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-5">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <ClipboardList className="w-5 h-5 text-slate-800" />
-                      <h3 className="text-base font-semibold text-slate-900 tracking-tight">
-                        Checklist de {getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)}
-                      </h3>
-                    </div>
-                    <p className="text-xs text-slate-500 font-normal">
-                      Control de tareas, hitos, fechas y lecciones aprendidas de la fase.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-wrap shrink-0">
-                    {/* Total Time Badge */}
-                    <div className="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 shadow-xs">
-                      <Clock className="w-3.5 h-3.5 text-stone-300" />
-                      <span><strong className="text-white font-mono text-sm">{totalPhaseHoursLogged} hrs</strong></span>
-                    </div>
-
-                    {/* Download Phase Button */}
-                    <button
-                      onClick={() => handleDownloadPhase(activePhase)}
-                      className="bg-stone-100 hover:bg-stone-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-                      title="Descargar documentación de esta fase en formato Markdown"
-                    >
-                      <Download className="w-3.5 h-3.5 text-slate-600" />
-                      Descargar
-                    </button>
-
-                    {/* Mark Completed Button Intuitivo */}
-                    {userRole !== 'invitado' && (
-                      activePhase.status === 'completed' ? (
-                        <div className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-2xs select-none">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>Finalizada</span>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                {/* Left Column: Checklist of the Phase */}
+                <div className="md:col-span-3 space-y-6">
+                  <div className="bg-white p-6 sm:p-7 rounded-3xl shadow-xs space-y-6">
+                    {/* Phase Control Header & Metrics */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-stone-100 pb-5">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <ClipboardList className="w-5 h-5 text-slate-800" />
+                          <h3 className="text-base font-semibold text-slate-900 tracking-tight">
+                            Checklist de {getCleanPhaseTitle(activePhase.label, activePhase.id, activePhaseIndex)}
+                          </h3>
                         </div>
-                      ) : (checklistTotal === 0 || checklistPercent === 100) ? (
+                        <p className="text-xs text-slate-500 font-normal">
+                          Control de tareas, hitos, fechas y lecciones aprendidas de la fase.
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-wrap shrink-0">
+                        {/* Total Time Badge */}
+                        <div className="bg-slate-900 text-white px-3 py-1.5 rounded-xl text-xs font-medium flex items-center gap-2 shadow-xs">
+                          <Clock className="w-3.5 h-3.5 text-stone-300" />
+                          <span><strong className="text-white font-mono text-sm">{totalPhaseHoursLogged} hrs</strong></span>
+                        </div>
+
+                        {/* Download Phase Button */}
                         <button
-                          onClick={handleCompletePhaseClick}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
-                          title="Checklist al 100% - Lista para finalizar fase"
+                          onClick={() => handleDownloadPhase(activePhase)}
+                          className="bg-stone-100 hover:bg-stone-200 text-slate-800 font-bold px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                          title="Descargar documentación de esta fase en formato Markdown"
                         >
-                          <Check className="w-3.5 h-3.5" />
-                          <span>Finalizar Fase (100% Listo)</span>
+                          <Download className="w-3.5 h-3.5 text-slate-600" />
+                          Descargar
                         </button>
-                      ) : (
-                        <button
-                          onClick={handleCompletePhaseClick}
-                          className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 font-bold px-3.5 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
-                          title={`Checklist al ${checklistPercent}%. Requiere 100% o Excepción Autorizada.`}
-                        >
-                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                          <span>Finalizar Fase ({checklistPercent}%)</span>
-                        </button>
-                      )
-                    )}
-                  </div>
-                </div>
 
-                {/* Checklist Items List with Milestones, Dates, Learnings */}
-                <div className="space-y-4" id="expanded-checklist-section">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                      Pasos del Checklist
-                    </span>
-                    <span className="text-xs font-bold text-lime-700 bg-lime-50 px-2.5 py-0.5 rounded-full">
-                      {checklistPercent}% Completado ({completedChecklistCount} de {checklistTotal})
-                    </span>
-                  </div>
-
-                  <div className="h-2 w-full bg-[#F4F5F0] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-lime-500 transition-all duration-500 rounded-full"
-                      style={{ width: `${checklistPercent}%` }}
-                    />
-                  </div>
-
-                  {checklistItems.length === 0 ? (
-                    <div className="p-6 text-center bg-[#F4F5F0] rounded-2xl">
-                      <p className="text-xs text-slate-400 italic">No hay pasos agregados aún a este checklist.</p>
+                        {/* Mark Completed Button Intuitivo */}
+                        {userRole !== 'invitado' && (
+                          activePhase.status === 'completed' ? (
+                            <div className="bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-bold px-3.5 py-1.5 rounded-xl text-xs flex items-center gap-1.5 shadow-2xs select-none">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Finalizada</span>
+                            </div>
+                          ) : (checklistTotal === 0 || checklistPercent === 100) ? (
+                            <button
+                              onClick={handleCompletePhaseClick}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3.5 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                              title="Checklist al 100% - Lista para finalizar fase"
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Finalizar Fase (100% Listo)</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={handleCompletePhaseClick}
+                              className="bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300/80 font-bold px-3 py-1.5 rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                              title={`Checklist al ${checklistPercent}%. Requiere 100% o Excepción Autorizada.`}
+                            >
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                              <span>Finalizar Fase ({checklistPercent}%)</span>
+                            </button>
+                          )
+                        )}
+                      </div>
                     </div>
-                  ) : (
+
+                    {/* Checklist Items List with Milestones, Dates, Learnings */}
+                    <div className="space-y-4" id="expanded-checklist-section">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                          Pasos del Checklist
+                        </span>
+                        <span className="text-xs font-bold text-lime-700 bg-lime-50 px-2.5 py-0.5 rounded-full">
+                          {checklistPercent}% Completado ({completedChecklistCount} de {checklistTotal})
+                        </span>
+                      </div>
+
+                      <div className="h-2 w-full bg-[#F4F5F0] rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-lime-500 transition-all duration-500 rounded-full"
+                          style={{ width: `${checklistPercent}%` }}
+                        />
+                      </div>
+
+                      {checklistItems.length === 0 ? (
+                        <div className="p-6 text-center bg-[#F4F5F0] rounded-2xl">
+                          <p className="text-xs text-slate-400 italic">No hay pasos agregados aún a este checklist.</p>
+                        </div>
+                      ) : (
                         <div className="space-y-4">
                           {checklistItems.map((item, idx) => (
                             <div
@@ -1752,6 +1465,176 @@ export default function PhaseContent({
                     </div>
                   </div>
                 </div>
+
+                {/* Right Column: Historial de Movimientos del Proyecto */}
+              <div className="md:col-span-2 space-y-6">
+                {/* Exit Criteria Gate Card */}
+                <div className="bg-amber-50/80 p-5 rounded-3xl shadow-xs space-y-2">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-amber-600" />
+                    <h3 className="font-bold text-xs uppercase tracking-widest text-amber-900">
+                      Criterios de Salida de Fase
+                    </h3>
+                  </div>
+                  <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                    {activePhase.exitCriteria || 'Completar el 100% de la checklist obligatoria y contar con el visto bueno del coordinador.'}
+                  </p>
+                </div>
+
+                {/* Historial de Movimientos del Proyecto */}
+                <div className="bg-white p-6 rounded-3xl shadow-xs space-y-4">
+                  <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+                    <div className="flex items-center gap-2">
+                      <History className="w-4 h-4 text-indigo-600" />
+                      <h3 className="font-bold text-xs uppercase tracking-widest text-slate-800">
+                        Historial de Movimientos
+                      </h3>
+                    </div>
+                    <span className="text-xs bg-indigo-50 text-indigo-700 font-mono font-bold px-2 py-0.5 rounded-full">
+                      {(project.auditLog?.length || project.timeEntries?.length || 0)} registros
+                    </span>
+                  </div>
+
+                  {/* Filtros por Fase y Búsqueda en el Historial */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <select
+                        value={auditPhaseFilter}
+                        onChange={(e) => setAuditPhaseFilter(e.target.value)}
+                        className="flex-1 bg-[#F4F5F0] rounded-xl px-2.5 py-1.5 text-xs text-slate-800 font-medium outline-none border border-stone-200/70 cursor-pointer"
+                      >
+                        <option value="todos">Todas las Fases del Proyecto</option>
+                        {project.phases.map((p, idx) => (
+                          <option key={p.id} value={p.id}>
+                            {getCleanPhaseTitle(p.label, p.id, idx)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        value={auditSearchQuery}
+                        onChange={(e) => setAuditSearchQuery(e.target.value)}
+                        placeholder="Buscar por usuario, texto o acción..."
+                        className="w-full bg-[#F4F5F0] rounded-xl pl-8 pr-7 py-1.5 text-xs text-slate-800 placeholder-slate-400 outline-none border border-stone-200/70"
+                      />
+                      {auditSearchQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setAuditSearchQuery('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Lista Completa del Historial */}
+                  {(() => {
+                    const allLogs = (project.auditLog && project.auditLog.length > 0)
+                      ? project.auditLog
+                      : (project.timeEntries || []).map(te => ({
+                          id: `te-${te.id}`,
+                          timestamp: te.createdAt || te.date || new Date().toISOString(),
+                          username: te.username || 'Colaborador',
+                          userRole: te.role || 'contents',
+                          action: 'REGISTRO_HORAS',
+                          details: `Registro de ${te.hours}h: "${te.description || 'Avance de trabajo'}"`,
+                          phaseId: te.phaseId
+                        }));
+
+                    const filtered = allLogs.filter((log) => {
+                      const matchPhase = auditPhaseFilter === 'todos' || log.phaseId === auditPhaseFilter;
+                      const q = auditSearchQuery.toLowerCase().trim();
+                      const matchQuery = !q ||
+                        (log.username || '').toLowerCase().includes(q) ||
+                        (log.action || '').toLowerCase().includes(q) ||
+                        (log.details || '').toLowerCase().includes(q);
+                      return matchPhase && matchQuery;
+                    });
+
+                    if (filtered.length === 0) {
+                      return (
+                        <div className="p-4 text-center bg-[#F4F5F0] rounded-2xl">
+                          <p className="text-xs text-slate-400 italic">No hay registros que coincidan con la búsqueda.</p>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1 scrollbar-thin">
+                        {filtered.map((log, idx) => {
+                          const d = new Date(log.timestamp);
+                          const formattedDate = !isNaN(d.getTime())
+                            ? `${d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })} • ${d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`
+                            : log.timestamp;
+
+                          const isTextMod = log.action === 'MODIFICACION_TEXTO' || log.action === 'MODIFICACION_ENTREGABLE';
+                          const isCheck = log.action === 'PASO_COMPLETADO' || log.action === 'COMPLETAR_FASE';
+                          const isNew = log.action === 'NUEVO_PASO' || log.action === 'NUEVO_ENTREGABLE' || log.action === 'REGISTRAR_ACUERDO';
+                          const isGate = log.action === 'EXCEPCION_FASE_GATE';
+                          const isReview = log.action === 'VISTO_BUENO_ENTREGABLE';
+
+                          return (
+                            <div
+                              key={log.id || idx}
+                              className="p-3 bg-[#F4F5F0] rounded-2xl text-xs space-y-1.5 border border-stone-200/60"
+                            >
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <div className="w-5 h-5 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+                                    {(log.username || 'U').charAt(0).toUpperCase()}
+                                  </div>
+                                  <span className="font-bold text-slate-900 truncate">{log.username || 'Sistema'}</span>
+                                  <span className="text-[10px] text-slate-500 font-mono uppercase bg-white px-1.5 py-0.5 rounded border border-stone-200">
+                                    {log.userRole || 'colaborador'}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                                  {formattedDate}
+                                </span>
+                              </div>
+
+                              <div className="text-xs text-slate-700 leading-snug">
+                                {log.details || log.action}
+                              </div>
+
+                              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                                <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                                  isTextMod ? 'bg-sky-100 text-sky-800' :
+                                  isCheck ? 'bg-emerald-100 text-emerald-800' :
+                                  isGate ? 'bg-amber-100 text-amber-800' :
+                                  isReview ? 'bg-purple-100 text-purple-800' :
+                                  isNew ? 'bg-indigo-100 text-indigo-800' :
+                                  'bg-stone-200 text-slate-700'
+                                }`}>
+                                  {isTextMod && <Edit2 className="w-2.5 h-2.5" />}
+                                  {isCheck && <CheckCircle2 className="w-2.5 h-2.5" />}
+                                  {isGate && <ShieldAlert className="w-2.5 h-2.5" />}
+                                  {isReview && <Check className="w-2.5 h-2.5" />}
+                                  {log.action}
+                                </span>
+
+                                {log.phaseId && (
+                                  <span className="text-[10px] bg-white border border-stone-200 text-slate-600 px-1.5 py-0.5 rounded-md font-semibold">
+                                    Fase: {log.phaseId}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
 
               {/* Global Download Button Banner (Last Phase / Global Export) */}
               <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
