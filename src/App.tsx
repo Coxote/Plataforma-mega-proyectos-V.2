@@ -91,6 +91,19 @@ export default function App() {
 
   // Normalizador de proyectos para migración automática Fase 0
   const normalizeProject = (p: any): Project => {
+    const fallbackPhases = createDefaultPhases();
+    const phases = Array.isArray(p.phases) && p.phases.length > 0
+      ? p.phases.map((phase: any, index: number) => ({
+          ...phase,
+          id: phase.id || `A${index + 1}`,
+          label: phase.label || `Fase ${index + 1}`,
+          status: phase.status || (index === 0 ? 'active' : 'pending'),
+          completedAt: phase.completedAt ?? null,
+          checklist: Array.isArray(phase.checklist) ? phase.checklist : [],
+          fields: phase.fields || {}
+        }))
+      : fallbackPhases;
+
     const timeEntries = (p.timeEntries || []).map((e: any) => ({
       ...e,
       type: e.type || 'normal'
@@ -108,6 +121,10 @@ export default function App() {
 
     return {
       ...p,
+      phases,
+      activePhaseId: phases.some((phase) => phase.id === p.activePhaseId)
+        ? p.activePhaseId
+        : phases[0]?.id || 'A1',
       timeEntries,
       ordenesVenta,
       auditLog: p.auditLog || [],
@@ -400,6 +417,21 @@ export default function App() {
   const handleAddProject = (data: any) => {
     // 1. Calcular total de horas vendidas
     const totalHours = data.hoursTotal || 0;
+    const incomingPhases = Array.isArray(data.phases) && data.phases.length > 0
+      ? data.phases
+      : createDefaultPhases();
+    const creatorMember = currentUser
+      ? {
+          id: currentUser.id,
+          name: currentUser.username,
+          role: currentUser.puesto || currentUser.role,
+          email: currentUser.email
+        }
+      : null;
+    const incomingMembers = Array.isArray(data.members) ? data.members : [];
+    const members = creatorMember && !incomingMembers.some((m: any) => m.id === creatorMember.id)
+      ? [creatorMember, ...incomingMembers]
+      : incomingMembers;
 
     // 2. Crear presupuesto desglosado
     const customBudget = {
@@ -421,20 +453,21 @@ export default function App() {
       deliverablesCount: data.deliverablesCount,
       description: data.description || 'Breve descripción del proyecto...',
       tags: data.tags || [],
-      members: data.members || [],
+      members,
       currency: data.currency || 'USD',
       totalIncome: data.totalIncome || 0,
       saleOrderNumber: data.saleOrderNumber,
       ovNumber: String(data.saleOrderNumber || ''),
+      ordenesVenta: data.ordenesVenta || [],
       roleHours: data.roleHours,
       hoursTotal: totalHours,
-      activePhaseId: data.phases && data.phases.length > 0 ? data.phases[0].id : 'A1',
+      activePhaseId: incomingPhases[0]?.id || 'A1',
       health: 100,
       createdAt: new Date().toISOString(),
       objective: 'Definir el objetivo principal...',
       alcance: 'Definir el alcance técnico inicial...',
       riesgos: 'Definir riesgos conocidos...',
-      phases: data.phases || [],
+      phases: incomingPhases,
       budget: customBudget,
       raciMatrix: createDefaultRaci(),
       brandBible: {
@@ -447,11 +480,13 @@ export default function App() {
       timeEntries: [],
       auditLog: [],
       deliverables: [],
+      decisionLog: [],
       templateType: data.templateType,
     };
 
     setProjects((prevProjects) => [newProject, ...prevProjects]);
     setActiveProjectId(newProject.id);
+    setCurrentView('project');
     localStorage.setItem(ACTIVE_PROJECT_KEY, newProject.id);
 
     if (data.clientName) {
