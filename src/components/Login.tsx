@@ -128,6 +128,35 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
       return;
     }
 
+    const canUseLocalDemoLogin =
+      found &&
+      found.password &&
+      found.password === password &&
+      found.estado !== 'pendiente_autenticacion' &&
+      found.estado !== 'inactivo';
+
+    if (found?.password === password && found.estado === 'pendiente_autenticacion') {
+      setError('Tu cuenta se encuentra registrada pero está PENDIENTE DE AUTENTICACIÓN por un Supervisor o Coordinador. Espera a que sea aprobada en el panel de Equipo.');
+      return;
+    }
+
+    if (found?.password === password && found.estado === 'inactivo') {
+      setError('Tu usuario se encuentra inactivo. Contacta a un administrador para reactivarlo.');
+      return;
+    }
+
+    const loginWithLocalProfile = () => {
+      if (!found) return false;
+      const loggedUser: UserSession = {
+        ...found,
+        email: loginEmail,
+        password: undefined,
+        lastLoginAt: new Date().toISOString()
+      };
+      onLogin(loggedUser);
+      return true;
+    };
+
     try {
       let credential;
       try {
@@ -137,9 +166,13 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
           found &&
           found.password &&
           found.password === password &&
+          password.length >= 6 &&
           (authError?.code === 'auth/user-not-found' || authError?.code === 'auth/invalid-credential');
 
         if (!canMigrateLegacyUser) {
+          if (canUseLocalDemoLogin && loginWithLocalProfile()) {
+            return;
+          }
           throw authError;
         }
 
@@ -177,6 +210,9 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
       };
       onLogin(loggedUser);
     } catch (err) {
+      if (canUseLocalDemoLogin && loginWithLocalProfile()) {
+        return;
+      }
       setError(getAuthErrorMessage(err));
     }
   };

@@ -15,10 +15,6 @@ export default defineConfig(() => {
         'firebase/app',
         'firebase/auth',
         'firebase/firestore',
-        '@firebase/app',
-        '@firebase/auth',
-        '@firebase/firestore',
-        '@firebase/component',
       ],
     },
     optimizeDeps: {
