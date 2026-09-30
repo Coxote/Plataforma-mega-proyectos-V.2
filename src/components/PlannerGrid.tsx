@@ -11,7 +11,6 @@ import { tokens, ui } from '../theme';
 import {
   deletePlannerTaskFromFirestore,
   savePlannerTaskToFirestore,
-  seedPlannerTasksIfEmpty,
   subscribePlannerTasks,
   type PlannerTaskRecord
 } from '../services/firebaseDb';
@@ -185,13 +184,11 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
       try {
         setTasks(JSON.parse(saved));
       } catch (e) {
-        setTasks(INITIAL_TASKS);
+        setTasks([]);
       }
     } else {
-      setTasks(INITIAL_TASKS);
+      setTasks([]);
     }
-
-    seedPlannerTasksIfEmpty(INITIAL_TASKS).catch(err => console.warn('Cloud sync note (Planner seed):', err));
 
     const unsubscribe = subscribePlannerTasks((cloudTasks) => {
       if (cloudTasks.length > 0) {

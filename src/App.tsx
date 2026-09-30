@@ -9,7 +9,7 @@ import {
   isViewAllowedForRole,
   getDefaultViewForRole
 } from './types';
-import { INITIAL_PROJECTS, createDefaultPhases, createDefaultBudget, createDefaultRaci } from './initialData';
+import { createDefaultPhases, createDefaultBudget, createDefaultRaci } from './initialData';
 import Sidebar from './components/Sidebar';
 import PhaseContent from './components/PhaseContent';
 import Login from './components/Login';
@@ -44,96 +44,17 @@ import {
   seedFirestoreIfEmpty
 } from './services/firebaseDb';
 
-const DEMO_VERSION_KEY = 'saas_phase_system_demo_v5_clean';
+const DEMO_VERSION_KEY = 'saas_phase_system_prod_clean_v1';
 const STORAGE_KEY = 'saas_phase_system_projects_v5';
 const ACTIVE_PROJECT_KEY = 'saas_phase_system_active_project_v5';
 const SESSION_USER_KEY = 'saas_phase_system_current_user_v5';
 const USERS_LIST_KEY = 'saas_phase_system_users_list_v5';
 const CLIENTS_STORAGE_KEY = 'saas_phase_system_clients_v5';
 
-const DEFAULT_CLIENTS: Client[] = [
-  {
-    id: 'c-famosa',
-    nombreComercial: 'Famosa',
-    categoria: 'Comercial',
-    contactoPrincipal: 'Contacto Famosa',
-    email: 'contacto@famosa.com',
-    telefono: '+502 2222-1001',
-    sitioWebRedes: 'https://famosa.com',
-    estado: 'activo',
-    fechaAlta: '2026-01-15T08:00:00.000Z'
-  },
-  {
-    id: 'c-eltejar',
-    nombreComercial: 'El tejar',
-    categoria: 'Materiales',
-    contactoPrincipal: 'Contacto El Tejar',
-    email: 'contacto@eltejar.com',
-    telefono: '+502 2222-1002',
-    sitioWebRedes: 'https://eltejar.com',
-    estado: 'activo',
-    fechaAlta: '2026-01-15T08:00:00.000Z'
-  },
-  {
-    id: 'c-fajonda',
-    nombreComercial: 'Fajonda',
-    categoria: 'Automotriz',
-    contactoPrincipal: 'Contacto Fajonda',
-    email: 'contacto@fajonda.com',
-    telefono: '+502 2222-1003',
-    sitioWebRedes: 'https://fajonda.com',
-    estado: 'activo',
-    fechaAlta: '2026-01-15T08:00:00.000Z'
-  },
-  {
-    id: 'c-adoc',
-    nombreComercial: 'ADOC',
-    categoria: 'Calzado & Retail',
-    contactoPrincipal: 'Contacto ADOC',
-    email: 'contacto@adoc.com',
-    telefono: '+502 2222-1004',
-    sitioWebRedes: 'https://adoc.com',
-    estado: 'activo',
-    fechaAlta: '2026-01-15T08:00:00.000Z'
-  },
-  {
-    id: 'c-impelsa',
-    nombreComercial: 'Impelsa',
-    categoria: 'Distribución',
-    contactoPrincipal: 'Contacto Impelsa',
-    email: 'contacto@impelsa.com',
-    telefono: '+502 2222-1005',
-    sitioWebRedes: 'https://impelsa.com',
-    estado: 'activo',
-    fechaAlta: '2026-01-15T08:00:00.000Z'
-  },
-  {
-    id: 'c-bicredid',
-    nombreComercial: 'BI-Credid',
-    categoria: 'Banca & Finanzas',
-    contactoPrincipal: 'Contacto BI-Credid',
-    email: 'contacto@bicredid.com',
-    telefono: '+502 2222-1006',
-    sitioWebRedes: 'https://bicredid.com',
-    estado: 'activo',
-    fechaAlta: '2026-01-15T08:00:00.000Z'
-  }
-];
+const DEFAULT_CLIENTS: Client[] = [];
 
 const DEFAULT_USERS: UserSession[] = [
-  { id: 'u-rodrigo', username: 'rodrigo', email: 'rodrigo@tpp.com', puesto: 'Coordinador PM', role: 'coordinador', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
-  { id: 'u-lourdes', username: 'lourdes', email: 'lourdes@tpp.com', puesto: 'PM / Consultor', role: 'sac', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
-  { id: 'u-maylin', username: 'maylin', email: 'maylin@tpp.com', puesto: 'PM / Consultor', role: 'sac', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
-  { id: 'u-eduardo', username: 'eduardo', email: 'eduardo@tpp.com', puesto: 'Diseñador', role: 'contentd', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
-  { id: 'u-edgar', username: 'edgar', email: 'edgar@tpp.com', puesto: 'Diseñador', role: 'contentd', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
-  { id: 'u-jeremy', username: 'jeremy', email: 'jeremy@tpp.com', puesto: 'Diseñador', role: 'contentd', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
-  { id: 'u-noemi', username: 'noemi', email: 'noemi@tpp.com', puesto: 'Social Media', role: 'contents', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
-  { id: 'u-alejandra', username: 'alejandra', email: 'alejandra@tpp.com', puesto: 'Supervisor General', role: 'supervisor', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
-  { id: 'u-fabiola', username: 'fabiola', email: 'fabiola@tpp.com', puesto: 'Supervisor General', role: 'supervisor', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
-  { id: 'u-luis', username: 'luis', email: 'luis@tpp.com', puesto: 'PM / Consultor', role: 'sac', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
-  { id: 'u-sofia', username: 'sofia', email: 'sofia@tpp.com', puesto: 'Directora Financiera', role: 'director_financiero', password: '123', estado: 'activo', capacidadMensualHoras: 176 },
-  { id: 'u-proveedor', username: 'proveedor', email: 'proveedor@tpp.com', puesto: 'Proveedor Dev', role: 'proveedor', password: '123', estado: 'activo', tarifaHoraProveedor: 50, empresaProveedor: 'TechStudio Latam', proyectosAsignados: ['p1'], capacidadMensualHoras: 160 },
-  { id: 'u-invitado', username: 'invitado', email: 'invitado@tpp.com', puesto: 'Invitado', role: 'invitado', password: '123', estado: 'activo', projectId: 'p1', capacidadMensualHoras: 0 },
+  { id: 'u-rodrigo', username: 'rodrigo', email: 'rodrigo@tpp.com', puesto: 'Coordinador PM', role: 'coordinador', password: '123456', estado: 'activo', capacidadMensualHoras: 176 },
 ];
 
 export default function App() {
@@ -215,10 +136,10 @@ export default function App() {
     const isDemoVersion = localStorage.getItem(DEMO_VERSION_KEY);
     if (!isDemoVersion) {
       localStorage.setItem(DEMO_VERSION_KEY, 'true');
-      const defaults = INITIAL_PROJECTS.map(normalizeProject);
-      setProjects(defaults);
-      setActiveProjectId(defaults[0].id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
+      setProjects([]);
+      setActiveProjectId('');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+      localStorage.removeItem(ACTIVE_PROJECT_KEY);
 
       setUsersList(DEFAULT_USERS);
       localStorage.setItem(USERS_LIST_KEY, JSON.stringify(DEFAULT_USERS));
@@ -241,16 +162,17 @@ export default function App() {
         if (normalized.length > 0) {
           const defaultActive = normalized.find((p) => p.id === storedActiveId) || normalized[0];
           setActiveProjectId(defaultActive.id);
+        } else {
+          setActiveProjectId('');
         }
       } catch (err) {
-        const defaults = INITIAL_PROJECTS.map(normalizeProject);
-        setProjects(defaults);
-        setActiveProjectId(defaults[0].id);
+        setProjects([]);
+        setActiveProjectId('');
       }
     } else {
-      const defaults = INITIAL_PROJECTS.map(normalizeProject);
-      setProjects(defaults);
-      setActiveProjectId(defaults[0].id);
+      setProjects([]);
+      setActiveProjectId('');
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
     }
 
     // 2. Load Users
@@ -311,8 +233,7 @@ export default function App() {
       return;
     }
 
-    const defaults = INITIAL_PROJECTS.map(normalizeProject);
-    seedFirestoreIfEmpty(defaults, DEFAULT_CLIENTS, DEFAULT_USERS);
+    seedFirestoreIfEmpty([], DEFAULT_CLIENTS, DEFAULT_USERS);
 
     const unsubProjects = subscribeProjects((cloudProjects) => {
       if (cloudProjects && cloudProjects.length > 0) {
@@ -344,13 +265,13 @@ export default function App() {
 
   // Centralized local storage synchronization (Single Source of Truth)
   useEffect(() => {
-    if (isInitialized.current && projects.length > 0) {
+    if (isInitialized.current) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
     }
   }, [projects]);
 
   useEffect(() => {
-    if (isInitialized.current && clients.length > 0) {
+    if (isInitialized.current) {
       localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(clients));
     }
   }, [clients]);
@@ -793,13 +714,14 @@ export default function App() {
     );
   }
 
-  // Loading Screen
-  if (!activeProject) {
+  if (currentUser.role === 'invitado' && !activeProject) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-[#F4F5F0]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-lime-400 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-xs text-slate-500 font-bold">Cargando Sistema de Fases...</p>
+          <div className="w-10 h-10 bg-stone-100 text-slate-800 rounded-2xl flex items-center justify-center">
+            <Shield className="w-5 h-5" />
+          </div>
+          <p className="text-xs text-slate-500 font-bold">Tu usuario invitado aún no tiene un proyecto asignado.</p>
         </div>
       </div>
     );
@@ -865,7 +787,7 @@ export default function App() {
     handleUpdateProject(updatedProject);
   };
 
-  const activePhase = activeProject.phases.find((p) => p.id === activeProject.activePhaseId) || activeProject.phases[0];
+  const activePhase = activeProject?.phases.find((p) => p.id === activeProject.activePhaseId) || activeProject?.phases[0];
 
   return (
     <MainLayout
@@ -970,15 +892,23 @@ export default function App() {
 
           {/* MAIN WORKSPACE */}
           <div className="flex-1 h-full min-h-0 overflow-hidden flex flex-col min-w-0">
-            {visibleProjects.length === 0 ? (
+            {!activeProject || !activePhase || visibleProjects.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-[#F4F5F0]">
                 <div className="w-16 h-16 bg-stone-100 text-slate-800 rounded-3xl flex items-center justify-center mb-4 shadow-xs">
                   <Briefcase className="w-8 h-8 text-slate-800" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">Sin Proyectos Asignados</h3>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">No hay proyectos creados</h3>
                 <p className="text-xs text-slate-500 max-w-md font-normal leading-relaxed">
-                  Hola <strong className="text-slate-800 font-semibold capitalize">{currentUser.username}</strong>, actualmente no tienes proyectos asociados a tu perfil de <span className="text-slate-800 font-semibold">Proveedor Externo</span>. Solicita a tu Coordinador que te asigne a los proyectos correspondientes.
+                  Hola <strong className="text-slate-800 font-semibold capitalize">{currentUser.username}</strong>, esta instancia está limpia. Crea el primer proyecto desde el botón de nuevo proyecto o autoriza usuarios desde el módulo de equipo.
                 </p>
+                {currentUser.role !== 'invitado' && currentUser.role !== 'proveedor' && (
+                  <button
+                    onClick={() => setIsNewProjectModalOpen(true)}
+                    className="mt-5 bg-slate-900 hover:bg-black text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all"
+                  >
+                    Crear primer proyecto
+                  </button>
+                )}
               </div>
             ) : (
               <PhaseContent

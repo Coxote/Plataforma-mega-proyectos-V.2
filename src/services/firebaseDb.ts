@@ -9,10 +9,10 @@ import {
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Project, Client, UserSession } from '../types';
 
-export const PROJECTS_COL = 'projects';
-export const CLIENTS_COL = 'clients';
-export const USERS_COL = 'users';
-export const PLANNER_TASKS_COL = 'plannerTasks';
+export const PROJECTS_COL = 'projects_prod_v1';
+export const CLIENTS_COL = 'clients_prod_v1';
+export const USERS_COL = 'users_prod_v1';
+export const PLANNER_TASKS_COL = 'plannerTasks_prod_v1';
 
 export interface PlannerTaskRecord {
   id: string;
