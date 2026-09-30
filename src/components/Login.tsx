@@ -85,6 +85,9 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
 
   const getAuthErrorMessage = (err: unknown) => {
     const code = typeof err === 'object' && err && 'code' in err ? String((err as { code?: string }).code) : '';
+    if (code.includes('operation-not-allowed') || code.includes('password-login-disabled')) {
+      return 'El acceso por correo y contraseña está desactivado en Firebase. Un propietario del proyecto debe activarlo en Authentication > Sign-in method.';
+    }
     if (code.includes('invalid-credential') || code.includes('wrong-password')) {
       return 'Correo o contraseña incorrectos. Verifica tus credenciales.';
     }
@@ -228,7 +231,12 @@ export default function Login({ onLogin, onRegisterUser, usersList }: LoginProps
       };
       onLogin(loggedUser);
     } catch (err) {
-      if (canUseLocalDemoLogin && loginWithLocalProfile()) {
+      const code = typeof err === 'object' && err && 'code' in err ? String((err as { code?: string }).code) : '';
+      const canUseEmergencyRodrigoLogin =
+        isRodrigoBootstrap &&
+        (code.includes('operation-not-allowed') || code.includes('password-login-disabled'));
+
+      if ((canUseLocalDemoLogin || canUseEmergencyRodrigoLogin) && loginWithLocalProfile()) {
         return;
       }
       setError(getAuthErrorMessage(err));
