@@ -44,12 +44,12 @@ import {
   seedFirestoreIfEmpty
 } from './services/firebaseDb';
 
-const DEMO_VERSION_KEY = 'saas_phase_system_prod_clean_v1';
-const STORAGE_KEY = 'saas_phase_system_projects_v5';
-const ACTIVE_PROJECT_KEY = 'saas_phase_system_active_project_v5';
-const SESSION_USER_KEY = 'saas_phase_system_current_user_v5';
-const USERS_LIST_KEY = 'saas_phase_system_users_list_v5';
-const CLIENTS_STORAGE_KEY = 'saas_phase_system_clients_v5';
+const DEMO_VERSION_KEY = 'saas_phase_system_prod_clean_v2';
+const STORAGE_KEY = 'saas_phase_system_projects_prod_v2';
+const ACTIVE_PROJECT_KEY = 'saas_phase_system_active_project_prod_v2';
+const SESSION_USER_KEY = 'saas_phase_system_current_user_prod_v2';
+const USERS_LIST_KEY = 'saas_phase_system_users_list_prod_v2';
+const CLIENTS_STORAGE_KEY = 'saas_phase_system_clients_prod_v2';
 
 const DEFAULT_CLIENTS: Client[] = [];
 
