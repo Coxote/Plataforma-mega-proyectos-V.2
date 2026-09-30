@@ -55,7 +55,7 @@ interface PlannerGridProps {
   currentUser: UserSession;
 }
 
-const STORAGE_KEY = 'saas_phase_system_planner_tasks_v4_demo';
+const STORAGE_KEY = 'saas_phase_system_planner_tasks_prod_v1';
 
 const INITIAL_TASKS: PlannerTask[] = [
   {

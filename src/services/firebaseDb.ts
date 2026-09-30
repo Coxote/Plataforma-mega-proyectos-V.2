@@ -9,10 +9,11 @@ import {
 import { db, handleFirestoreError, OperationType } from '../firebase';
 import { Project, Client, UserSession } from '../types';
 
-export const PROJECTS_COL = 'projects_prod_v1';
-export const CLIENTS_COL = 'clients_prod_v1';
-export const USERS_COL = 'users_prod_v1';
-export const PLANNER_TASKS_COL = 'plannerTasks_prod_v1';
+export const APP_ENVIRONMENT_ID = 'prod_v1';
+export const PROJECTS_COL = 'projects';
+export const CLIENTS_COL = 'clients';
+export const USERS_COL = 'users';
+export const PLANNER_TASKS_COL = 'plannerTasks';
 
 export interface PlannerTaskRecord {
   id: string;
@@ -33,6 +34,14 @@ function sanitizeUserForFirestore(user: UserSession): UserSession {
   return safeUser;
 }
 
+function withEnvironment<T extends Record<string, any>>(record: T): T {
+  return { ...record, environmentId: APP_ENVIRONMENT_ID };
+}
+
+function isCurrentEnvironment(record: any): boolean {
+  return record?.environmentId === APP_ENVIRONMENT_ID;
+}
+
 /**
  * Suscripción en tiempo real a los proyectos en Cloud Firestore.
  */
@@ -45,7 +54,10 @@ export function subscribeProjects(
     (snapshot) => {
       const projects: Project[] = [];
       snapshot.forEach((docSnap) => {
-        projects.push(docSnap.data() as Project);
+        const data = docSnap.data();
+        if (isCurrentEnvironment(data)) {
+          projects.push(data as Project);
+        }
       });
       // Ordenar por fecha de creación descendente si aplica
       projects.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
@@ -64,7 +76,7 @@ export function subscribeProjects(
 export async function saveProjectToFirestore(project: Project): Promise<void> {
   try {
     const docRef = doc(db, PROJECTS_COL, project.id);
-    await setDoc(docRef, project, { merge: true });
+    await setDoc(docRef, withEnvironment(project), { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, `${PROJECTS_COL}/${project.id}`);
   }
@@ -94,7 +106,10 @@ export function subscribeClients(
     (snapshot) => {
       const clients: Client[] = [];
       snapshot.forEach((docSnap) => {
-        clients.push(docSnap.data() as Client);
+        const data = docSnap.data();
+        if (isCurrentEnvironment(data)) {
+          clients.push(data as Client);
+        }
       });
       onClients(clients);
     },
@@ -111,7 +126,7 @@ export function subscribeClients(
 export async function saveClientToFirestore(client: Client): Promise<void> {
   try {
     const docRef = doc(db, CLIENTS_COL, client.id);
-    await setDoc(docRef, client, { merge: true });
+    await setDoc(docRef, withEnvironment(client), { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, `${CLIENTS_COL}/${client.id}`);
   }
@@ -129,7 +144,10 @@ export function subscribeUsers(
     (snapshot) => {
       const users: UserSession[] = [];
       snapshot.forEach((docSnap) => {
-        users.push(docSnap.data() as UserSession);
+        const data = docSnap.data();
+        if (isCurrentEnvironment(data)) {
+          users.push(data as UserSession);
+        }
       });
       if (users.length > 0) {
         onUsers(users);
@@ -148,7 +166,7 @@ export function subscribeUsers(
 export async function saveUserToFirestore(user: UserSession): Promise<void> {
   try {
     const docRef = doc(db, USERS_COL, user.id);
-    await setDoc(docRef, sanitizeUserForFirestore(user), { merge: true });
+    await setDoc(docRef, withEnvironment(sanitizeUserForFirestore(user)), { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, `${USERS_COL}/${user.id}`);
   }
@@ -178,7 +196,10 @@ export function subscribePlannerTasks(
     (snapshot) => {
       const tasks: PlannerTaskRecord[] = [];
       snapshot.forEach((docSnap) => {
-        tasks.push(docSnap.data() as PlannerTaskRecord);
+        const data = docSnap.data();
+        if (isCurrentEnvironment(data)) {
+          tasks.push(data as PlannerTaskRecord);
+        }
       });
       tasks.sort((a, b) => (a.deadline || '').localeCompare(b.deadline || ''));
       onTasks(tasks);
@@ -193,7 +214,7 @@ export function subscribePlannerTasks(
 export async function savePlannerTaskToFirestore(task: PlannerTaskRecord): Promise<void> {
   try {
     const docRef = doc(db, PLANNER_TASKS_COL, task.id);
-    await setDoc(docRef, task, { merge: true });
+    await setDoc(docRef, withEnvironment(task), { merge: true });
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, `${PLANNER_TASKS_COL}/${task.id}`);
   }
@@ -237,6 +258,7 @@ export async function authenticateOrApproveUserInFirestore(
         estado: 'activo',
         autenticadoPor: approvedByUsername,
         fechaAutenticacion: new Date().toISOString(),
+        environmentId: APP_ENVIRONMENT_ID,
       },
       { merge: true }
     );
@@ -255,26 +277,26 @@ export async function seedFirestoreIfEmpty(
 ): Promise<void> {
   try {
     const projectsSnap = await getDocs(collection(db, PROJECTS_COL));
-    if (projectsSnap.empty) {
+    if (!projectsSnap.docs.some((docSnap) => isCurrentEnvironment(docSnap.data()))) {
       console.log('Sembrando proyectos iniciales en Cloud Firestore...');
       for (const p of defaultProjects) {
-        await setDoc(doc(db, PROJECTS_COL, p.id), p);
+        await setDoc(doc(db, PROJECTS_COL, p.id), withEnvironment(p));
       }
     }
 
     const clientsSnap = await getDocs(collection(db, CLIENTS_COL));
-    if (clientsSnap.empty) {
+    if (!clientsSnap.docs.some((docSnap) => isCurrentEnvironment(docSnap.data()))) {
       console.log('Sembrando clientes iniciales en Cloud Firestore...');
       for (const c of defaultClients) {
-        await setDoc(doc(db, CLIENTS_COL, c.id), c);
+        await setDoc(doc(db, CLIENTS_COL, c.id), withEnvironment(c));
       }
     }
 
     const usersSnap = await getDocs(collection(db, USERS_COL));
-    if (usersSnap.empty) {
+    if (!usersSnap.docs.some((docSnap) => isCurrentEnvironment(docSnap.data()))) {
       console.log('Sembrando usuarios en Cloud Firestore...');
       for (const u of defaultUsers) {
-        await setDoc(doc(db, USERS_COL, u.id), sanitizeUserForFirestore(u));
+        await setDoc(doc(db, USERS_COL, u.id), withEnvironment(sanitizeUserForFirestore(u)));
       }
     }
   } catch (err) {

@@ -700,7 +700,7 @@ export default function App() {
     const updated = [...usersList, newUser];
     setUsersList(updated);
     localStorage.setItem(USERS_LIST_KEY, JSON.stringify(updated));
-    await saveUserToFirestore(newUser).catch(err => console.warn('Cloud sync error (Register User):', err));
+    await saveUserToFirestore(newUser);
   };
 
   // Render Login if unauthenticated
