@@ -191,10 +191,8 @@ export const PlannerGrid: React.FC<PlannerGridProps> = ({ projects = [], users =
     }
 
     const unsubscribe = subscribePlannerTasks((cloudTasks) => {
-      if (cloudTasks.length > 0) {
-        setTasks(cloudTasks);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudTasks));
-      }
+      setTasks(cloudTasks);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cloudTasks));
     });
 
     return () => unsubscribe();

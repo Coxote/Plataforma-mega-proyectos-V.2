@@ -531,7 +531,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
 
   const [draft, setDraft] = useState<ProjectDraft>(() => {
     try {
-      const saved = localStorage.getItem('saas_phase_system_project_draft');
+      const saved = localStorage.getItem('saas_phase_system_project_draft_prod_v1');
       return saved ? JSON.parse(saved) : DEFAULT_DRAFT;
     } catch {
       return DEFAULT_DRAFT;
@@ -542,7 +542,7 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
   useEffect(() => {
     if (isOpen) {
       try {
-        localStorage.setItem('saas_phase_system_project_draft', JSON.stringify(draft));
+        localStorage.setItem('saas_phase_system_project_draft_prod_v1', JSON.stringify(draft));
       } catch (err) {
         console.error('Error saving project draft to localStorage:', err);
       }
