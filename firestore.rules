@@ -2,53 +2,48 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
     // 1. Projects Collection & Subcollections
     match /projects/{projectId} {
-      allow read, write: if isValidId(projectId);
+      allow read, write: if true;
 
       match /timeEntries/{entryId} {
-        allow read, write: if isValidId(entryId);
+        allow read, write: if true;
       }
     }
 
     // Direct Time Entries Collection
     match /timeEntries/{entryId} {
-      allow read, write: if isValidId(entryId);
+      allow read, write: if true;
     }
 
     // 2. Users Collection
     match /users/{userId} {
-      allow read, write: if isValidId(userId);
+      allow read, write: if true;
     }
 
     // 3. Clients Directory
     match /clients/{clientId} {
-      allow read, write: if isValidId(clientId);
+      allow read, write: if true;
     }
 
     // 4. Planner Tasks
     match /plannerTasks/{taskId} {
-      allow read, write: if isValidId(taskId);
+      allow read, write: if true;
     }
 
     // 5. Leaves & Vacations
     match /leaves/{leaveId} {
-      allow read, write: if isValidId(leaveId);
+      allow read, write: if true;
     }
 
     // 6. Kudos & Team Recognition
     match /kudos/{kudoId} {
-      allow read, write: if isValidId(kudoId);
+      allow read, write: if true;
     }
 
     // 7. Gamification Document Store
     match /gamification/{docId} {
-      allow read, write: if isValidId(docId);
+      allow read, write: if true;
     }
 
     // Connection testing

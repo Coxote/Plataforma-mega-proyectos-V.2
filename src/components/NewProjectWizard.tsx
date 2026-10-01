@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  X, Plus, Trash2, FileText, ArrowLeft,
+  X, Plus, Trash2, FileText, ArrowLeft, ArrowRight, FolderKanban,
   FileCode2, CheckCircle2, ShieldAlert, GripVertical,
   ChevronUp, ChevronDown, Layers, Clock, Upload, Sparkles, Loader2
 } from 'lucide-react';
@@ -981,88 +981,175 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     member.roleBase.toLowerCase().includes(rosterSearch.toLowerCase())
   );
 
+  const isStep1Valid = Boolean(draft.projectName?.trim() && draft.clientName?.trim());
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[95vh] animate-in fade-in duration-200">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl border border-stone-200/80 overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
+
+        {/* HEADER UNIFICADO DE LA PLATAFORMA */}
+        <div className="px-6 sm:px-8 py-5 sm:py-6 border-b border-stone-100 flex items-center justify-between bg-white shrink-0">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-[#F4F5F0] border border-stone-200/60 flex items-center justify-center text-slate-800 shrink-0 shadow-2xs">
+              <FolderKanban className="w-5 h-5 text-slate-800" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-[#F4F5F0] text-slate-700 border border-stone-200/50">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#c6ef4e]" />
+                  {step === 1 ? 'Paso 1 de 2 • Configuración Básica' : 'Paso 2 de 2 • Arquitectura y Equipo'}
+                </span>
+                {draft.projectName && (
+                  <span className="text-xs font-semibold text-slate-600 truncate max-w-[200px]">
+                    {draft.projectName}
+                  </span>
+                )}
+              </div>
+              <h2 className="text-xl font-bold tracking-tight text-slate-900">
+                {step === 1 ? 'Nuevo Proyecto de Operaciones' : 'Arquitectura, Fases y Equipo'}
+              </h2>
+              <p className="text-xs text-slate-500 font-normal mt-0.5">
+                {step === 1
+                  ? 'Define el nombre del proyecto y selecciona o crea el cliente receptor.'
+                  : 'Configura las fechas de entrega, fases con presupuesto de horas e integrantes asignados.'}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleResetAndClose}
+            className="p-2.5 text-slate-400 hover:text-slate-900 bg-[#F4F5F0] hover:bg-stone-200 rounded-full transition-all cursor-pointer"
+            title="Cerrar ventana (Esc)"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* STEPPER BAR UNIFICADO */}
+        <div className="bg-[#F4F5F0] p-1.5 rounded-2xl mx-6 sm:mx-8 my-4 shrink-0 border border-stone-200/40 flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className={`flex-1 py-2.5 px-4 text-xs font-bold flex items-center justify-center gap-2 rounded-xl cursor-pointer transition-all ${
+              step === 1
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <span
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
+                step === 1 ? 'bg-[#c6ef4e] text-slate-900' : isStep1Valid ? 'bg-emerald-500 text-white' : 'bg-stone-300 text-slate-600'
+              }`}
+            >
+              {isStep1Valid && step !== 1 ? '✓' : '1'}
+            </span>
+            <span>1. Configuración Básica</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => isStep1Valid && setStep(2)}
+            disabled={!isStep1Valid}
+            className={`flex-1 py-2.5 px-4 text-xs font-bold flex items-center justify-center gap-2 rounded-xl cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
+              step === 2
+                ? 'bg-white text-slate-900 shadow-xs'
+                : 'text-slate-500 hover:text-slate-800'
+            }`}
+          >
+            <span
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${
+                step === 2 ? 'bg-[#c6ef4e] text-slate-900' : 'bg-stone-300 text-slate-600'
+              }`}
+            >
+              2
+            </span>
+            <span>2. Arquitectura & Equipo</span>
+          </button>
+        </div>
 
         {/* ======================= PASO 1 ======================= */}
         {step === 1 && (
-          <div className="p-8 space-y-6 overflow-y-auto">
-            <div className="flex justify-between items-center border-b border-stone-100 pb-4">
-              <div>
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  Paso 1 de 2 • Configuración Básica
-                </span>
-                <h2 className="text-xl font-semibold text-slate-900">Configuración Inicial del Proyecto</h2>
-                <p className="text-xs text-slate-500 font-normal mt-0.5">Introduce el nombre y cliente para comenzar.</p>
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    Nombre del proyecto *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Rediseño Portal Clientes 2026"
+                    value={draft.projectName}
+                    onChange={(e) => setDraft(prev => ({ ...prev, projectName: e.target.value }))}
+                    className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-sm font-medium text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    Cliente *
+                  </label>
+                  <input
+                    type="text"
+                    list="clients-list-suggestions"
+                    placeholder="Introduce o selecciona cliente *"
+                    value={draft.clientName}
+                    onChange={(e) => setDraft(prev => ({ ...prev, clientName: e.target.value }))}
+                    className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-sm font-medium text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all"
+                  />
+                  <datalist id="clients-list-suggestions">
+                    {clients.map((c: any) => (
+                      <option key={c.id} value={c.nombreComercial}>
+                        {c.nombreComercial} {c.estado && c.estado !== 'activo' ? `(${c.estado.toUpperCase()})` : ''}
+                      </option>
+                    ))}
+                  </datalist>
+
+                  {/* Warning banner if selected client is inactive or paused */}
+                  {(() => {
+                    const matched = clients.find((c: any) => c.nombreComercial?.toLowerCase() === draft.clientName?.trim().toLowerCase());
+                    if (matched && (matched.estado === 'inactivo' || matched.estado === 'pausado')) {
+                      return (
+                        <div className="mt-2.5 p-3 bg-amber-50 rounded-2xl text-amber-800 text-xs flex items-center gap-2 border border-amber-200">
+                          <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                          <span>
+                            El cliente <strong>{matched.nombreComercial}</strong> se encuentra como <strong>{matched.estado}</strong>. Se reactivará automáticamente al guardar el proyecto.
+                          </span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
               </div>
+
+              <div className="p-4 bg-[#F4F5F0] rounded-2xl border border-stone-200/50 flex items-start gap-3">
+                <FileText className="w-4 h-4 text-slate-600 mt-0.5 shrink-0" />
+                <p className="text-xs text-slate-600 leading-relaxed font-normal">
+                  Al completar el nombre y el cliente, en el siguiente paso podrás desglosar las fases del proyecto, importar Órdenes de Venta (OV) automáticamente con IA y asignar integrantes del equipo con sus horas presupuestadas.
+                </p>
+              </div>
+            </div>
+
+            {/* FOOTER PASO 1 UNIFICADO */}
+            <div className="px-6 sm:px-8 py-4 sm:py-5 border-t border-stone-100 bg-[#FAFAF8] flex items-center justify-between shrink-0">
               <button
                 type="button"
                 onClick={handleResetAndClose}
-                className="p-2.5 text-slate-400 hover:text-slate-700 hover:bg-stone-100 rounded-full cursor-pointer transition-all"
-                title="Cerrar ventana (Esc)"
+                className="px-5 py-2.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs transition-all cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                Cancelar
               </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Nombre del proyecto *</label>
-                <input
-                  type="text"
-                  placeholder="Ej: Rediseño Portal Clientes"
-                  value={draft.projectName}
-                  onChange={(e) => setDraft(prev => ({ ...prev, projectName: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/50 bg-[#F4F5F0]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Cliente *</label>
-                <input
-                  type="text"
-                  list="clients-list-suggestions"
-                  placeholder="Introduce o selecciona cliente *"
-                  value={draft.clientName}
-                  onChange={(e) => setDraft(prev => ({ ...prev, clientName: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/50 bg-[#F4F5F0]"
-                />
-                <datalist id="clients-list-suggestions">
-                  {clients.map((c: any) => (
-                    <option key={c.id} value={c.nombreComercial}>
-                      {c.nombreComercial} {c.estado && c.estado !== 'activo' ? `(${c.estado.toUpperCase()})` : ''}
-                    </option>
-                  ))}
-                </datalist>
-
-                {/* Warning banner if selected client is inactive or paused */}
-                {(() => {
-                  const matched = clients.find((c: any) => c.nombreComercial?.toLowerCase() === draft.clientName?.trim().toLowerCase());
-                  if (matched && (matched.estado === 'inactivo' || matched.estado === 'pausado')) {
-                    return (
-                      <div className="mt-2 p-2.5 bg-amber-50 rounded-xl text-amber-800 text-xs flex items-center gap-2 animate-in fade-in">
-                        <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
-                        <span>
-                          El cliente <strong>{matched.nombreComercial}</strong> se encuentra como <strong>{matched.estado}</strong>. Se reactivará automáticamente a estar <strong>Activo</strong> al guardar.
-                        </span>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-4 border-t border-stone-100">
               <button
-                disabled={!draft.projectName.trim() || !draft.clientName.trim()}
+                disabled={!isStep1Valid}
                 onClick={() => setStep(2)}
-                className="px-8 py-3 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-full font-bold text-sm disabled:opacity-40 transition-colors cursor-pointer shadow-xs"
+                className="px-7 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 rounded-full font-bold text-xs disabled:opacity-40 transition-all cursor-pointer shadow-xs active:scale-[0.98] flex items-center gap-2"
               >
-                Siguiente
+                <span>Siguiente: Arquitectura y Equipo</span>
+                <ArrowRight className="w-3.5 h-3.5 text-slate-900" />
               </button>
             </div>
           </div>
@@ -1070,32 +1157,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
 
         {/* ======================= PASO 2 ======================= */}
         {step === 2 && (
-          <div className="flex flex-col h-full overflow-hidden">
-            {/* Header Superior del Paso 2 con botón de cierre */}
-            <div className="px-8 pt-6 pb-4 border-b border-stone-100 flex justify-between items-center bg-white shrink-0">
-              <div>
-                <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                    Paso 2 de 2 • Arquitectura y Equipo
-                  </span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#c6ef4e]" />
-                  <span className="text-xs font-semibold text-slate-700 truncate max-w-[280px]">
-                    {draft.projectName || 'Nuevo Proyecto'}
-                  </span>
-                </div>
-                <h2 className="text-xl font-semibold text-slate-900">Configuración Detallada y Equipo</h2>
-              </div>
-              <button
-                type="button"
-                onClick={handleResetAndClose}
-                className="p-2.5 text-slate-400 hover:text-slate-700 hover:bg-stone-100 rounded-full cursor-pointer transition-all"
-                title="Cerrar ventana (Esc)"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="flex bg-[#F4F5F0] p-1.5 rounded-2xl mx-8 mt-5 gap-1 overflow-x-auto shrink-0">
+          <div className="flex flex-col flex-1 overflow-hidden">
+            <div className="flex bg-[#F4F5F0] p-1.5 rounded-2xl mx-6 sm:mx-8 mt-2 mb-2 gap-1 overflow-x-auto shrink-0 border border-stone-200/40">
               <button
                 onClick={() => setActiveTab('general')}
                 className={`flex-1 py-2.5 px-4 text-xs font-semibold flex items-center justify-center gap-2 rounded-xl cursor-pointer transition-all ${
@@ -1524,13 +1587,13 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
 
             </div>
 
-            {/* Navegación Footer */}
-            <div className="p-6 border-t border-slate-100 bg-white flex justify-between items-center shrink-0">
+            {/* FOOTER PASO 2 UNIFICADO DE LA PLATAFORMA */}
+            <div className="px-6 sm:px-8 py-4 sm:py-5 border-t border-stone-100 bg-[#FAFAF8] flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleResetAndClose}
-                  className="px-4 py-2.5 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-stone-100 transition-all cursor-pointer"
+                  className="px-5 py-2.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs transition-all cursor-pointer"
                 >
                   Cancelar
                 </button>
@@ -1545,9 +1608,10 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       setStep(1);
                     }
                   }}
-                  className="px-4 py-2.5 rounded-full text-xs font-bold text-slate-700 hover:bg-stone-100 flex items-center gap-1.5 transition-all cursor-pointer"
+                  className="px-5 py-2.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs transition-all cursor-pointer flex items-center gap-1.5"
                 >
-                  <ArrowLeft className="w-4 h-4 text-slate-600" /> Volver
+                  <ArrowLeft className="w-3.5 h-3.5 text-slate-600" />
+                  <span>Volver</span>
                 </button>
               </div>
 
@@ -1561,18 +1625,20 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
                       setActiveTab('integrantes');
                     }
                   }}
-                  className="px-6 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-full text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95"
+                  className="px-7 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 rounded-full text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-[0.98] flex items-center gap-2"
                 >
-                  Siguiente
+                  <span>Siguiente: {activeTab === 'general' ? 'Fases' : 'Integrantes'}</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-900" />
                 </button>
               ) : (
                 <button
                   type="button"
                   onClick={handleFinish}
                   disabled={!draft.projectName.trim() || !draft.clientName.trim()}
-                  className="px-8 py-3 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black rounded-full text-xs font-bold transition-all shadow-md cursor-pointer disabled:opacity-40 active:scale-95"
+                  className="px-8 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 rounded-full text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-40 active:scale-[0.98] flex items-center gap-2"
                 >
-                  Crear Proyecto
+                  <CheckCircle2 className="w-4 h-4 text-slate-900" />
+                  <span>Crear Proyecto</span>
                 </button>
               )}
             </div>

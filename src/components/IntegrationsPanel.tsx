@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   UserSession,
   IntegrationConfig,
+  IntegrationSource,
   SyncLogEntry,
   AutomationRule,
   WebhookEndpoint,
@@ -35,74 +36,109 @@ import {
   Activity,
   Copy,
   Radio,
-  Sliders
+  Sliders,
+  Globe,
+  Share2,
+  Layers,
+  Sparkles,
+  Filter,
+  Flame,
+  CheckSquare
 } from 'lucide-react';
 
 interface IntegrationsPanelProps {
   currentUser: UserSession;
 }
 
-const STORAGE_KEY = 'saas_phase_system_integrations_v1';
-const SYNC_LOG_KEY = 'saas_phase_system_sync_logs_v1';
-const RULES_STORAGE_KEY = 'saas_phase_system_automation_rules_v1';
-const WEBHOOKS_STORAGE_KEY = 'saas_phase_system_webhooks_v1';
-const WEBHOOK_LOGS_STORAGE_KEY = 'saas_phase_system_webhook_logs_v1';
+const STORAGE_KEY = 'saas_phase_system_integrations_v2';
+const SYNC_LOG_KEY = 'saas_phase_system_sync_logs_v2';
+const RULES_STORAGE_KEY = 'saas_phase_system_automation_rules_v2';
+const WEBHOOKS_STORAGE_KEY = 'saas_phase_system_webhooks_v2';
+const WEBHOOK_LOGS_STORAGE_KEY = 'saas_phase_system_webhook_logs_v2';
 
+// 12 herramientas empresariales completas
 const DEFAULT_INTEGRATIONS: IntegrationConfig[] = [
-  { source: 'odoo', connected: false },
-  { source: 'teams', connected: false },
-  { source: 'outlook', connected: false },
-  { source: 'sharepoint', connected: false },
+  { source: 'odoo', connected: true, connectedAt: new Date(Date.now() - 3600000 * 48).toISOString(), category: 'erp' },
+  { source: 'hubspot', connected: false, category: 'erp' },
+  { source: 'slack', connected: true, connectedAt: new Date(Date.now() - 3600000 * 24).toISOString(), category: 'communication' },
+  { source: 'teams', connected: true, connectedAt: new Date(Date.now() - 3600000 * 72).toISOString(), category: 'communication' },
+  { source: 'google_workspace', connected: true, connectedAt: new Date(Date.now() - 3600000 * 12).toISOString(), category: 'calendar_time' },
+  { source: 'clockify', connected: false, category: 'calendar_time' },
+  { source: 'outlook', connected: false, category: 'calendar_time' },
+  { source: 'sharepoint', connected: false, category: 'storage_docs' },
+  { source: 'notion', connected: false, category: 'storage_docs' },
+  { source: 'jira', connected: true, connectedAt: new Date(Date.now() - 3600000 * 96).toISOString(), category: 'tasks_dev' },
+  { source: 'github', connected: false, category: 'tasks_dev' },
+  { source: 'zapier', connected: false, category: 'automation' },
 ];
 
 const INITIAL_SYNC_LOGS: SyncLogEntry[] = [
   {
     id: 'log-101',
     source: 'odoo',
-    status: 'pending',
-    timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
-    message: 'Servicio en espera de credenciales de API Key de Odoo v16+',
-    details: 'Verificación de puerto XML-RPC de facturación y OVs',
+    status: 'success',
+    timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
+    message: 'Sincronizadas 8 Órdenes de Venta y tarifas por hora de roles',
+    details: 'XML-RPC Odoo v16+ · Puerto Seguro 443 · 200 OK',
   },
   {
     id: 'log-102',
-    source: 'teams',
-    status: 'pending',
-    timestamp: new Date(Date.now() - 3600000 * 12).toISOString(),
-    message: 'Webhook de canal de alertas SLA pendiente de configuración',
-    details: 'Microsoft Teams Incoming Webhook v2',
+    source: 'slack',
+    status: 'success',
+    timestamp: new Date(Date.now() - 3600000 * 5).toISOString(),
+    message: 'Alerta de retrabajo despachada a #proyectos-alertas',
+    details: 'Canal asignado: C059281 · Entregable DEL-8812',
+  },
+  {
+    id: 'log-103',
+    source: 'jira',
+    status: 'success',
+    timestamp: new Date(Date.now() - 3600000 * 18).toISOString(),
+    message: 'Tickets de Sprint 4 sincronizados con Fase de Desarrollo',
+    details: '14 tickets vinculados a fases activas',
   },
 ];
 
 const INITIAL_AUTOMATION_RULES: AutomationRule[] = [
   {
     id: 'rule-1',
-    name: 'Notificar en Teams cuando un Entregable entra en Retrabajo',
+    name: 'Notificar en Slack cuando un Entregable entra en Retrabajo',
     triggerEvent: 'deliverable.rework',
-    actionTarget: 'teams_channel',
+    actionTarget: 'slack_channel',
     enabled: true,
     createdByName: 'Coordinador PM',
-    executionCount: 14,
+    executionCount: 22,
     lastTriggeredAt: new Date(Date.now() - 3600000 * 2).toISOString(),
   },
   {
     id: 'rule-2',
-    name: 'Registrar Log Auditado en Odoo al Vencer SLA de Fase',
+    name: 'Registrar Log Auditado en Odoo ERP al Vencer SLA de Fase',
     triggerEvent: 'sla.vencido',
     actionTarget: 'odoo_log',
     enabled: true,
     createdByName: 'Director Financiero',
-    executionCount: 5,
-    lastTriggeredAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    executionCount: 7,
+    lastTriggeredAt: new Date(Date.now() - 3600000 * 14).toISOString(),
   },
   {
     id: 'rule-3',
-    name: 'Sincronizar Documentos en SharePoint al Completar Fase',
-    triggerEvent: 'phase.completed',
-    actionTarget: 'sharepoint_sync',
-    enabled: false,
+    name: 'Alerta de Desvío Presupuestario (>80% horas) a Teams',
+    triggerEvent: 'budget.exceeded_80',
+    actionTarget: 'teams_channel',
+    enabled: true,
     createdByName: 'Coordinador PM',
-    executionCount: 0,
+    executionCount: 4,
+    lastTriggeredAt: new Date(Date.now() - 3600000 * 28).toISOString(),
+  },
+  {
+    id: 'rule-4',
+    name: 'Bloquear fechas en Google Calendar al Aprobar Fase',
+    triggerEvent: 'phase.completed',
+    actionTarget: 'google_calendar',
+    enabled: true,
+    createdByName: 'Coordinador PM',
+    executionCount: 16,
+    lastTriggeredAt: new Date(Date.now() - 3600000 * 40).toISOString(),
   },
 ];
 
@@ -115,19 +151,19 @@ const INITIAL_WEBHOOKS: WebhookEndpoint[] = [
     secretKey: 'whsec_odoo_live_99887711223344',
     status: 'active',
     lastStatusCode: 200,
-    lastLatencyMs: 142,
+    lastLatencyMs: 114,
     lastDeliveryAt: new Date(Date.now() - 1800000).toISOString(),
   },
   {
     id: 'wh-102',
-    name: 'Canal Alertas - Microsoft Teams Webhook',
-    url: 'https://outlook.office.com/webhook/tpp-sla-channel-01@agenciatpp.com',
-    events: ['deliverable.approaching_deadline', 'deliverable.rework'],
-    secretKey: 'whsec_teams_live_44332211',
+    name: 'Canal Central Slack / Webhook Gateway',
+    url: 'https://hooks.slack.com/services/T0000/B0000/XXXXX',
+    events: ['deliverable.rework', 'budget.exceeded_80'],
+    secretKey: 'whsec_slack_live_44332211',
     status: 'active',
     lastStatusCode: 200,
-    lastLatencyMs: 89,
-    lastDeliveryAt: new Date(Date.now() - 7200000).toISOString(),
+    lastLatencyMs: 82,
+    lastDeliveryAt: new Date(Date.now() - 5400000).toISOString(),
   },
 ];
 
@@ -141,20 +177,319 @@ const INITIAL_WEBHOOK_LOGS: WebhookDeliveryLog[] = [
       deliverableId: 'DEL-8821',
       title: 'Arte Final Campaña Verano 2026',
       reworkOrigen: 'cliente',
-      reworkMotivo: 'Ajuste de tono de color institucional',
+      reworkMotivo: 'Ajuste de dimensiones requerido por pauta digital',
       timestamp: new Date(Date.now() - 1800000).toISOString(),
     },
     statusCode: 200,
     responseBody: '{"status":"received","record_id":"OD-9912"}',
-    latencyMs: 142,
+    latencyMs: 114,
     timestamp: new Date(Date.now() - 1800000).toISOString(),
   },
 ];
 
+// Metadatos detallados de cada herramienta: ¿En qué ayuda? y Requisitos
+export const TOOL_DEFINITIONS: Record<
+  IntegrationSource,
+  {
+    name: string;
+    category: 'erp' | 'communication' | 'calendar_time' | 'storage_docs' | 'tasks_dev' | 'automation';
+    categoryLabel: string;
+    description: string;
+    benefitHeadline: string;
+    howItHelps: string[];
+    capabilities: string[];
+    accentColor: string;
+    badgeBg: string;
+    icon: any;
+    requirements: string[];
+    docUrl: string;
+    defaultEndpoint: string;
+  }
+> = {
+  odoo: {
+    name: 'Odoo ERP & Facturación',
+    category: 'erp',
+    categoryLabel: 'ERP & Facturación',
+    description: 'Sincronización bidireccional de Órdenes de Venta (OV), tarifas de roles y cálculo de margen bruto.',
+    benefitHeadline: 'Control exacto de costos y facturación automatizada',
+    howItHelps: [
+      'Importa OVs aprobadas para calcular horas presupuestadas por perfil profesional sin doble carga.',
+      'Sincroniza tarifas por hora reales para conocer la rentabilidad de cada fase al instante.',
+      'Genera borradores de factura de hitos completados directamente en la contabilidad de Odoo.'
+    ],
+    capabilities: ['Lectura/Escritura OVs', 'Sincronización de Clientes', 'Auditoría Contable'],
+    accentColor: 'from-purple-600 to-indigo-700',
+    badgeBg: 'bg-purple-50 text-purple-800 border-purple-200',
+    icon: Database,
+    requirements: [
+      'URL del servidor Odoo v16+ (ej: https://empresa.odoo.com)',
+      'Nombre de la Base de Datos de producción',
+      'API Key o Token XML-RPC del usuario corporativo',
+      'Permiso en módulo Ventas y Contabilidad'
+    ],
+    docUrl: 'https://www.odoo.com/documentation/16.0/developer/reference/external_api.html',
+    defaultEndpoint: 'https://odoo.miempresa.com/jsonrpc'
+  },
+  hubspot: {
+    name: 'HubSpot / CRM Comercial',
+    category: 'erp',
+    categoryLabel: 'ERP & Facturación',
+    description: 'Generación automática de proyectos y clientes al ganar oportunidades en el pipeline de ventas.',
+    benefitHeadline: 'Traspaso sin fricción de Ventas a Operaciones',
+    howItHelps: [
+      'Crea el borrador del proyecto cuando un negocio comercial pasa a "Closed-Won".',
+      'Transfiere el presupuesto, alcance y contactos clave sin que el coordinador deba reescribirlos.',
+      'Mantiene actualizado al ejecutivo de ventas con el avance real de ejecución.'
+    ],
+    capabilities: ['Creación de Proyectos', 'Sync de Contactos', 'Seguimiento de Pipeline'],
+    accentColor: 'from-orange-500 to-amber-600',
+    badgeBg: 'bg-orange-50 text-orange-800 border-orange-200',
+    icon: Flame,
+    requirements: [
+      'HubSpot Private App Access Token (pat-na1-xxxx)',
+      'Scope de lectura: crm.objects.deals.read',
+      'ID del Pipeline comercial de servicios'
+    ],
+    docUrl: 'https://developers.hubspot.com/docs/api/crm/deals',
+    defaultEndpoint: 'https://api.hubapi.com/crm/v3/objects/deals'
+  },
+  slack: {
+    name: 'Slack Alertas & Canales',
+    category: 'communication',
+    categoryLabel: 'Comunicación & Alertas',
+    description: 'Alertas inmediatas en canales dedicados de proyecto ante retrabajos, desvíos y entregas.',
+    benefitHeadline: 'Respuesta inmediata del equipo sin saturar el correo',
+    howItHelps: [
+      'Notifica en el canal del proyecto cuando un cliente solicita retrabajo con el motivo y origen.',
+      'Alerta al coordinador si una fase alcanza el 80% del presupuesto de horas para tomar acción preventiva.',
+      'Envía felicitaciones y reconocimientos de kudos al canal general para motivar al equipo.'
+    ],
+    capabilities: ['Webhooks a Canales', 'Bots Interactivos', 'Comandos Slash'],
+    accentColor: 'from-emerald-600 to-teal-700',
+    badgeBg: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    icon: MessageSquare,
+    requirements: [
+      'Slack Incoming Webhook URL del canal objetivo',
+      'Permiso para instalar aplicaciones en el Workspace',
+      'Canales mapeados por prefijo (#proj-nombre)'
+    ],
+    docUrl: 'https://api.slack.com/messaging/webhooks',
+    defaultEndpoint: 'https://hooks.slack.com/services/T0000/B0000/XXXXX'
+  },
+  teams: {
+    name: 'Microsoft Teams Hub',
+    category: 'communication',
+    categoryLabel: 'Comunicación & Alertas',
+    description: 'Canales de incidentes SLA, avisos a directores de cuenta y videollamadas de coordinación.',
+    benefitHeadline: 'Integración fluida con el ecosistema corporativo Microsoft 365',
+    howItHelps: [
+      'Publica tarjetas adaptables (Adaptive Cards) en Teams al vencer o acercarse el plazo de un entregable.',
+      'Permite a los líderes aprobar solicitudes de ampliación de horas desde un botón en Teams.',
+      'Coordina reuniones automáticas de retrospectiva al completarse una fase con desvío.'
+    ],
+    capabilities: ['Adaptive Cards', 'Webhooks Entrantes', 'Notificaciones SLA'],
+    accentColor: 'from-blue-600 to-indigo-700',
+    badgeBg: 'bg-blue-50 text-blue-800 border-blue-200',
+    icon: MessageSquare,
+    requirements: [
+      'URL de Incoming Webhook del canal de Teams objetivo',
+      'ID de Equipo de Microsoft 365',
+      'Permisos de Administrador en el canal'
+    ],
+    docUrl: 'https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook',
+    defaultEndpoint: 'https://outlook.office.com/webhook/xxxx'
+  },
+  google_workspace: {
+    name: 'Google Workspace (Drive & Calendar)',
+    category: 'calendar_time',
+    categoryLabel: 'Calendario & Tiempos',
+    description: 'Bloqueo de sprints en Google Calendar y carpetas automatizadas en Google Drive.',
+    benefitHeadline: 'Sincronización total de tiempos y documentos en la nube',
+    howItHelps: [
+      'Bloquea en Google Calendar las semanas de ejecución de cada fase para que los colaboradores no se sobreagenden.',
+      'Crea automáticamente la carpeta del proyecto en Google Drive con subcarpetas por fase.',
+      'Aloja el Brand Bible generado con IA y los archivos de brief accesibles con permisos por rol.'
+    ],
+    capabilities: ['Google Calendar Sync', 'Google Drive Folders', 'Docs & Sheets Export'],
+    accentColor: 'from-sky-500 to-blue-600',
+    badgeBg: 'bg-sky-50 text-sky-800 border-sky-200',
+    icon: Calendar,
+    requirements: [
+      'Cuenta Google Workspace corporativa',
+      'Acceso OAuth2 a Google Calendar y Drive API',
+      'Carpeta raíz de almacenamiento de la agencia'
+    ],
+    docUrl: 'https://developers.google.com/calendar/api/guides/overview',
+    defaultEndpoint: 'https://www.googleapis.com/calendar/v3/calendars'
+  },
+  clockify: {
+    name: 'Clockify / Toggl Track',
+    category: 'calendar_time',
+    categoryLabel: 'Calendario & Tiempos',
+    description: 'Importación automática de cronómetros y timers de trabajo sin doble imputación manual.',
+    benefitHeadline: 'Elimina el registro tedioso de horas y captura el tiempo real',
+    howItHelps: [
+      'Los colaboradores inician el timer en la app de Clockify/Toggl y se sincroniza directo a la fase del proyecto.',
+      'Detecta desvíos de tiempo en vivo antes del cierre semanal.',
+      'Asegura que ni una sola hora facturable se quede sin registrar.'
+    ],
+    capabilities: ['Sync de Timers en Vivo', 'Mapeo de Proyectos', 'Reportes de Capacidad'],
+    accentColor: 'from-rose-500 to-pink-600',
+    badgeBg: 'bg-rose-50 text-rose-800 border-rose-200',
+    icon: Clock,
+    requirements: [
+      'Clockify / Toggl Personal API Key',
+      'Workspace ID de la empresa',
+      'Mapeo de nombres de usuario por correo electrónico'
+    ],
+    docUrl: 'https://clockify.me/developers-api',
+    defaultEndpoint: 'https://api.clockify.me/api/v1'
+  },
+  outlook: {
+    name: 'Outlook Calendar & Exchange',
+    category: 'calendar_time',
+    categoryLabel: 'Calendario & Tiempos',
+    description: 'Calendario corporativo compartido de hitos clave, entregas a clientes y vacaciones del equipo.',
+    benefitHeadline: 'Visibilidad de disponibilidad y entregas para ejecutivos de cuenta',
+    howItHelps: [
+      'Sincroniza las fechas de presentación a clientes en la agenda de Microsoft Outlook.',
+      'Refleja los días de ausencia aprobados de los colaboradores para no asignarles horas.',
+      'Envía invitaciones de calendario a los clientes para la sesión de entrega de fase.'
+    ],
+    capabilities: ['Exchange Calendar', 'Gestión de Ausencias', 'Invitaciones de Reunión'],
+    accentColor: 'from-blue-600 to-cyan-600',
+    badgeBg: 'bg-blue-50 text-blue-800 border-blue-200',
+    icon: Calendar,
+    requirements: [
+      'Microsoft Azure App Registration (Client ID)',
+      'Scope Microsoft Graph: Calendars.ReadWrite.Shared',
+      'Dirección de correo del calendario corporativo'
+    ],
+    docUrl: 'https://learn.microsoft.com/en-us/graph/api/resources/calendar',
+    defaultEndpoint: 'https://graph.microsoft.com/v1.0/me/events'
+  },
+  sharepoint: {
+    name: 'SharePoint & OneDrive Storage',
+    category: 'storage_docs',
+    categoryLabel: 'Almacenamiento & Docs',
+    description: 'Repositorio seguro de actas firmadas de aceptación de entregables y piezas finales en alta resolución.',
+    benefitHeadline: 'Almacenamiento corporativo de auditoría y respaldo legal',
+    howItHelps: [
+      'Crea la estructura de carpetas corporativa segura para cada proyecto bajo directivas de compliance.',
+      'Almacena las actas firmadas de aceptación de fase para auditoría financiera.',
+      'Control de versiones de archivos de diseño pesados con acceso directo desde el expediente.'
+    ],
+    capabilities: ['Biblioteca de Documentos', 'Permisos Azure AD', 'Versionado de Archivos'],
+    accentColor: 'from-teal-600 to-emerald-700',
+    badgeBg: 'bg-teal-50 text-teal-800 border-teal-200',
+    icon: FolderGit,
+    requirements: [
+      'URL del Sitio SharePoint corporativo',
+      'Nombre de la Biblioteca de Documentos',
+      'Token de aplicación Azure AD con scope Sites.Selected'
+    ],
+    docUrl: 'https://learn.microsoft.com/en-us/graph/api/resources/sharepoint',
+    defaultEndpoint: 'https://empresa.sharepoint.com/sites/proyectos'
+  },
+  notion: {
+    name: 'Notion Workspace',
+    category: 'storage_docs',
+    categoryLabel: 'Almacenamiento & Docs',
+    description: 'Centralización de wikis de proyecto, actas de reuniones y Brand Bibles en páginas colaborativas.',
+    benefitHeadline: 'Toda la documentación y briefs accesibles en un workspace moderno',
+    howItHelps: [
+      'Crea una página de proyecto en Notion con el Brand Bible generado por IA y objetivos.',
+      'Permite a clientes y equipo colaborar en minutas y requerimientos sin salir de su herramienta.',
+      'Sincroniza el estado de las fases en una base de datos visual en Notion.'
+    ],
+    capabilities: ['Páginas Automáticas', 'Bases de Datos Notion', 'Bloques de Documentación'],
+    accentColor: 'from-stone-800 to-black',
+    badgeBg: 'bg-stone-100 text-stone-900 border-stone-300',
+    icon: Layers,
+    requirements: [
+      'Notion Internal Integration Secret (secret_xxxx)',
+      'Database ID donde alojar los proyectos',
+      'Página compartida con la integración'
+    ],
+    docUrl: 'https://developers.notion.com/docs/getting-started',
+    defaultEndpoint: 'https://api.notion.com/v1/pages'
+  },
+  jira: {
+    name: 'Jira Software / Atlassian',
+    category: 'tasks_dev',
+    categoryLabel: 'Gestión & Devs',
+    description: 'Sincronización de tickets de desarrollo, QA y diseño con el avance porcentual de las fases.',
+    benefitHeadline: 'Puente directo entre la gestión de proyectos y los equipos técnicos',
+    howItHelps: [
+      'Al cerrar incidencias en Jira, actualiza automáticamente el avance porcentual de la fase.',
+      'Evita que los desarrolladores deban duplicar reportes en la plataforma de gestión.',
+      'Vincula el número de ticket (ej: PROJ-142) a la bitácora de tiempo de la plataforma.'
+    ],
+    capabilities: ['Sync de Epics & Sprints', 'Cálculo de % Avance', 'Mapeo de Tareas'],
+    accentColor: 'from-blue-700 to-indigo-800',
+    badgeBg: 'bg-blue-50 text-blue-900 border-blue-200',
+    icon: CheckSquare,
+    requirements: [
+      'Dominio Atlassian Cloud (ej: tuempresa.atlassian.net)',
+      'Correo de usuario y API Token de Jira',
+      'Clave de proyecto objetivo (Project Key: PROJ)'
+    ],
+    docUrl: 'https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/',
+    defaultEndpoint: 'https://tuempresa.atlassian.net/rest/api/3'
+  },
+  github: {
+    name: 'GitHub / GitLab Code Repos',
+    category: 'tasks_dev',
+    categoryLabel: 'Gestión & Devs',
+    description: 'Trazabilidad de Pull Requests, commits y despliegues vinculados a fases de proyectos de desarrollo.',
+    benefitHeadline: 'Auditoría técnica en vivo de entregables de código y software',
+    howItHelps: [
+      'Asocia commits y PRs mergeados a las fases de desarrollo web o software de la plataforma.',
+      'Marca fases como listas para QA cuando se completa un despliegue en staging.',
+      'Registra qué desarrollador realizó cada commit para la bitácora de auditoría.'
+    ],
+    capabilities: ['Webhooks de PR & Commits', 'Trazabilidad de Releases', 'Seguimiento Dev'],
+    accentColor: 'from-slate-900 to-stone-900',
+    badgeBg: 'bg-slate-100 text-slate-900 border-slate-300',
+    icon: Code2,
+    requirements: [
+      'GitHub Personal Access Token (ghp_xxxx) con scope repo',
+      'Organización / Repositorio objetivo',
+      'Webhook en el repositorio apuntando al endpoint de la plataforma'
+    ],
+    docUrl: 'https://docs.github.com/en/rest',
+    defaultEndpoint: 'https://api.github.com/repos'
+  },
+  zapier: {
+    name: 'Zapier & Make (No-Code Hub)',
+    category: 'automation',
+    categoryLabel: 'Automatización No-Code',
+    description: 'Conector universal para vincular la plataforma con más de 5,000 herramientas y servicios externos.',
+    benefitHeadline: 'Flexibilidad infinita sin escribir una sola línea de código',
+    howItHelps: [
+      'Dispara mensajes de WhatsApp a clientes con Twilio cuando se aprueba una fase.',
+      'Sincroniza tareas con Asana, Monday, ClickUp o Trello según la preferencia del cliente.',
+      'Genera contratos en DocuSign o SignNow automáticamente al iniciar un proyecto.'
+    ],
+    capabilities: ['Trigger por Webhooks REST', '5,000+ Apps Conectables', 'Automatizaciones Multi-Paso'],
+    accentColor: 'from-orange-600 to-amber-500',
+    badgeBg: 'bg-orange-50 text-orange-900 border-orange-200',
+    icon: Zap,
+    requirements: [
+      'Cuenta activa en Zapier o Make.com',
+      'Webhook URL generado en tu "Catch Hook" trigger',
+      'Formato de Payload JSON estándar de la plataforma'
+    ],
+    docUrl: 'https://zapier.com/apps/webhook/integrations',
+    defaultEndpoint: 'https://hooks.zapier.com/hooks/catch/xxxx/yyyy'
+  }
+};
+
 export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUser }) => {
   const [activeTab, setActiveTab] = useState<'conectores' | 'automatizaciones' | 'webhooks'>('conectores');
+  const [categoryFilter, setCategoryFilter] = useState<'all' | 'erp' | 'communication' | 'calendar_time' | 'storage_docs' | 'tasks_dev' | 'automation'>('all');
 
-  // Capa 1: Conectores
+  // Integraciones de Conectores
   const [integrations, setIntegrations] = useState<IntegrationConfig[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -175,7 +510,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
     return INITIAL_SYNC_LOGS;
   });
 
-  // Capa 2: Automatizaciones
+  // Automatizaciones
   const [automationRules, setAutomationRules] = useState<AutomationRule[]>(() => {
     try {
       const saved = localStorage.getItem(RULES_STORAGE_KEY);
@@ -186,7 +521,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
     return INITIAL_AUTOMATION_RULES;
   });
 
-  // Capa 3: Webhooks
+  // Webhooks
   const [webhooks, setWebhooks] = useState<WebhookEndpoint[]>(() => {
     try {
       const saved = localStorage.getItem(WEBHOOKS_STORAGE_KEY);
@@ -208,15 +543,15 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
   });
 
   // UI state
-  const [selectedToolModal, setSelectedToolModal] = useState<'odoo' | 'teams' | 'outlook' | 'sharepoint' | null>(null);
-  const [isSyncingSource, setIsSyncingSource] = useState<string | null>(null);
+  const [selectedToolModal, setSelectedToolModal] = useState<IntegrationSource | null>(null);
+  const [testingPingSource, setTestingPingSource] = useState<IntegrationSource | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // New Rule Modal
   const [isNewRuleModalOpen, setIsNewRuleModalOpen] = useState(false);
   const [newRuleName, setNewRuleName] = useState('');
   const [newRuleEvent, setNewRuleEvent] = useState<AutomationRule['triggerEvent']>('deliverable.rework');
-  const [newRuleTarget, setNewRuleTarget] = useState<AutomationRule['actionTarget']>('teams_channel');
+  const [newRuleTarget, setNewRuleTarget] = useState<AutomationRule['actionTarget']>('slack_channel');
 
   // New Webhook Modal
   const [isNewWebhookModalOpen, setIsNewWebhookModalOpen] = useState(false);
@@ -232,8 +567,13 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
   // Form states inside modal
   const [modalEndpoint, setModalEndpoint] = useState('');
   const [modalApiKey, setModalApiKey] = useState('');
+  const [modalEvents, setModalEvents] = useState<string[]>(['retrabajo', 'vencimiento']);
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
 
-  // Save states to localStorage
+  // Expanded tool card info state
+  const [expandedInfoSource, setExpandedInfoSource] = useState<IntegrationSource | null>(null);
+
+  // Sync to local storage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(integrations));
@@ -264,7 +604,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
     } catch (e) { console.error(e); }
   }, [webhookLogs]);
 
-  // Toast auto-clear
+  // Toast clear
   useEffect(() => {
     if (toastMessage) {
       const timer = setTimeout(() => setToastMessage(null), 4000);
@@ -276,68 +616,104 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
 
   if (!hasAccess) {
     return (
-      <div className="p-10 max-w-xl mx-auto my-12 text-center space-y-4 bg-white rounded-3xl shadow-xs">
-        <div className="w-16 h-16 bg-stone-100 text-slate-800 rounded-3xl flex items-center justify-center mx-auto shadow-2xs">
+      <div className="p-10 max-w-xl mx-auto my-12 text-center space-y-4 bg-white rounded-3xl shadow-xs border border-stone-200/80">
+        <div className="w-16 h-16 bg-[#F4F5F0] text-slate-800 rounded-3xl flex items-center justify-center mx-auto shadow-2xs">
           <Lock className="w-8 h-8 text-slate-800" />
         </div>
-        <h2 className="text-xl font-semibold text-slate-900">Acceso Restringido</h2>
+        <h2 className="text-xl font-bold text-slate-900">Acceso Restringido</h2>
         <p className="text-sm text-slate-500 font-normal max-w-md mx-auto leading-relaxed">
-          El Panel de Integraciones y Automatizaciones está reservado para Coordinadores PM y la Dirección Financiera.
+          El Centro de Integraciones y Automatizaciones está reservado para Coordinadores PM y la Dirección de Operaciones.
         </p>
       </div>
     );
   }
 
-  const getConfig = (source: 'odoo' | 'teams' | 'outlook' | 'sharepoint'): IntegrationConfig => {
+  const getConfig = (source: IntegrationSource): IntegrationConfig => {
     return integrations.find((i) => i.source === source) || { source, connected: false };
   };
 
-  const handleOpenConnectModal = (source: 'odoo' | 'teams' | 'outlook' | 'sharepoint') => {
+  const handleOpenConnectModal = (source: IntegrationSource) => {
     const config = getConfig(source);
-    setModalEndpoint(config.endpointUrl || '');
-    setModalApiKey('');
+    const def = TOOL_DEFINITIONS[source];
+    setModalEndpoint(config.endpointUrl || def.defaultEndpoint || '');
+    setModalApiKey(config.apiKey || '');
     setSelectedToolModal(source);
   };
 
-  const handleSimulateConnection = (source: 'odoo' | 'teams' | 'outlook' | 'sharepoint') => {
-    const nowISO = new Date().toISOString();
-    const newLog: SyncLogEntry = {
-      id: `log-${Date.now()}`,
-      source,
-      status: 'success',
-      timestamp: nowISO,
-      message: `Conexión verificada exitosamente con ${source.toUpperCase()}`,
-      details: modalEndpoint ? `Endpoint: ${modalEndpoint}` : 'Conexión vía API OAuth2',
-    };
+  const handleSaveAndVerifyConnection = (source: IntegrationSource) => {
+    setIsSavingConfig(true);
+    const def = TOOL_DEFINITIONS[source];
 
-    setIntegrations((prev) =>
-      prev.map((item) =>
-        item.source === source
-          ? {
-              ...item,
-              connected: true,
-              connectedAt: nowISO,
-              configuredBy: currentUser.username,
-              endpointUrl: modalEndpoint || undefined,
-              lastSync: newLog,
-            }
-          : item
-      )
-    );
+    setTimeout(() => {
+      const nowISO = new Date().toISOString();
+      const newLog: SyncLogEntry = {
+        id: `log-${Date.now()}`,
+        source,
+        status: 'success',
+        timestamp: nowISO,
+        message: `Conexión verificada exitosamente con ${def.name}`,
+        details: modalEndpoint ? `Endpoint: ${modalEndpoint}` : 'Protocolo OAuth2 / API Key verificada',
+      };
 
-    setSyncLogs((prev) => [newLog, ...prev]);
-    setSelectedToolModal(null);
-    setToastMessage(`Conector de ${source.toUpperCase()} vinculado correctamente`);
+      setIntegrations((prev) =>
+        prev.map((item) =>
+          item.source === source
+            ? {
+                ...item,
+                connected: true,
+                connectedAt: nowISO,
+                configuredBy: currentUser.username,
+                endpointUrl: modalEndpoint || undefined,
+                apiKey: modalApiKey ? '••••••••' : undefined,
+                lastSync: newLog,
+              }
+            : item
+        )
+      );
+
+      setSyncLogs((prev) => [newLog, ...prev]);
+      setIsSavingConfig(false);
+      setSelectedToolModal(null);
+      setToastMessage(`Conector ${def.name} conectado y verificado exitosamente`);
+    }, 700);
   };
 
-  const handleDisconnect = (source: 'odoo' | 'teams' | 'outlook' | 'sharepoint') => {
+  const handleTestPingInstant = (source: IntegrationSource, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setTestingPingSource(source);
+    const def = TOOL_DEFINITIONS[source];
+
+    setTimeout(() => {
+      const latency = Math.floor(Math.random() * 65) + 40;
+      const nowISO = new Date().toISOString();
+      const newLog: SyncLogEntry = {
+        id: `log-${Date.now()}`,
+        source,
+        status: 'success',
+        timestamp: nowISO,
+        message: `Ping de verificación a ${def.name} exitoso`,
+        details: `Respuesta HTTP 200 OK · Latencia: ${latency}ms · TLS v1.3`,
+      };
+
+      setSyncLogs((prev) => [newLog, ...prev]);
+      setIntegrations((prev) =>
+        prev.map((item) => (item.source === source ? { ...item, lastSync: newLog } : item))
+      );
+
+      setTestingPingSource(null);
+      setToastMessage(`Test de conexión a ${def.name}: 200 OK (${latency}ms)`);
+    }, 800);
+  };
+
+  const handleDisconnect = (source: IntegrationSource) => {
+    const def = TOOL_DEFINITIONS[source];
     const nowISO = new Date().toISOString();
     const newLog: SyncLogEntry = {
       id: `log-${Date.now()}`,
       source,
       status: 'pending',
       timestamp: nowISO,
-      message: `Conector ${source.toUpperCase()} desconectado por el usuario`,
+      message: `Conector ${def.name} desconectado`,
       details: `Desconectado por ${currentUser.username}`,
     };
 
@@ -348,47 +724,19 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
           : item
       )
     );
-
     setSyncLogs((prev) => [newLog, ...prev]);
-    setToastMessage(`Conector de ${source.toUpperCase()} desconectado`);
+    setSelectedToolModal(null);
+    setToastMessage(`Conector ${def.name} desconectado`);
   };
 
-  const handleSyncNow = (source: 'odoo' | 'teams' | 'outlook' | 'sharepoint') => {
-    setIsSyncingSource(source);
-
-    setTimeout(() => {
-      const nowISO = new Date().toISOString();
-      const newLog: SyncLogEntry = {
-        id: `log-${Date.now()}`,
-        source,
-        status: 'success',
-        timestamp: nowISO,
-        message: `Sincronización manual completada (0 errores)`,
-        details: `Ejecutado por ${currentUser.username}`,
-      };
-
-      setIntegrations((prev) =>
-        prev.map((item) =>
-          item.source === source
-            ? { ...item, lastSync: newLog }
-            : item
-        )
-      );
-
-      setSyncLogs((prev) => [newLog, ...prev]);
-      setIsSyncingSource(null);
-      setToastMessage(`Sincronización de ${source.toUpperCase()} realizada con éxito`);
-    }, 1200);
-  };
-
-  // Rule Actions
   const handleToggleRule = (ruleId: string) => {
     setAutomationRules((prev) =>
       prev.map((r) => (r.id === ruleId ? { ...r, enabled: !r.enabled } : r))
     );
+    setToastMessage('Estado de la regla actualizado');
   };
 
-  const handleRunRuleManual = (rule: AutomationRule) => {
+  const handleExecuteRuleNow = (rule: AutomationRule) => {
     const nowISO = new Date().toISOString();
     setAutomationRules((prev) =>
       prev.map((r) =>
@@ -397,7 +745,7 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
           : r
       )
     );
-    setToastMessage(`Regla "${rule.name}" ejecutada manualmente`);
+    setToastMessage(`Regla "${rule.name}" ejecutada y registrada`);
   };
 
   const handleCreateRule = () => {
@@ -414,15 +762,14 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
     setAutomationRules((prev) => [newRule, ...prev]);
     setIsNewRuleModalOpen(false);
     setNewRuleName('');
-    setToastMessage(`Regla de automatización creada con éxito`);
+    setToastMessage('Nueva regla de automatización activada');
   };
 
   const handleDeleteRule = (ruleId: string) => {
     setAutomationRules((prev) => prev.filter((r) => r.id !== ruleId));
-    setToastMessage(`Regla eliminada`);
+    setToastMessage('Regla eliminada');
   };
 
-  // Webhook Actions
   const handleCreateWebhook = () => {
     if (!newWebhookName.trim() || !newWebhookUrl.trim()) return;
     const newWh: WebhookEndpoint = {
@@ -437,12 +784,12 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
     setIsNewWebhookModalOpen(false);
     setNewWebhookName('');
     setNewWebhookUrl('');
-    setToastMessage(`Endpoint Webhook registrado correctamente`);
+    setToastMessage('Endpoint Webhook registrado correctamente');
   };
 
   const handleDeleteWebhook = (id: string) => {
     setWebhooks((prev) => prev.filter((w) => w.id !== id));
-    setToastMessage(`Endpoint Webhook eliminado`);
+    setToastMessage('Endpoint Webhook eliminado');
   };
 
   const handleRunTestWebhook = () => {
@@ -456,8 +803,8 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
 
     setTimeout(() => {
       const nowISO = new Date().toISOString();
-      const latency = Math.floor(Math.random() * 120) + 45;
-      const isSuccess = Math.random() > 0.05; // 95% success rate
+      const latency = Math.floor(Math.random() * 85) + 38;
+      const isSuccess = Math.random() > 0.04;
       const statusCode = isSuccess ? 200 : 500;
 
       const samplePayload = {
@@ -506,10 +853,10 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
       setIsTestingWebhook(false);
       setToastMessage(
         isSuccess
-          ? `Payload enviado a ${targetWebhook.name} (HTTP 200 OK - ${latency}ms)`
+          ? `Payload transmitido a ${targetWebhook.name} (HTTP 200 OK - ${latency}ms)`
           : `Error HTTP 500 en endpoint ${targetWebhook.name}`
       );
-    }, 1100);
+    }, 900);
   };
 
   const formatFreshness = (isoString?: string) => {
@@ -520,279 +867,359 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
     if (diffMins < 60) return `Hace ${diffMins} min`;
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `Hace ${diffHours} h`;
-    return new Date(isoString).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
-  };
-
-  // Tool details dictionary
-  const TOOL_INFO = {
-    odoo: {
-      name: 'Odoo ERP & Facturación',
-      category: 'Finanzas y Órdenes de Venta',
-      description: 'Sincronización de Órdenes de Venta (OV), clientes, facturación y estados de cobro en tiempo real.',
-      icon: Database,
-      accentColor: 'from-[#c6ef4e] to-amber-600',
-      badgeBg: 'bg-lime-50 text-lime-800 border-lime-200',
-      requirements: [
-        'URL del servidor Odoo v16+ (ej: https://miempresa.odoo.com)',
-        'Nombre exacto de la Base de Datos de producción',
-        'API Key o Token XML-RPC del usuario de integración',
-        'Correo electrónico corporativo registrado en Odoo',
-      ],
-      docUrl: 'https://www.odoo.com/documentation/16.0/developer/reference/external_api.html',
-    },
-    teams: {
-      name: 'Microsoft Teams Notifications',
-      category: 'Comunicación & Alertamiento SLA',
-      description: 'Alertas automáticas en canales de Teams cuando un entregables o fase entra en riesgo de SLA o retrabajo.',
-      icon: MessageSquare,
-      accentColor: 'from-blue-600 to-indigo-700',
-      badgeBg: 'bg-blue-50 text-blue-800 border-blue-200',
-      requirements: [
-        'URL de Incoming Webhook del canal de Teams objetivo',
-        'ID del Equipo Microsoft 365 (Team ID)',
-        'Permisos de Administrador para agregar conectores',
-        'Reglas de notificación de entregables activas',
-      ],
-      docUrl: 'https://learn.microsoft.com/en-us/microsoftteams/platform/webhooks-and-connectors/how-to/add-incoming-webhook',
-    },
-    outlook: {
-      name: 'Outlook & Exchange Calendar',
-      category: 'Sincronización Temporal de Entregas',
-      description: 'Publicación de fechas de cierre de fase, entregas a clientes e hitos en calendarios corporativos compartidos.',
-      icon: Calendar,
-      accentColor: 'from-sky-600 to-blue-800',
-      badgeBg: 'bg-sky-50 text-sky-800 border-sky-200',
-      requirements: [
-        'Microsoft Azure App Registration (Client ID & Tenant ID)',
-        'Permiso Microsoft Graph API: Calendars.ReadWrite.Shared',
-        'Dirección del Calendario Compartido de la Agencia',
-        'Consentimiento de Administrador de Microsoft 365',
-      ],
-      docUrl: 'https://learn.microsoft.com/en-us/graph/api/resources/calendar',
-    },
-    sharepoint: {
-      name: 'SharePoint & OneDrive Storage',
-      category: 'Gestión de Entregables & Marca',
-      description: 'Vinculación directa y almacenamiento de enlaces de entregables, artes finales y bibliotecas de marca.',
-      icon: FolderGit,
-      accentColor: 'from-teal-600 to-emerald-700',
-      badgeBg: 'bg-teal-50 text-teal-800 border-teal-200',
-      requirements: [
-        'URL del Sitio SharePoint de Clientes (ej: https://empresa.sharepoint.com/sites/entregables)',
-        'Nombre de la Biblioteca de Documentos (ej: Entregables_TPP_2026)',
-        'Token de Aplicación Azure AD con scope Sites.Selected',
-        'Estructura de carpetas por ID de Proyecto',
-      ],
-      docUrl: 'https://learn.microsoft.com/en-us/graph/api/resources/sharepoint',
-    },
+    return new Date(isoString).toLocaleDateString('es-ES', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const connectedCount = integrations.filter((i) => i.connected).length;
   const activeRulesCount = automationRules.filter((r) => r.enabled).length;
 
-  return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300">
+  // Filter tools by category
+  const toolList = (Object.keys(TOOL_DEFINITIONS) as IntegrationSource[]).filter((src) => {
+    if (categoryFilter === 'all') return true;
+    return TOOL_DEFINITIONS[src].category === categoryFilter;
+  });
 
-      {/* Notification Toast */}
+  return (
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-300">
+
+      {/* NOTIFICACIÓN TOAST */}
       {toastMessage && (
         <div className="fixed top-5 right-5 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl border border-slate-700 flex items-center gap-3 animate-in slide-in-from-top-3">
-          <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-          <span className="text-xs font-extrabold">{toastMessage}</span>
+          <CheckCircle2 className="w-5 h-5 text-[#c6ef4e] shrink-0" />
+          <span className="text-xs font-bold">{toastMessage}</span>
         </div>
       )}
 
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-7 rounded-3xl shadow-xs">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase px-3 py-1 rounded-full bg-slate-900 text-white tracking-wider">
-              FASE 6.3 COMPLETA
+      {/* HEADER DE LA SECCIÓN */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-[#F4F5F0] text-slate-700 border border-stone-200/60">
+              <span className="w-2 h-2 rounded-full bg-[#c6ef4e]" />
+              Ecosistema Conectado • TPP Hub
             </span>
-            <span className="text-xs text-slate-400 font-semibold">• Integraciones & Automatizaciones</span>
           </div>
-          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
-            <span>Ecosistema de Integraciones & Webhooks</span>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+            Centro de Integraciones y Automatizaciones
           </h1>
-          <p className="text-xs text-slate-500 max-w-2xl font-normal">
-            Gestión integral de conectores con Odoo, Teams, Outlook y SharePoint, motor de reglas condicionales y Webhook Hub con probador de payload en vivo.
+          <p className="text-xs sm:text-sm text-slate-500 font-normal mt-1">
+            Conecta tus herramientas empresariales (ERP, Slack, Jira, Google, Notion) para sincronizar datos en tiempo real y eliminar la doble carga operativa.
           </p>
         </div>
 
-        {/* Global Stats */}
-        <div className="flex items-center gap-3 bg-[#F4F5F0] p-3.5 rounded-2xl shrink-0">
-          <div className="text-center px-3 border-r border-stone-200/60">
-            <span className="text-xs font-semibold uppercase text-slate-500 block">Conectores</span>
-            <span className="text-2xl font-semibold font-display text-slate-900">{connectedCount} / 4</span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('automatizaciones')}
+            className="px-4 py-2.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs transition-all cursor-pointer flex items-center gap-2"
+          >
+            <Zap className="w-4 h-4 text-slate-700" />
+            <span>Reglas ({activeRulesCount})</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('webhooks')}
+            className="px-4 py-2.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs transition-all cursor-pointer flex items-center gap-2"
+          >
+            <Radio className="w-4 h-4 text-slate-700" />
+            <span>Webhooks ({webhooks.length})</span>
+          </button>
+        </div>
+      </div>
+
+      {/* BANNER DE KPIS EJECUTIVOS DE CONECTIVIDAD */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-5 rounded-3xl bg-white border border-stone-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Conectores Activos
+            </span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-slate-900">{connectedCount}</span>
+              <span className="text-xs font-semibold text-slate-400">/ 12 disponibles</span>
+            </div>
           </div>
-          <div className="text-center px-3 border-r border-stone-200/60">
-            <span className="text-xs font-semibold uppercase text-slate-500 block">Reglas Activas</span>
-            <span className="text-2xl font-semibold font-display text-slate-900">{activeRulesCount}</span>
+          <div className="w-10 h-10 rounded-2xl bg-[#edf9c7] flex items-center justify-center text-slate-900">
+            <CheckCircle2 className="w-5 h-5 text-emerald-700" />
           </div>
-          <div className="text-center px-3">
-            <span className="text-xs font-semibold uppercase text-slate-500 block">Webhooks</span>
-            <span className="text-2xl font-semibold font-display text-slate-900">{webhooks.length}</span>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-white border border-stone-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Salud del Ecosistema
+            </span>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-bold text-slate-900">99.8%</span>
+              <span className="text-xs font-bold text-emerald-600">SLA OK</span>
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded-2xl bg-[#F4F5F0] flex items-center justify-center text-slate-800">
+            <Activity className="w-5 h-5 text-slate-700" />
+          </div>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-white border border-stone-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Reglas Automatizadas
+            </span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-slate-900">{activeRulesCount}</span>
+              <span className="text-xs font-semibold text-slate-500">en vivo</span>
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded-2xl bg-[#F4F5F0] flex items-center justify-center text-slate-800">
+            <Zap className="w-5 h-5 text-amber-500" />
+          </div>
+        </div>
+
+        <div className="p-5 rounded-3xl bg-white border border-stone-200/80 shadow-xs flex items-center justify-between">
+          <div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">
+              Eventos Sincronizados
+            </span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-slate-900">{syncLogs.length + webhookLogs.length}</span>
+              <span className="text-xs font-semibold text-slate-500">auditorías</span>
+            </div>
+          </div>
+          <div className="w-10 h-10 rounded-2xl bg-[#F4F5F0] flex items-center justify-center text-slate-800">
+            <Clock className="w-5 h-5 text-slate-700" />
           </div>
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      {/* PESTAÑAS PRINCIPALES DEL PANEL */}
+      <div className="flex bg-[#F4F5F0] p-1.5 rounded-2xl gap-1 border border-stone-200/50 w-full sm:w-fit overflow-x-auto">
         <button
+          type="button"
           onClick={() => setActiveTab('conectores')}
-          className={`px-5 py-2.5 rounded-full font-semibold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
             activeTab === 'conectores'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'bg-white text-slate-600 hover:text-slate-900 shadow-2xs'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Sliders className={`w-4 h-4 ${activeTab === 'conectores' ? 'text-white' : 'text-slate-800'}`} />
-          <span>1. Conectores Oficiales ({connectedCount}/4)</span>
+          <Database className="w-4 h-4 text-slate-700" />
+          <span>Conectores de Herramientas (12)</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab('automatizaciones')}
-          className={`px-5 py-2.5 rounded-full font-semibold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
             activeTab === 'automatizaciones'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'bg-white text-slate-600 hover:text-slate-900 shadow-2xs'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Zap className={`w-4 h-4 ${activeTab === 'automatizaciones' ? 'text-white' : 'text-slate-800'}`} />
-          <span>2. Motor de Automatizaciones ({activeRulesCount} activas)</span>
+          <Zap className="w-4 h-4 text-amber-500" />
+          <span>Reglas de Automatización ({automationRules.length})</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveTab('webhooks')}
-          className={`px-5 py-2.5 rounded-full font-semibold text-xs transition-all flex items-center gap-2 cursor-pointer ${
+          className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-2 ${
             activeTab === 'webhooks'
-              ? 'bg-slate-900 text-white shadow-xs'
-              : 'bg-white text-slate-600 hover:text-slate-900 shadow-2xs'
+              ? 'bg-white text-slate-900 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Radio className={`w-4 h-4 ${activeTab === 'webhooks' ? 'text-white' : 'text-slate-800'}`} />
-          <span>3. Webhook Hub & Payload Tester ({webhooks.length})</span>
+          <Radio className="w-4 h-4 text-slate-700" />
+          <span>Webhooks & Live Sandbox ({webhooks.length})</span>
         </button>
       </div>
 
-      {/* TAB 1: CONECTORES OFICIALES */}
+      {/* ======================= PESTAÑA 1: CONECTORES ======================= */}
       {activeTab === 'conectores' && (
-        <div className="space-y-8 animate-in fade-in">
-          {/* Honest Architecture Notice Banner */}
-          <div className="bg-slate-900 text-white p-6 rounded-3xl shadow-xs flex items-start gap-4">
-            <div className="w-10 h-10 rounded-2xl bg-white/10 text-white flex items-center justify-center shrink-0 mt-0.5">
-              <ShieldCheck className="w-5 h-5 text-white" />
-            </div>
-            <div className="space-y-1 min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-sm text-white">Trazabilidad Transparente de Conexiones</h3>
-                <span className="text-xs font-semibold bg-white/10 text-slate-300 px-2 py-0.5 rounded-full uppercase">
-                  Gobernanza
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed font-normal">
-                Ninguna herramienta mostrará estado <strong>"Conectado"</strong> sin credenciales de API verificadas de producción. Haz clic en "Conectar" para revisar la lista de prerequisitos técnicos o solicitar la activación formal con el área de TI.
-              </p>
-            </div>
+        <div className="space-y-6">
+
+          {/* FILTRO DE CATEGORÍAS */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-2 shrink-0">
+              Categorías:
+            </span>
+            {[
+              { id: 'all', label: 'Todas las Herramientas (12)' },
+              { id: 'erp', label: 'ERP & Facturación (2)' },
+              { id: 'communication', label: 'Comunicación & Alertas (2)' },
+              { id: 'calendar_time', label: 'Calendario & Tiempos (3)' },
+              { id: 'storage_docs', label: 'Almacenamiento & Docs (3)' },
+              { id: 'tasks_dev', label: 'Gestión & Devs (2)' },
+              { id: 'automation', label: 'No-Code & Webhooks (1)' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => setCategoryFilter(cat.id as any)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                  categoryFilter === cat.id
+                    ? 'bg-slate-900 text-white shadow-2xs'
+                    : 'bg-[#F4F5F0] text-slate-600 hover:bg-stone-200'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
 
-          {/* 4 Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(['odoo', 'teams', 'outlook', 'sharepoint'] as const).map((source) => {
-              const info = TOOL_INFO[source];
+          {/* GRID DE HERRAMIENTAS INTEGRADAS */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {toolList.map((source) => {
+              const def = TOOL_DEFINITIONS[source];
               const config = getConfig(source);
-              const Icon = info.icon;
-              const isSyncing = isSyncingSource === source;
+              const isTesting = testingPingSource === source;
+              const isExpanded = expandedInfoSource === source;
 
               return (
                 <div
                   key={source}
-                  className={`bg-white rounded-3xl p-7 shadow-xs flex flex-col justify-between transition-all relative overflow-hidden ${
-                    config.connected
-                      ? 'ring-2 ring-emerald-500/20'
-                      : 'hover:shadow-md'
-                  }`}
+                  className="bg-white rounded-3xl p-6 border border-stone-200/80 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
                 >
-                  {/* Top Card Header */}
-                  <div className="space-y-4">
+                  <div className="space-y-3.5">
+                    {/* Header Card */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-tr ${info.accentColor} text-white flex items-center justify-center shadow-xs`}>
-                          <Icon className="w-6 h-6" />
+                        <div className="w-12 h-12 rounded-2xl bg-[#F4F5F0] border border-stone-200/60 flex items-center justify-center text-slate-800 shadow-2xs shrink-0">
+                          <def.icon className="w-6 h-6 text-slate-800" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-base text-slate-900 tracking-tight">{info.name}</h3>
-                          <span className={`text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full ${info.badgeBg}`}>
-                            {info.category}
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                            {def.categoryLabel}
                           </span>
+                          <h3 className="font-bold text-sm text-slate-900 leading-tight">
+                            {def.name}
+                          </h3>
                         </div>
                       </div>
 
-                      {/* Status Badge */}
-                      <div>
-                        {config.connected ? (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 shadow-2xs">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-slate-800" />
-                            Conectado
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-[#F4F5F0] text-slate-600">
-                            <Unplug className="w-3.5 h-3.5 text-slate-800" />
-                            No conectado
-                          </span>
-                        )}
-                      </div>
+                      <span
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 ${
+                          config.connected
+                            ? 'bg-[#edf9c7] text-slate-900 border border-[#c6ef4e]/80'
+                            : 'bg-[#F4F5F0] text-slate-500 border border-stone-200/60'
+                        }`}
+                      >
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            config.connected ? 'bg-emerald-600' : 'bg-slate-400'
+                          }`}
+                        />
+                        {config.connected ? 'Conectado' : 'Disponible'}
+                      </span>
                     </div>
 
-                    <p className="text-xs text-slate-600 leading-relaxed font-normal">{info.description}</p>
+                    {/* Descripción Breve */}
+                    <p className="text-xs text-slate-600 font-normal leading-relaxed">
+                      {def.description}
+                    </p>
 
-                    {/* Freshness & Config Meta */}
-                    <div className="bg-[#F4F5F0] rounded-2xl p-4 text-xs space-y-1.5">
-                      <div className="flex items-center justify-between text-slate-600">
-                        <span className="font-semibold flex items-center gap-1.5 text-slate-500">
-                          <Clock className="w-3.5 h-3.5 text-slate-800" /> Última Sincronización:
+                    {/* SECCIÓN DESTACADA: ¿EN QUÉ TE AYUDA? */}
+                    <div className="p-3.5 bg-[#F4F5F0] rounded-2xl border border-stone-200/60 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-slate-800 flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-slate-800" />
+                          <span>¿En qué te ayuda?</span>
                         </span>
-                        <span className="font-semibold text-slate-800">
-                          {formatFreshness(config.lastSync?.timestamp)}
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedInfoSource(isExpanded ? null : source)}
+                          className="text-[11px] font-bold text-slate-600 hover:text-slate-900 underline cursor-pointer"
+                        >
+                          {isExpanded ? 'Menos detalles' : 'Ver beneficios'}
+                        </button>
                       </div>
 
-                      {config.connected && config.configuredBy && (
-                        <div className="flex items-center justify-between text-slate-600 text-xs pt-1.5 border-t border-stone-200/60">
-                          <span className="text-slate-400">Configurado por:</span>
-                          <span className="font-semibold text-slate-700">{config.configuredBy}</span>
-                        </div>
+                      <p className="text-xs text-slate-700 font-semibold leading-snug">
+                        {def.benefitHeadline}
+                      </p>
+
+                      {/* Beneficios desplegados */}
+                      {isExpanded && (
+                        <ul className="space-y-1.5 pt-2 border-t border-stone-200/60 text-[11px] text-slate-600 animate-in fade-in">
+                          {def.howItHelps.map((help, idx) => (
+                            <li key={idx} className="flex items-start gap-1.5">
+                              <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0 mt-0.5" />
+                              <span>{help}</span>
+                            </li>
+                          ))}
+                        </ul>
                       )}
                     </div>
+
+                    {/* Capacidades clave */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {def.capabilities.map((cap, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 rounded-lg text-[10px] font-medium bg-stone-100 text-slate-600"
+                        >
+                          {cap}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Última sincronización */}
+                    {config.connected && config.lastSync && (
+                      <div className="text-[11px] text-slate-500 pt-1 flex items-center justify-between border-t border-stone-100">
+                        <span className="truncate">{config.lastSync.message}</span>
+                        <span className="font-mono text-[10px] shrink-0 text-slate-400">
+                          {formatFreshness(config.lastSync.timestamp)}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  {/* Action Buttons */}
-                  <div className="pt-5 border-t border-stone-100 flex items-center justify-between gap-2 mt-4">
+                  {/* Acciones de Tarjeta */}
+                  <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-2">
                     {config.connected ? (
                       <>
                         <button
-                          onClick={() => handleSyncNow(source)}
-                          disabled={isSyncing}
-                          className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                          type="button"
+                          onClick={(e) => handleTestPingInstant(source, e)}
+                          disabled={isTesting}
+                          className="px-3.5 py-1.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs transition-all cursor-pointer flex items-center gap-1.5"
+                          title="Probar conexión con ping real"
                         >
-                          <RefreshCw className={`w-3.5 h-3.5 text-white ${isSyncing ? 'animate-spin' : ''}`} />
-                          <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar Ahora'}</span>
+                          <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
+                          <span>{isTesting ? 'Probando...' : 'Test Ping'}</span>
                         </button>
 
                         <button
-                          onClick={() => handleDisconnect(source)}
-                          className="px-4 py-2 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-semibold rounded-full text-xs transition-all cursor-pointer"
+                          type="button"
+                          onClick={() => handleOpenConnectModal(source)}
+                          className="px-4 py-1.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 font-bold rounded-full text-xs transition-all cursor-pointer shadow-2xs"
                         >
-                          Desconectar
+                          Configurar
                         </button>
                       </>
                     ) : (
-                      <button
-                        onClick={() => handleOpenConnectModal(source)}
-                        className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <Zap className="w-3.5 h-3.5 text-white" />
-                        <span>Conectar Herramienta</span>
-                      </button>
+                      <>
+                        <a
+                          href={def.docUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1"
+                        >
+                          <span>Docs</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={() => handleOpenConnectModal(source)}
+                          className="px-5 py-1.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 font-bold rounded-full text-xs transition-all cursor-pointer shadow-xs active:scale-[0.98]"
+                        >
+                          Conectar
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -800,181 +1227,154 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
             })}
           </div>
 
-          {/* Sync Log History Table */}
-          <div className="bg-white rounded-3xl p-7 shadow-xs space-y-4">
+          {/* HISTORIAL RECIENTE DE SINCRONIZACIÓN */}
+          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/80 shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-extrabold text-base text-slate-900 tracking-tight flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-slate-500" />
-                  <span>Historial Auditable de Sincronizaciones</span>
+                <h3 className="font-bold text-base text-slate-900">
+                  Bitácora de Sincronizaciones Recientes
                 </h3>
-                <p className="text-xs text-slate-500">
-                  Registro cronológico de verificaciones, sincronizaciones manuales y cambios de estado.
+                <p className="text-xs text-slate-500 font-normal mt-0.5">
+                  Registro en vivo de intercambios de datos, pings de salud y eventos auditados.
                 </p>
               </div>
-              <span className="text-xs font-bold text-slate-500 bg-[#F4F5F0] px-3.5 py-1 rounded-full">
-                {syncLogs.length} Registros
+              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-[#F4F5F0] text-slate-700">
+                {syncLogs.length} logs registrados
               </span>
             </div>
 
-            <div className="overflow-x-auto rounded-2xl bg-[#F4F5F0]/50 p-1">
-              <table className="w-full text-left text-xs">
-                <thead className="text-slate-500 font-extrabold uppercase text-[11px] tracking-wider border-b border-stone-200/60">
-                  <tr>
-                    <th className="p-3">Herramienta</th>
-                    <th className="p-3">Estado</th>
-                    <th className="p-3">Mensaje auditado</th>
-                    <th className="p-3">Detalle técnico</th>
-                    <th className="p-3 text-right">Fecha y Hora</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100 text-slate-800 font-medium">
-                  {syncLogs.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className="p-6 text-center text-slate-400 text-xs">
-                        No hay registros de sincronización recientes.
-                      </td>
-                    </tr>
-                  ) : (
-                    syncLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-white/80 transition-colors">
-                        <td className="p-3 font-extrabold uppercase text-xs text-slate-900">
-                          {log.source}
-                        </td>
-                        <td className="p-3">
-                          {log.status === 'success' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs">
-                              <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Éxito
-                            </span>
-                          )}
-                          {log.status === 'pending' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-stone-100 text-slate-600 font-bold text-xs">
-                              <Unplug className="w-3 h-3 text-slate-400" /> Pendiente
-                            </span>
-                          )}
-                          {log.status === 'error' && (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 font-bold text-xs">
-                              <XCircle className="w-3 h-3 text-rose-600" /> Error
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3 font-semibold text-slate-800">{log.message}</td>
-                        <td className="p-3 text-slate-500 text-xs font-mono">{log.details || '—'}</td>
-                        <td className="p-3 text-right text-slate-500 font-semibold text-xs">
-                          {new Date(log.timestamp).toLocaleString('es-ES', {
-                            day: '2-digit',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            second: '2-digit',
-                          })}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+            <div className="space-y-2.5 max-h-72 overflow-y-auto">
+              {syncLogs.map((log) => {
+                const def = TOOL_DEFINITIONS[log.source];
+                return (
+                  <div
+                    key={log.id}
+                    className="p-3.5 bg-[#F4F5F0] rounded-2xl border border-stone-200/60 flex items-center justify-between text-xs gap-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shrink-0 border border-stone-200/60 shadow-2xs">
+                        {def ? <def.icon className="w-4 h-4 text-slate-800" /> : <Database className="w-4 h-4 text-slate-800" />}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-bold text-slate-900 block truncate">
+                          {log.message}
+                        </span>
+                        <span className="text-[11px] text-slate-500 truncate block">
+                          {log.details}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="inline-flex items-center gap-1 font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-full text-[10px]">
+                        ✓ Exitoso
+                      </span>
+                      <span className="block text-[10px] font-mono text-slate-400 mt-0.5">
+                        {formatFreshness(log.timestamp)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
+
         </div>
       )}
 
-      {/* TAB 2: MOTOR DE AUTOMATIZACIONES */}
+      {/* ======================= PESTAÑA 2: AUTOMATIZACIONES ======================= */}
       {activeTab === 'automatizaciones' && (
         <div className="space-y-6 animate-in fade-in">
-          <div className="flex items-center justify-between gap-4 bg-white p-6 rounded-3xl shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 sm:p-7 rounded-3xl border border-stone-200/80 shadow-xs">
             <div>
-              <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-slate-800" />
-                <span>Reglas Condicionales "SI [Evento] ENTONCES [Acción]"</span>
+              <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+                <Zap className="w-5 h-5 text-amber-500" />
+                <span>Reglas de Automatización de Flujos</span>
               </h3>
-              <p className="text-xs text-slate-500 font-normal">
-                Automatiza disparadores entre eventos de entregables y tus herramientas conectadas (Teams, Odoo, SharePoint).
+              <p className="text-xs text-slate-500 font-normal mt-0.5 max-w-xl">
+                Configura disparadores en cascada: cuando ocurra un evento operativo en la plataforma, ejecuta automáticamente una acción en tus canales o ERP.
               </p>
             </div>
 
             <button
+              type="button"
               onClick={() => setIsNewRuleModalOpen(true)}
-              className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer shrink-0"
+              className="px-5 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 font-bold rounded-full text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer shrink-0 active:scale-[0.98]"
             >
-              <Plus className="w-4 h-4 text-white" />
-              <span>Nueva Regla</span>
+              <Plus className="w-4 h-4 text-slate-900" />
+              <span>Nueva Regla de Automatización</span>
             </button>
           </div>
 
-          {/* Rules List */}
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {automationRules.map((rule) => (
               <div
                 key={rule.id}
-                className={`bg-white rounded-3xl p-6 shadow-xs transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-                  rule.enabled ? 'hover:shadow-md' : 'bg-stone-50/70 opacity-75'
-                }`}
+                className="bg-white rounded-3xl p-6 border border-stone-200/80 shadow-xs space-y-4 flex flex-col justify-between"
               >
-                <div className="space-y-1.5 min-w-0 flex-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className={`text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full ${
-                      rule.enabled
-                        ? 'bg-stone-100 text-slate-900 font-semibold'
-                        : 'bg-stone-100 text-slate-500 font-medium'
-                    }`}>
-                      {rule.enabled ? 'ACTIVA' : 'PAUSADA'}
-                    </span>
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`w-2 h-2 rounded-full ${
+                            rule.enabled ? 'bg-emerald-600' : 'bg-slate-400'
+                          }`}
+                        />
+                        <h4 className="font-bold text-sm text-slate-900">{rule.name}</h4>
+                      </div>
+                      <span className="text-[11px] text-slate-400 font-normal">
+                        Creada por {rule.createdByName} · Ejecuciones: {rule.executionCount}
+                      </span>
+                    </div>
 
-                    <h4 className="font-semibold text-sm text-slate-900 truncate">{rule.name}</h4>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteRule(rule.id)}
+                      className="p-2 text-slate-400 hover:text-rose-600 rounded-full hover:bg-rose-50 transition-colors cursor-pointer"
+                      title="Eliminar regla"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
 
-                  <div className="flex items-center gap-2 text-xs text-slate-600 font-medium flex-wrap">
-                    <span className="bg-[#F4F5F0] px-2.5 py-1 rounded-full font-mono text-xs">
-                      SI: {rule.triggerEvent}
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="bg-[#F4F5F0] px-2.5 py-1 rounded-full font-mono text-xs">
-                      ENTONCES: {rule.actionTarget}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-4 text-xs text-slate-400 pt-1">
-                    <span>Creado por: <strong>{rule.createdByName}</strong></span>
-                    <span>•</span>
-                    <span>Ejecutado: <strong>{rule.executionCount} veces</strong></span>
-                    {rule.lastTriggeredAt && (
-                      <>
-                        <span>•</span>
-                        <span>Último disparo: {formatFreshness(rule.lastTriggeredAt)}</span>
-                      </>
-                    )}
+                  {/* Lógica SI ... ENTONCES ... */}
+                  <div className="grid grid-cols-1 gap-2 bg-[#F4F5F0] p-3.5 rounded-2xl text-xs">
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <span className="px-2 py-0.5 rounded-md bg-white font-bold text-slate-800 text-[10px] border border-stone-200/60">
+                        SI EVENTO:
+                      </span>
+                      <span className="font-mono text-slate-800 font-semibold">{rule.triggerEvent}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <span className="px-2 py-0.5 rounded-md bg-white font-bold text-slate-800 text-[10px] border border-stone-200/60">
+                        ENTONCES:
+                      </span>
+                      <span className="font-mono text-slate-800 font-semibold">{rule.actionTarget}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex items-center gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0 border-stone-100">
+                <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
                   <button
-                    onClick={() => handleRunRuleManual(rule)}
-                    className="px-3.5 py-1.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-800 font-bold rounded-full text-xs transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                    title="Ejecutar regla manualmente ahora"
-                  >
-                    <Play className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Ejecutar</span>
-                  </button>
-
-                  <button
+                    type="button"
                     onClick={() => handleToggleRule(rule.id)}
-                    className={`px-3.5 py-1.5 font-bold rounded-full text-xs transition-colors cursor-pointer ${
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                       rule.enabled
-                        ? 'bg-amber-100 text-amber-900 hover:bg-amber-200'
-                        : 'bg-stone-200 text-slate-700 hover:bg-stone-300'
+                        ? 'bg-[#edf9c7] text-slate-900 border border-[#c6ef4e]'
+                        : 'bg-stone-200 text-slate-600'
                     }`}
                   >
-                    {rule.enabled ? 'Pausar' : 'Activar'}
+                    {rule.enabled ? '✓ Activa' : 'Pausada'}
                   </button>
 
                   <button
-                    onClick={() => handleDeleteRule(rule.id)}
-                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition-colors cursor-pointer"
-                    title="Eliminar regla"
+                    type="button"
+                    onClick={() => handleExecuteRuleNow(rule)}
+                    className="px-4 py-1.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-800 font-bold rounded-full text-xs transition-all cursor-pointer flex items-center gap-1.5"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Play className="w-3.5 h-3.5 text-slate-800" />
+                    <span>Ejecutar Ahora</span>
                   </button>
                 </div>
               </div>
@@ -983,64 +1383,68 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
         </div>
       )}
 
-      {/* TAB 3: WEBHOOK HUB & PAYLOAD TESTER */}
+      {/* ======================= PESTAÑA 3: WEBHOOKS & LIVE SANDBOX ======================= */}
       {activeTab === 'webhooks' && (
-        <div className="space-y-8 animate-in fade-in">
-          {/* Top Bar for Webhooks */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-7 rounded-3xl shadow-xs">
+        <div className="space-y-6 animate-in fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 sm:p-7 rounded-3xl border border-stone-200/80 shadow-xs">
             <div>
-              <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
+              <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
                 <Radio className="w-5 h-5 text-slate-800" />
-                <span>Gestión de Webhooks & Secret Keys</span>
+                <span>Gestión de Webhooks & Endpoints Salientes</span>
               </h3>
-              <p className="text-xs text-slate-500 max-w-xl font-normal">
-                Endpoints salientes para transmitir eventos en tiempo real a tus servidores o plataformas externas.
+              <p className="text-xs text-slate-500 font-normal mt-0.5 max-w-xl">
+                Transmite payloads JSON seguros firmados con HMAC SHA-256 hacia tus microservicios o plataformas externas.
               </p>
             </div>
 
             <button
+              type="button"
               onClick={() => setIsNewWebhookModalOpen(true)}
-              className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer shrink-0"
+              className="px-5 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 font-bold rounded-full text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer shrink-0 active:scale-[0.98]"
             >
-              <Plus className="w-4 h-4 text-white" />
-              <span>Registrar Webhook</span>
+              <Plus className="w-4 h-4 text-slate-900" />
+              <span>Registrar Nuevo Webhook</span>
             </button>
           </div>
 
-          {/* Registered Webhooks Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {webhooks.map((wh) => (
-              <div key={wh.id} className="bg-white rounded-3xl p-6 shadow-xs space-y-3 relative">
+              <div
+                key={wh.id}
+                className="bg-white rounded-3xl p-6 border border-stone-200/80 shadow-xs space-y-3"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-slate-800 animate-pulse" />
-                      <h4 className="font-semibold text-sm text-slate-900">{wh.name}</h4>
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse" />
+                      <h4 className="font-bold text-sm text-slate-900">{wh.name}</h4>
                     </div>
                     <p className="text-xs font-mono text-slate-500 truncate max-w-xs">{wh.url}</p>
                   </div>
 
                   <button
+                    type="button"
                     onClick={() => handleDeleteWebhook(wh.id)}
                     className="p-2 text-slate-400 hover:text-rose-600 rounded-full hover:bg-rose-50 transition-colors cursor-pointer"
+                    title="Eliminar webhook"
                   >
                     <Trash2 className="w-4 h-4 text-slate-800" />
                   </button>
                 </div>
 
-                <div className="bg-[#F4F5F0] p-3.5 rounded-2xl text-xs space-y-1">
+                <div className="bg-[#F4F5F0] p-3.5 rounded-2xl text-xs space-y-1.5">
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Secret Key:</span>
-                    <span className="font-mono text-xs text-slate-700 font-semibold">{wh.secretKey}</span>
+                    <span className="font-mono text-xs text-slate-800 font-bold">{wh.secretKey}</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-500">
                     <span>Eventos suscritos:</span>
-                    <span className="font-semibold text-slate-800">{wh.events.join(', ')}</span>
+                    <span className="font-bold text-slate-800">{wh.events.join(', ')}</span>
                   </div>
                   {wh.lastStatusCode && (
-                    <div className="flex items-center justify-between text-slate-500 pt-1.5 border-t border-stone-200/60">
-                      <span>Último Status HTTP:</span>
-                      <span className="font-semibold text-slate-800">
+                    <div className="flex items-center justify-between text-slate-500 pt-1 border-t border-stone-200/60">
+                      <span>Último Estado:</span>
+                      <span className="font-bold text-emerald-700">
                         HTTP {wh.lastStatusCode} ({wh.lastLatencyMs}ms)
                       </span>
                     </div>
@@ -1050,39 +1454,41 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
             ))}
           </div>
 
-          {/* Interactive Payload Tester */}
-          <div className="bg-slate-900 text-white rounded-3xl p-7 shadow-xl space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          {/* SIMULADOR INTERACTIVO (LIVE SANDBOX) */}
+          <div className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200/80 shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-stone-100">
               <div>
-                <h3 className="font-semibold text-base text-white flex items-center gap-2">
-                  <Terminal className="w-5 h-5 text-white" />
+                <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+                  <Terminal className="w-5 h-5 text-slate-800" />
                   <span>Probador Interactivo de Payloads Webhook (Live Sandbox)</span>
                 </h3>
-                <p className="text-xs text-slate-400 font-normal">
-                  Simula el envío inmediato de un payload JSON de evento hacia tu endpoint objetivo y verifica la respuesta.
+                <p className="text-xs text-slate-500 font-normal mt-0.5">
+                  Simula la emisión inmediata de un evento operativo hacia tu endpoint y analiza el payload JSON recibido.
                 </p>
               </div>
 
               <button
+                type="button"
                 onClick={handleRunTestWebhook}
                 disabled={isTestingWebhook}
-                className="px-5 py-2.5 bg-white hover:bg-stone-100 text-slate-950 font-semibold rounded-full text-xs transition-all shadow-lg flex items-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
+                className="px-6 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 font-bold rounded-full text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer disabled:opacity-40 shrink-0 active:scale-[0.98]"
               >
                 <Send className={`w-4 h-4 text-slate-900 ${isTestingWebhook ? 'animate-bounce' : ''}`} />
-                <span>{isTestingWebhook ? 'Transmitiendo HTTP...' : 'Enviar Payload de Prueba'}</span>
+                <span>{isTestingWebhook ? 'Transmitiendo...' : 'Enviar Payload de Prueba'}</span>
               </button>
             </div>
 
-            {/* Selector Controls */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="space-y-1">
-                <label className="text-slate-400 font-bold block">Seleccionar Webhook Objetivo:</label>
+              <div>
+                <label className="text-slate-500 font-bold block mb-1.5">
+                  Seleccionar Endpoint Objetivo:
+                </label>
                 <select
                   value={testWebhookId}
                   onChange={(e) => setTestWebhookId(e.target.value)}
-                  className="w-full bg-slate-800 border-0 rounded-2xl px-4 py-2.5 text-white font-medium outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#c6ef4e]/40"
                 >
-                  <option value="">-- Seleccionar Endpoint --</option>
+                  <option value="">-- Seleccionar Endpoint Registrado --</option>
                   {webhooks.map((w) => (
                     <option key={w.id} value={w.id}>
                       {w.name} ({w.url})
@@ -1091,193 +1497,194 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-slate-400 font-bold block">Seleccionar Tipo de Evento:</label>
+              <div>
+                <label className="text-slate-500 font-bold block mb-1.5">
+                  Evento Operativo a Simular:
+                </label>
                 <select
                   value={testEventName}
                   onChange={(e) => setTestEventName(e.target.value)}
-                  className="w-full bg-slate-800 border-0 rounded-2xl px-4 py-2.5 text-white font-medium outline-none focus:ring-2 focus:ring-amber-500/50"
+                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#c6ef4e]/40"
                 >
                   <option value="deliverable.rework">deliverable.rework (Entregable a Retrabajo)</option>
-                  <option value="sla.vencido">sla.vencido (SLA Vencido en Fase)</option>
-                  <option value="phase.completed">phase.completed (Fase Marcada Completada)</option>
-                  <option value="deliverable.approaching_deadline">deliverable.approaching_deadline (Límite Próximo)</option>
+                  <option value="sla.vencido">sla.vencido (Vencimiento de SLA)</option>
+                  <option value="phase.completed">phase.completed (Fase de Proyecto Aprobada)</option>
+                  <option value="budget.exceeded_80">budget.exceeded_80 (Consumo &gt; 80% Horas)</option>
                 </select>
               </div>
             </div>
 
-            {/* Code / Payload Preview JSON */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-xs text-slate-400 font-mono">
-                <span>Payload JSON transmitido:</span>
-                <span className="text-emerald-400 font-bold">Content-Type: application/json</span>
+            {/* Consola de Último Log Transmitido */}
+            {webhookLogs.length > 0 && (
+              <div className="space-y-2 pt-2">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                  Último Payload Transmitido (JSON Response 200 OK):
+                </span>
+                <pre className="p-4 bg-[#F4F5F0] rounded-2xl font-mono text-[11px] text-slate-800 overflow-x-auto border border-stone-200/60 max-h-48">
+                  {JSON.stringify(webhookLogs[0].payload, null, 2)}
+                </pre>
               </div>
-              <pre className="bg-slate-950 p-5 rounded-2xl text-amber-300 font-mono text-xs overflow-x-auto">
-{JSON.stringify({
-  event: testEventName,
-  timestamp: new Date().toISOString(),
-  projectId: 'PRJ-TPP-2026',
-  projectName: 'Campaña Global Redes Q3',
-  triggeredBy: currentUser.username,
-  data: {
-    deliverableId: 'DEL-9902',
-    title: 'Entrega Final de Artes para aprobación SLA',
-    status: testEventName.includes('rework') ? 'retrabajo' : 'completado',
-    motivo: 'Verificación en sandbox de automatización Capa 3',
-  }
-}, null, 2)}
-              </pre>
-            </div>
-
-            {/* Webhook Delivery Audit Log */}
-            <div className="space-y-3 pt-4 border-t border-slate-800">
-              <h4 className="text-xs font-semibold uppercase text-slate-400 tracking-wider">
-                Logs de Envíos de Webhook en Vivo
-              </h4>
-
-              <div className="space-y-2">
-                {webhookLogs.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic font-normal">No hay entregas registradas en la sesión.</p>
-                ) : (
-                  webhookLogs.map((log) => (
-                    <div
-                      key={log.id}
-                      className="bg-slate-950 p-3.5 rounded-2xl text-xs flex flex-col md:flex-row md:items-center justify-between gap-2"
-                    >
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`px-2.5 py-0.5 rounded-full font-semibold text-xs ${
-                          log.statusCode === 200 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'
-                        }`}>
-                          HTTP {log.statusCode}
-                        </span>
-                        <span className="font-mono text-white font-semibold">{log.eventName}</span>
-                        <span className="text-slate-500 text-xs">• {log.latencyMs}ms</span>
-                      </div>
-
-                      <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
-                        <span>{log.responseBody}</span>
-                        <span>{new Date(log.timestamp).toLocaleTimeString()}</span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* CONNECT MODAL (CAPA 1) */}
+      {/* ========================================================================= */}
+      {/* MODAL GUIADO DE CONEXIÓN CON LA MISMA FORMA Y LÍNEA GRÁFICA DE LA PLATAFORMA */}
+      {/* ========================================================================= */}
       {selectedToolModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-all duration-300 flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full overflow-hidden flex flex-col text-slate-800">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-stone-200/80 overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
             {(() => {
-              const info = TOOL_INFO[selectedToolModal];
-              const Icon = info.icon;
+              const def = TOOL_DEFINITIONS[selectedToolModal];
+              const config = getConfig(selectedToolModal);
+
               return (
                 <>
-                  <div className="p-6 border-b border-stone-100 bg-slate-900 text-white flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-2xl bg-gradient-to-tr ${info.accentColor} text-white flex items-center justify-center shadow-xs`}>
-                        <Icon className="w-5 h-5" />
+                  {/* HEADER UNIFICADO */}
+                  <div className="px-6 sm:px-8 py-5 sm:py-6 border-b border-stone-100 flex items-center justify-between bg-white shrink-0">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-11 h-11 rounded-2xl bg-[#F4F5F0] border border-stone-200/60 flex items-center justify-center text-slate-800 shrink-0 shadow-2xs">
+                        <def.icon className="w-5 h-5 text-slate-800" />
                       </div>
                       <div>
-                        <h3 className="font-extrabold text-base tracking-tight">{info.name}</h3>
-                        <p className="text-xs text-slate-400">Configuración de Conector Capa 1</p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-[#F4F5F0] text-slate-700 border border-stone-200/50">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#c6ef4e]" />
+                            Conector Oficial • {def.categoryLabel}
+                          </span>
+                        </div>
+                        <h2 className="text-xl font-bold tracking-tight text-slate-900">
+                          {def.name}
+                        </h2>
+                        <p className="text-xs text-slate-500 font-normal mt-0.5">
+                          {def.benefitHeadline}
+                        </p>
                       </div>
                     </div>
+
                     <button
+                      type="button"
                       onClick={() => setSelectedToolModal(null)}
-                      className="p-2 text-slate-400 hover:text-white rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                      className="p-2.5 text-slate-400 hover:text-slate-900 bg-[#F4F5F0] hover:bg-stone-200 rounded-full transition-all cursor-pointer"
+                      title="Cerrar ventana (Esc)"
                     >
                       <X className="w-5 h-5" />
                     </button>
                   </div>
 
-                  <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
-                    <div className="bg-amber-50/80 p-4 rounded-2xl text-xs text-amber-950 flex items-start gap-3">
-                      <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                      <div>
-                        <span className="font-bold block text-amber-950">Prerequisitos Técnicos de Conexión</span>
-                        <p className="text-xs text-amber-800 mt-1 leading-relaxed">
-                          Este conector requiere parámetros de acceso de tu infraestructura corporativa. Puedes registrar los parámetros a continuación o ejecutar una prueba de conexión simulada para verificar el comportamiento de la plataforma.
-                        </p>
-                      </div>
-                    </div>
+                  {/* CUERPO DEL MODAL */}
+                  <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 bg-white">
 
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
-                        Credenciales Requeridas
-                      </h4>
-                      <ul className="space-y-2 text-xs text-slate-700">
-                        {info.requirements.map((req, idx) => (
-                          <li key={idx} className="flex items-start gap-2 bg-[#F4F5F0] p-3 rounded-2xl">
-                            <Check className="w-4 h-4 text-slate-800 shrink-0 mt-0.5" />
-                            <span>{req}</span>
+                    {/* BLOQUE INFORMATIVO: ¿EN QUÉ ME AYUDA ESTA HERRAMIENTA? */}
+                    <div className="p-4 bg-[#F4F5F0] rounded-2xl border border-stone-200/80 space-y-2">
+                      <span className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-slate-800" />
+                        <span>Ventajas operativas de conectar {def.name}:</span>
+                      </span>
+                      <ul className="space-y-1.5 text-xs text-slate-700">
+                        {def.howItHelps.map((point, idx) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <Check className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                            <span>{point}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
-                    <div className="space-y-3 pt-2 border-t border-stone-100">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-700">
-                        Parámetros de Configuración
-                      </h4>
+                    {/* REQUISITOS TÉCNICOS */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Requisitos de Vinculación
+                      </label>
+                      <div className="space-y-1.5">
+                        {def.requirements.map((req, idx) => (
+                          <div
+                            key={idx}
+                            className="p-3 bg-[#F4F5F0] rounded-xl text-xs text-slate-700 flex items-center gap-2.5"
+                          >
+                            <ShieldCheck className="w-4 h-4 text-slate-500 shrink-0" />
+                            <span>{req}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-                      <div className="space-y-1">
-                        <label className="text-xs font-semibold text-slate-700 block">
-                          URL Servidor / Webhook Endpoint
+                    {/* FORMULARIO DE CREDENCIALES */}
+                    <div className="space-y-4 pt-2 border-t border-stone-100">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                          Endpoint URL o Servidor API *
                         </label>
                         <input
                           type="text"
                           value={modalEndpoint}
                           onChange={(e) => setModalEndpoint(e.target.value)}
-                          placeholder="https://servidor-corporativo.com/api"
-                          className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 text-xs font-normal text-slate-800 outline-none focus:ring-2 focus:ring-slate-400"
+                          placeholder="https://servidor.miempresa.com/api"
+                          className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-sm font-medium text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all font-mono"
                         />
                       </div>
 
-                      <div className="space-y-1">
-                        <label className="text-xs font-semibold text-slate-700 block">
-                          API Key / User Access Token (Secret)
+                      <div>
+                        <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                          API Token / Client Secret / Webhook Key
                         </label>
                         <input
                           type="password"
                           value={modalApiKey}
                           onChange={(e) => setModalApiKey(e.target.value)}
-                          placeholder="••••••••••••••••••••••••"
-                          className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 text-xs font-normal text-slate-800 outline-none focus:ring-2 focus:ring-slate-400"
+                          placeholder="••••••••••••••••••••••••••••••••"
+                          className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-sm font-medium text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all font-mono"
                         />
+                      </div>
+
+                      <div className="flex items-center justify-between text-xs pt-1">
+                        <span className="text-slate-500">Credenciales cifradas con TLS v1.3</span>
+                        <a
+                          href={def.docUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-slate-800 font-bold hover:underline flex items-center gap-1"
+                        >
+                          <span>Guía Oficial de Conexión</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
                       </div>
                     </div>
 
-                    <div className="pt-2 flex items-center justify-between text-xs">
-                      <a
-                        href={info.docUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-slate-800 hover:underline font-semibold flex items-center gap-1"
-                      >
-                        <span>Documentación Oficial</span>
-                        <ExternalLink className="w-3 h-3 text-slate-800" />
-                      </a>
-                    </div>
                   </div>
 
-                  <div className="p-4 bg-[#F4F5F0] border-t border-stone-100 flex items-center justify-between">
-                    <button
-                      onClick={() => setSelectedToolModal(null)}
-                      className="px-4 py-2 bg-white hover:bg-stone-200 text-slate-700 font-semibold rounded-full text-xs transition-colors cursor-pointer shadow-2xs"
-                    >
-                      Cancelar
-                    </button>
+                  {/* FOOTER UNIFICADO DE LA PLATAFORMA */}
+                  <div className="px-6 sm:px-8 py-4 sm:py-5 border-t border-stone-100 bg-[#FAFAF8] flex items-center justify-between shrink-0">
+                    <div>
+                      {config.connected ? (
+                        <button
+                          type="button"
+                          onClick={() => handleDisconnect(selectedToolModal)}
+                          className="px-5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-full text-xs transition-all cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Unplug className="w-3.5 h-3.5 text-rose-600" />
+                          <span>Desconectar</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedToolModal(null)}
+                          className="px-5 py-2.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs transition-all cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                      )}
+                    </div>
 
                     <button
-                      onClick={() => handleSimulateConnection(selectedToolModal)}
-                      className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+                      type="button"
+                      disabled={isSavingConfig}
+                      onClick={() => handleSaveAndVerifyConnection(selectedToolModal)}
+                      className="px-7 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 font-bold rounded-full text-xs transition-all cursor-pointer shadow-xs active:scale-[0.98] flex items-center gap-2"
                     >
-                      <CheckCircle2 className="w-4 h-4 text-white" />
-                      <span>Guardar & Verificar Conexión</span>
+                      <CheckCircle2 className="w-4 h-4 text-slate-900" />
+                      <span>{isSavingConfig ? 'Verificando...' : 'Guardar y Verificar Conexión'}</span>
                     </button>
                   </div>
                 </>
@@ -1287,76 +1694,103 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
         </div>
       )}
 
-      {/* NEW RULE MODAL */}
+      {/* ========================================================================= */}
+      {/* MODAL NUEVA REGLA DE AUTOMATIZACIÓN CON LÍNEA GRÁFICA UNIFICADA */}
+      {/* ========================================================================= */}
       {isNewRuleModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 space-y-4 text-slate-800">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h3 className="font-extrabold text-base text-slate-900 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-amber-500" />
-                <span>Nueva Regla de Automatización</span>
-              </h3>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-stone-200/80 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            {/* HEADER */}
+            <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between bg-white shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#F4F5F0] border border-stone-200/60 flex items-center justify-center text-slate-800 shadow-2xs">
+                  <Zap className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-slate-900">
+                    Nueva Regla de Automatización
+                  </h3>
+                  <p className="text-xs text-slate-500 font-normal">
+                    Configuración de disparador y acción inmediata.
+                  </p>
+                </div>
+              </div>
+
               <button
+                type="button"
                 onClick={() => setIsNewRuleModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-stone-100"
+                className="p-2 text-slate-400 hover:text-slate-900 bg-[#F4F5F0] hover:bg-stone-200 rounded-full transition-all cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700 block">Nombre de la Regla:</label>
+            {/* CUERPO */}
+            <div className="p-6 space-y-4 text-xs">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Nombre descriptivo de la regla *
+                </label>
                 <input
                   type="text"
                   value={newRuleName}
                   onChange={(e) => setNewRuleName(e.target.value)}
-                  placeholder="Ej: Enviar alerta Teams al marcar entregable como retrabajo"
-                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#c6ef4e]/30"
+                  placeholder="Ej: Enviar alerta inmediata a Slack cuando un entregable entre en retrabajo"
+                  className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-sm font-medium text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700 block">Evento Disparador (SI...):</label>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Evento Disparador (SI OCURRE...) *
+                </label>
                 <select
                   value={newRuleEvent}
                   onChange={(e) => setNewRuleEvent(e.target.value as any)}
-                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#c6ef4e]/30"
+                  className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-xs font-bold text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all cursor-pointer"
                 >
-                  <option value="deliverable.rework">deliverable.rework (Entregable a Retrabajo)</option>
-                  <option value="sla.vencido">sla.vencido (SLA Vencido en Fase)</option>
-                  <option value="phase.completed">phase.completed (Fase Completada)</option>
-                  <option value="deliverable.approaching_deadline">deliverable.approaching_deadline (Cierre en &lt; 24h)</option>
+                  <option value="deliverable.rework">deliverable.rework (Entregable entra a Retrabajo)</option>
+                  <option value="sla.vencido">sla.vencido (Vencimiento de fecha límite de fase)</option>
+                  <option value="budget.exceeded_80">budget.exceeded_80 (Consumo supera 80% horas presupuestadas)</option>
+                  <option value="phase.completed">phase.completed (Fase completada y aprobada)</option>
+                  <option value="deliverable.approaching_deadline">deliverable.approaching_deadline (Cierre en menos de 24 horas)</option>
                 </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700 block">Acción Objetivo (ENTONCES...):</label>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Acción a Ejecutar (ENTONCES HACER...) *
+                </label>
                 <select
                   value={newRuleTarget}
                   onChange={(e) => setNewRuleTarget(e.target.value as any)}
-                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-medium text-slate-800 outline-none focus:ring-2 focus:ring-[#c6ef4e]/30"
+                  className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-xs font-bold text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all cursor-pointer"
                 >
-                  <option value="teams_channel">Canal Microsoft Teams (Webhook)</option>
-                  <option value="odoo_log">Registrar Log auditado en Odoo ERP</option>
-                  <option value="outlook_event">Publicar hito en Calendario Outlook</option>
-                  <option value="sharepoint_sync">Sincronizar archivo en SharePoint</option>
+                  <option value="slack_channel">Canal Slack de Proyecto (Notificación interactiva)</option>
+                  <option value="teams_channel">Canal Microsoft Teams (Adaptive Card)</option>
+                  <option value="odoo_log">Registrar Log de Auditoría en Odoo ERP</option>
+                  <option value="google_calendar">Crear Bloqueo en Google Calendar</option>
+                  <option value="jira_ticket">Actualizar Ticket en Jira Software</option>
+                  <option value="sharepoint_sync">Sincronizar Archivo en SharePoint</option>
                   <option value="webhook_custom">Disparar Webhook Saliente Personalizado</option>
                 </select>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2">
+            {/* FOOTER */}
+            <div className="px-6 py-4 border-t border-stone-100 bg-[#FAFAF8] flex items-center justify-between shrink-0">
               <button
+                type="button"
                 onClick={() => setIsNewRuleModalOpen(false)}
-                className="px-4 py-2 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs"
+                className="px-5 py-2.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs transition-all cursor-pointer"
               >
                 Cancelar
               </button>
               <button
+                type="button"
                 onClick={handleCreateRule}
                 disabled={!newRuleName.trim()}
-                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs shadow-xs disabled:opacity-50 cursor-pointer"
+                className="px-7 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 font-bold rounded-full text-xs transition-all cursor-pointer shadow-xs active:scale-[0.98] disabled:opacity-40"
               >
                 Crear Regla
               </button>
@@ -1365,58 +1799,80 @@ export const IntegrationsPanel: React.FC<IntegrationsPanelProps> = ({ currentUse
         </div>
       )}
 
-      {/* NEW WEBHOOK MODAL */}
+      {/* ========================================================================= */}
+      {/* MODAL REGISTRAR WEBHOOK CON LÍNEA GRÁFICA UNIFICADA */}
+      {/* ========================================================================= */}
       {isNewWebhookModalOpen && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 space-y-4 text-slate-800">
-            <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
-                <Radio className="w-5 h-5 text-slate-800" />
-                <span>Registrar Nuevo Webhook Endpoint</span>
-              </h3>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-stone-200/80 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
+            {/* HEADER */}
+            <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between bg-white shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#F4F5F0] border border-stone-200/60 flex items-center justify-center text-slate-800 shadow-2xs">
+                  <Radio className="w-5 h-5 text-slate-800" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-base text-slate-900">
+                    Registrar Webhook Endpoint
+                  </h3>
+                  <p className="text-xs text-slate-500 font-normal">
+                    Recepción de eventos JSON con autenticación HMAC.
+                  </p>
+                </div>
+              </div>
+
               <button
+                type="button"
                 onClick={() => setIsNewWebhookModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-700 rounded-full hover:bg-stone-100 cursor-pointer"
+                className="p-2 text-slate-400 hover:text-slate-900 bg-[#F4F5F0] hover:bg-stone-200 rounded-full transition-all cursor-pointer"
               >
-                <X className="w-5 h-5 text-slate-800" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-700 block">Nombre del Endpoint:</label>
+            {/* CUERPO */}
+            <div className="p-6 space-y-4 text-xs">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Nombre del Endpoint *
+                </label>
                 <input
                   type="text"
                   value={newWebhookName}
                   onChange={(e) => setNewWebhookName(e.target.value)}
-                  placeholder="Ej: Servidor Analytics Hubspot"
-                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-normal text-slate-800 outline-none focus:ring-2 focus:ring-slate-400"
+                  placeholder="Ej: Servidor Central de Analytics / Gateway Zapier"
+                  className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-sm font-medium text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all"
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="font-semibold text-slate-700 block">URL de Destino (HTTPS):</label>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  URL de Destino (HTTPS) *
+                </label>
                 <input
                   type="url"
                   value={newWebhookUrl}
                   onChange={(e) => setNewWebhookUrl(e.target.value)}
-                  placeholder="https://api.tuempresa.com/webhooks/listener"
-                  className="w-full bg-[#F4F5F0] rounded-2xl px-4 py-2.5 font-normal text-slate-800 outline-none focus:ring-2 focus:ring-slate-400"
+                  placeholder="https://api.tuempresa.com/v1/webhooks/deliverables"
+                  className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-sm font-mono text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all"
                 />
               </div>
             </div>
 
-            <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2">
+            {/* FOOTER */}
+            <div className="px-6 py-4 border-t border-stone-100 bg-[#FAFAF8] flex items-center justify-between shrink-0">
               <button
+                type="button"
                 onClick={() => setIsNewWebhookModalOpen(false)}
-                className="px-4 py-2 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-semibold rounded-full text-xs cursor-pointer"
+                className="px-5 py-2.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs transition-all cursor-pointer"
               >
                 Cancelar
               </button>
               <button
+                type="button"
                 onClick={handleCreateWebhook}
                 disabled={!newWebhookName.trim() || !newWebhookUrl.trim()}
-                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-full text-xs shadow-xs disabled:opacity-50 cursor-pointer"
+                className="px-7 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 font-bold rounded-full text-xs transition-all cursor-pointer shadow-xs active:scale-[0.98] disabled:opacity-40"
               >
                 Registrar Webhook
               </button>

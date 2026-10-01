@@ -235,31 +235,37 @@ export const AIAssistantModal: React.FC<AIAssistantModalProps> = ({
 
       {/* Container */}
       <div
-        className="bg-white/95 backdrop-blur-2xl w-full max-w-2xl h-[600px] rounded-2xl border border-white/80 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200"
+        className="bg-white w-full max-w-2xl h-[620px] rounded-3xl border border-stone-200/80 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
         id="ai-assistant-modal-panel"
       >
 
-        {/* Header */}
-        <div className="bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-800 relative overflow-hidden shrink-0">
-          <div className="absolute right-0 bottom-0 top-0 w-32 bg-gradient-to-l from-lime-500/20 to-transparent pointer-events-none" />
-
-          <div className="flex items-center gap-3 z-10">
-            <div className="w-9 h-9 bg-slate-800 rounded-xl flex items-center justify-center shadow-md">
-              <Sparkles className="w-5 h-5 text-white animate-pulse" />
+        {/* HEADER UNIFICADO DE LA PLATAFORMA */}
+        <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between bg-white shrink-0">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-[#F4F5F0] border border-stone-200/60 flex items-center justify-center text-slate-800 shrink-0 shadow-2xs">
+              <Sparkles className="w-5 h-5 text-slate-800" />
             </div>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-slate-400" />
-                <h3 className="font-semibold text-sm text-white uppercase tracking-wider">Copiloto Operativo IA</h3>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-[#F4F5F0] text-slate-700 border border-stone-200/50">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#c6ef4e]" />
+                  Copiloto Operativo • Gemini
+                </span>
               </div>
-              <p className="text-xs text-slate-400 font-semibold uppercase tracking-widest">Modelo: Gemini 3.6-Flash</p>
+              <h2 className="text-xl font-bold tracking-tight text-slate-900">
+                Asistente Inteligente de Proyecto
+              </h2>
+              <p className="text-xs text-slate-500 font-normal mt-0.5">
+                Consultas de carga operativa, estado de fases y dictado por voz.
+              </p>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer z-10"
-            title="Cerrar Asistente"
+            className="p-2.5 text-slate-400 hover:text-slate-900 bg-[#F4F5F0] hover:bg-stone-200 rounded-full transition-all cursor-pointer"
+            title="Cerrar ventana (Esc)"
           >
             <X className="w-5 h-5" />
           </button>

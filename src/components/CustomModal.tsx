@@ -75,16 +75,16 @@ export const CustomModal: React.FC<CustomModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Modal Container */}
-      <div className="relative bg-white w-full max-w-md rounded-2xl p-6 shadow-xl border border-slate-100 z-10 animate-in zoom-in-95 duration-200">
+      <div className="relative bg-white w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl border border-stone-200/80 z-10 animate-in zoom-in-95 duration-200">
         {/* Close Icon Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+          className="absolute top-5 right-5 p-2 rounded-full text-slate-400 hover:text-slate-900 bg-[#F4F5F0] hover:bg-stone-200 transition-colors cursor-pointer"
           aria-label="Cerrar modal"
         >
           <X className="w-4 h-4" />
@@ -109,13 +109,13 @@ export const CustomModal: React.FC<CustomModalProps> = ({
         {children && <div className="mt-4">{children}</div>}
 
         {/* Actions */}
-        <div className="mt-6 flex items-center justify-end gap-2.5">
+        <div className="mt-6 flex items-center justify-end gap-2.5 pt-4 border-t border-stone-100">
           {onConfirm ? (
             <>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer border-none"
+                className="px-5 py-2.5 rounded-full text-xs font-bold text-slate-700 bg-[#F4F5F0] hover:bg-stone-200 transition-all cursor-pointer border-none"
               >
                 {cancelLabel}
               </button>
@@ -127,8 +127,8 @@ export const CustomModal: React.FC<CustomModalProps> = ({
                 }}
                 className={
                   isDestructive
-                    ? 'px-4 py-2 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-all cursor-pointer shadow-xs active:scale-[0.99] border-none'
-                    : 'px-4 py-2 rounded-xl text-xs font-bold bg-[#c6ef4e] hover:bg-[#b5e03b] text-black transition-all cursor-pointer shadow-xs active:scale-[0.99] border-none'
+                    ? 'px-6 py-2.5 rounded-full text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition-all cursor-pointer shadow-xs active:scale-[0.98] border-none'
+                    : 'px-6 py-2.5 rounded-full text-xs font-bold bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 transition-all cursor-pointer shadow-xs active:scale-[0.98] border-none'
                 }
               >
                 {confirmLabel}
@@ -138,7 +138,7 @@ export const CustomModal: React.FC<CustomModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 rounded-xl text-xs font-bold bg-[#c6ef4e] hover:bg-[#b5e03b] text-black transition-all cursor-pointer shadow-xs active:scale-[0.99] border-none"
+              className="px-6 py-2.5 rounded-full text-xs font-bold bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 transition-all cursor-pointer shadow-xs active:scale-[0.98] border-none"
             >
               {confirmLabel}
             </button>

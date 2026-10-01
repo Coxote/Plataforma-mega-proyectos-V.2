@@ -126,9 +126,23 @@ export interface UserPreferences {
   onboardingCompletedAt?: string;
 }
 
+export type IntegrationSource =
+  | 'odoo'
+  | 'teams'
+  | 'outlook'
+  | 'sharepoint'
+  | 'slack'
+  | 'jira'
+  | 'google_workspace'
+  | 'clockify'
+  | 'notion'
+  | 'hubspot'
+  | 'zapier'
+  | 'github';
+
 export interface SyncLogEntry {
   id: string;
-  source: 'odoo' | 'teams' | 'sharepoint' | 'outlook';
+  source: IntegrationSource;
   status: 'success' | 'error' | 'pending';
   timestamp: string;
   message?: string;
@@ -136,19 +150,21 @@ export interface SyncLogEntry {
 }
 
 export interface IntegrationConfig {
-  source: 'odoo' | 'teams' | 'outlook' | 'sharepoint';
+  source: IntegrationSource;
   connected: boolean;
   connectedAt?: string;
   lastSync?: SyncLogEntry;
   configuredBy?: string;
   endpointUrl?: string;
+  apiKey?: string;
+  category?: 'erp' | 'communication' | 'calendar_time' | 'storage_docs' | 'tasks_dev' | 'automation';
 }
 
 export interface AutomationRule {
   id: string;
   name: string;
-  triggerEvent: 'deliverable.rework' | 'sla.vencido' | 'phase.completed' | 'deliverable.approaching_deadline' | 'time_entry.logged';
-  actionTarget: 'teams_channel' | 'odoo_log' | 'outlook_event' | 'sharepoint_sync' | 'webhook_custom';
+  triggerEvent: 'deliverable.rework' | 'sla.vencido' | 'phase.completed' | 'deliverable.approaching_deadline' | 'time_entry.logged' | 'budget.exceeded_80';
+  actionTarget: 'teams_channel' | 'slack_channel' | 'odoo_log' | 'outlook_event' | 'sharepoint_sync' | 'jira_ticket' | 'google_calendar' | 'webhook_custom';
   enabled: boolean;
   createdByName: string;
   lastTriggeredAt?: string;

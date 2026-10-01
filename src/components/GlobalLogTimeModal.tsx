@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Project, UserSession, TimeEntryType } from '../types';
-import { Clock, AlertTriangle, Plus, X, FolderKanban, Layers, FileText, CheckCircle2 } from 'lucide-react';
+import { Clock, AlertTriangle, Plus, X, FolderKanban, Layers, FileText, CheckCircle2, ShieldAlert } from 'lucide-react';
 
 interface GlobalLogTimeModalProps {
   isOpen: boolean;
@@ -71,7 +71,6 @@ export const GlobalLogTimeModal: React.FC<GlobalLogTimeModalProps> = ({
     const finalMotivo = retrabajoMotivo.trim() || description.trim();
 
     if (!selectedProjectId || !numHours || numHours <= 0 || !finalDesc) return;
-
     if (entryType === 'retrabajo' && !finalMotivo) return;
 
     onLogTime(
@@ -91,218 +90,244 @@ export const GlobalLogTimeModal: React.FC<GlobalLogTimeModalProps> = ({
       setDescription('');
       setRetrabajoMotivo('');
       onClose();
-    }, 1200);
+    }, 1100);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-in fade-in duration-200">
-      <div className="bg-white/95 backdrop-blur-2xl rounded-2xl max-w-lg w-full shadow-2xl border border-white/80 overflow-hidden space-y-0">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+      <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl border border-stone-200/80 overflow-hidden flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
 
-        {/* HEADER */}
-        <div className="bg-slate-900 text-white p-5 flex items-center justify-between border-b border-slate-800 relative overflow-hidden">
-          <div className="flex items-center gap-2.5 z-10">
-            <div className="w-9 h-9 bg-white/10 rounded-2xl flex items-center justify-center text-white font-semibold shadow-xs">
-              <Clock className="w-5 h-5 text-white" />
+        {/* HEADER UNIFICADO DE LA PLATAFORMA */}
+        <div className="px-6 sm:px-8 py-5 sm:py-6 border-b border-stone-100 flex items-center justify-between bg-white shrink-0">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-2xl bg-[#F4F5F0] border border-stone-200/60 flex items-center justify-center text-slate-800 shrink-0 shadow-2xs">
+              <Clock className="w-5 h-5 text-slate-800" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-white tracking-tight">Registrar Horas de Trabajo</h3>
-              <p className="text-xs text-slate-400 font-normal">Acción global de carga de horas y retrabajo</p>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide uppercase bg-[#F4F5F0] text-slate-700 border border-stone-200/50">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#c6ef4e]" />
+                  Acción Rápida • Carga de Horas
+                </span>
+              </div>
+              <h2 className="text-xl font-bold tracking-tight text-slate-900">
+                Registrar Horas de Trabajo
+              </h2>
+              <p className="text-xs text-slate-500 font-normal mt-0.5">
+                Imputación de tiempo productivo o retrabajo al expediente del proyecto.
+              </p>
             </div>
           </div>
+
           <button
+            type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-white p-2 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2.5 text-slate-400 hover:text-slate-900 bg-[#F4F5F0] hover:bg-stone-200 rounded-full transition-all cursor-pointer"
+            title="Cerrar ventana (Esc)"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* FORMULARIO DE CARGA */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <div className="p-6 sm:p-8 space-y-5 overflow-y-auto flex-1 bg-white">
 
-          {/* TOAST EXITOSO */}
-          {isSuccessToast && (
-            <div className="p-3 bg-emerald-50 text-emerald-800 rounded-2xl border border-emerald-200 flex items-center gap-2 text-xs font-bold animate-in slide-in-from-top duration-200">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              ¡Horas registradas exitosamente en el expediente!
-            </div>
-          )}
+            {/* TOAST DE ÉXITO */}
+            {isSuccessToast && (
+              <div className="p-4 bg-[#edf9c7]/80 text-slate-900 rounded-2xl border border-[#c6ef4e] flex items-center gap-2.5 text-xs font-bold animate-in slide-in-from-top duration-200">
+                <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+                <span>¡Horas registradas y sincronizadas exitosamente en el expediente!</span>
+              </div>
+            )}
 
-          {/* SELECTOR DE PROYECTO */}
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-1">
-              <FolderKanban className="w-3.5 h-3.5 text-indigo-500" /> Proyecto Asignado *
-            </label>
-            <select
-              value={selectedProjectId}
-              onChange={handleProjectChange}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-lime-500"
-              required
-            >
-              {userProjects.length === 0 ? (
-                <option value="">No tienes proyectos asignados</option>
-              ) : (
-                userProjects.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.clientName})
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
-
-          {/* SELECTOR DE FASE DEL PROYECTO */}
-          {phases.length > 0 && (
+            {/* SELECTOR DE PROYECTO */}
             <div>
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-1">
-                <Layers className="w-3.5 h-3.5 text-cyan-500" /> Fase de Ejecución
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <FolderKanban className="w-3.5 h-3.5 text-slate-600" />
+                <span>Proyecto Asignado *</span>
               </label>
               <select
-                value={selectedPhaseId}
-                onChange={(e) => setSelectedPhaseId(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none"
+                value={selectedProjectId}
+                onChange={handleProjectChange}
+                className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-sm font-medium text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all cursor-pointer"
+                required
               >
-                {phases.map(ph => (
-                  <option key={ph.id} value={ph.id}>
-                    {ph.label || ph.id}
-                  </option>
-                ))}
+                {userProjects.length === 0 ? (
+                  <option value="">No tienes proyectos asignados actualmente</option>
+                ) : (
+                  userProjects.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} · {p.clientName}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
-          )}
 
-          {/* TIPO DE REGISTRO (NORMAL / RETRABAJO) */}
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">
-              Tipo de Carga de Horas
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setEntryType('normal')}
-                className={`py-2 px-3 rounded-2xl text-xs font-bold transition-all border cursor-pointer ${
-                  entryType === 'normal'
-                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-xs'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                Normal
-              </button>
-              <button
-                type="button"
-                onClick={() => setEntryType('retrabajo')}
-                className={`py-2 px-3 rounded-2xl text-xs font-bold transition-all border cursor-pointer ${
-                  entryType === 'retrabajo'
-                    ? 'bg-amber-600 text-white border-amber-500 shadow-xs'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                ⚠️ Retrabajo
-              </button>
-              <button
-                type="button"
-                onClick={() => setEntryType('no_facturable')}
-                className={`py-2 px-3 rounded-2xl text-xs font-bold transition-all border cursor-pointer ${
-                  entryType === 'no_facturable'
-                    ? 'bg-slate-800 text-white border-slate-700 shadow-xs'
-                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                }`}
-              >
-                No Facturable
-              </button>
-            </div>
-          </div>
-
-          {/* CAMPOS ESPECÍFICOS DE RETRABAJO */}
-          {entryType === 'retrabajo' && (
-            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 space-y-3">
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-800">
-                <AlertTriangle className="w-4 h-4 text-amber-600" />
-                Detalle de Retrabajo Requerido
-              </div>
-
+            {/* SELECTOR DE FASE */}
+            {phases.length > 0 && (
               <div>
-                <label className="block text-xs font-bold text-amber-900 uppercase mb-1">Origen del Retrabajo</label>
-                <div className="grid grid-cols-3 gap-1.5">
-                  {(['cliente', 'interno', 'proveedor'] as const).map(orig => (
-                    <button
-                      key={orig}
-                      type="button"
-                      onClick={() => setRetrabajoOrigen(orig)}
-                      className={`py-1.5 px-2 text-xs font-extrabold rounded-xl border capitalize cursor-pointer transition-all ${
-                        retrabajoOrigen === orig
-                          ? 'bg-amber-600 text-white border-amber-600'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {orig}
-                    </button>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-slate-600" />
+                  <span>Fase de Ejecución *</span>
+                </label>
+                <select
+                  value={selectedPhaseId}
+                  onChange={(e) => setSelectedPhaseId(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-sm font-medium text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all cursor-pointer"
+                >
+                  {phases.map(ph => (
+                    <option key={ph.id} value={ph.id}>
+                      {ph.label || ph.id} · {ph.name} ({ph.loggedHours}h / {ph.allocatedHours}h)
+                    </option>
                   ))}
+                </select>
+              </div>
+            )}
+
+            {/* TIPO DE REGISTRO */}
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                Tipo de Imputación
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEntryType('normal')}
+                  className={`py-2.5 px-3 rounded-2xl text-xs font-bold transition-all border cursor-pointer ${
+                    entryType === 'normal'
+                      ? 'bg-[#edf9c7] text-slate-900 border-[#c6ef4e] shadow-2xs font-extrabold ring-1 ring-[#c6ef4e]'
+                      : 'bg-[#F4F5F0] text-slate-600 border-stone-200/60 hover:bg-stone-100/80'
+                  }`}
+                >
+                  Horas Normales
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEntryType('retrabajo')}
+                  className={`py-2.5 px-3 rounded-2xl text-xs font-bold transition-all border cursor-pointer ${
+                    entryType === 'retrabajo'
+                      ? 'bg-amber-100 text-amber-900 border-amber-300 shadow-2xs font-extrabold ring-1 ring-amber-400'
+                      : 'bg-[#F4F5F0] text-slate-600 border-stone-200/60 hover:bg-stone-100/80'
+                  }`}
+                >
+                  ⚠️ Retrabajo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEntryType('no_facturable')}
+                  className={`py-2.5 px-3 rounded-2xl text-xs font-bold transition-all border cursor-pointer ${
+                    entryType === 'no_facturable'
+                      ? 'bg-slate-200 text-slate-900 border-slate-300 shadow-2xs font-extrabold ring-1 ring-slate-400'
+                      : 'bg-[#F4F5F0] text-slate-600 border-stone-200/60 hover:bg-stone-100/80'
+                  }`}
+                >
+                  No Facturable
+                </button>
+              </div>
+            </div>
+
+            {/* CAMPOS DE RETRABAJO */}
+            {entryType === 'retrabajo' && (
+              <div className="p-4 bg-amber-50/80 rounded-2xl border border-amber-200 space-y-3 animate-in fade-in duration-200">
+                <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                  <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  <span>Detalle de Retrabajo Requerido</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-amber-900 uppercase mb-1.5">
+                    Origen del Retrabajo
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['cliente', 'interno', 'proveedor'] as const).map(orig => (
+                      <button
+                        key={orig}
+                        type="button"
+                        onClick={() => setRetrabajoOrigen(orig)}
+                        className={`py-2 px-3 text-xs font-bold rounded-xl border capitalize cursor-pointer transition-all ${
+                          retrabajoOrigen === orig
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                            : 'bg-white text-slate-700 border-amber-200/80 hover:bg-amber-100/60'
+                        }`}
+                      >
+                        {orig}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-amber-900 uppercase mb-1.5">
+                    Causa Raíz / Justificación *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Modificación de diseño solicitada por el cliente tras aprobación previa"
+                    value={retrabajoMotivo}
+                    onChange={(e) => setRetrabajoMotivo(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-white border border-amber-300 rounded-xl text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                    required={entryType === 'retrabajo'}
+                  />
                 </div>
               </div>
+            )}
 
+            {/* HORAS Y DESCRIPCIÓN */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-bold text-amber-900 uppercase mb-1">Motivo / Causa Raíz *</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Horas a Cargar *
+                </label>
+                <input
+                  type="number"
+                  step="0.25"
+                  min="0.25"
+                  max="24"
+                  placeholder="Ej: 3.5"
+                  value={hours}
+                  onChange={(e) => setHours(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-sm font-bold text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all"
+                  required
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  {entryType === 'retrabajo' ? 'Descripción de la Corrección' : 'Descripción de la Tarea Realizada *'}
+                </label>
                 <input
                   type="text"
-                  placeholder="Ej: Cambio de requerimiento del cliente sin nuevo fee"
-                  value={retrabajoMotivo}
-                  onChange={(e) => setRetrabajoMotivo(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-amber-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none"
-                  required={entryType === 'retrabajo'}
+                  placeholder="Ej: Maquetación de pantallas en Figma y entrega a desarrollo"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#F4F5F0] hover:bg-stone-100/70 focus:bg-white rounded-2xl text-sm font-medium text-slate-900 border border-transparent focus:border-stone-300 focus:outline-none focus:ring-2 focus:ring-[#c6ef4e]/40 transition-all"
+                  required={entryType !== 'retrabajo' || !retrabajoMotivo}
                 />
               </div>
             </div>
-          )}
 
-          {/* CANTIDAD DE HORAS Y DESCRIPCIÓN */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Horas a Cargar *</label>
-              <input
-                type="number"
-                step="0.5"
-                placeholder="Ej: 3.5"
-                value={hours}
-                onChange={(e) => setHours(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none"
-                required
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-                {entryType === 'retrabajo' ? 'Descripción Breve' : 'Descripción de la Tarea *'}
-              </label>
-              <input
-                type="text"
-                placeholder="Ej: Ajuste de diseño de piezas gráficas"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium text-slate-800 focus:outline-none"
-                required={entryType !== 'retrabajo' || !retrabajoMotivo}
-              />
-            </div>
           </div>
 
-          {/* BOTONES DE ACCIÓN */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+          {/* FOOTER UNIFICADO DE LA PLATAFORMA */}
+          <div className="px-6 sm:px-8 py-4 sm:py-5 border-t border-stone-100 bg-[#FAFAF8] flex items-center justify-between shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-600 hover:bg-slate-100 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+              className="px-5 py-2.5 bg-[#F4F5F0] hover:bg-stone-200 text-slate-700 font-bold rounded-full text-xs transition-all cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
               disabled={!hours || Number(hours) <= 0 || (!description.trim() && !retrabajoMotivo.trim())}
-              className="px-5 py-2 bg-[#c6ef4e] hover:bg-[#b5e03b] text-black text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-sm active:scale-[0.99] disabled:opacity-40"
+              className="px-8 py-2.5 bg-[#c6ef4e] hover:bg-[#b5e03b] text-slate-900 font-bold rounded-full text-xs transition-all cursor-pointer shadow-xs active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Guardar Horas
+              <CheckCircle2 className="w-4 h-4 text-slate-900" />
+              <span>Registrar Horas</span>
             </button>
           </div>
-
         </form>
 
       </div>
