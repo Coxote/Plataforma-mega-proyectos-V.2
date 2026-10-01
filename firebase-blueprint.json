@@ -66,12 +66,39 @@
         "status": { "type": "string", "description": "Task status" }
       },
       "required": ["id", "brand", "project", "start", "deadline"]
+    },
+    "TimeEntry": {
+      "title": "TimeEntry",
+      "description": "Logged work session linked to a project and user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Time entry identifier" },
+        "projectId": { "type": "string", "description": "Associated project identifier" },
+        "phaseId": { "type": "string", "description": "Associated phase identifier" },
+        "userId": { "type": "string", "description": "User identifier who performed the work" },
+        "username": { "type": "string", "description": "Username of the worker" },
+        "role": { "type": "string", "description": "Worker role at execution time" },
+        "hours": { "type": "number", "description": "Decimal hours worked" },
+        "date": { "type": "string", "description": "Date of the logged session (YYYY-MM-DD)" },
+        "description": { "type": "string", "description": "Task description" },
+        "type": { "type": "string", "description": "Time entry type (normal, retrabajo, no_facturable)" },
+        "createdAt": { "type": "string", "description": "Creation timestamp" }
+      },
+      "required": ["id", "projectId", "userId", "hours", "date", "description"]
     }
   },
   "firestore": {
     "/projects/{projectId}": {
       "schema": { "$ref": "#/entities/Project" },
       "description": "Central project documents"
+    },
+    "/projects/{projectId}/timeEntries/{entryId}": {
+      "schema": { "$ref": "#/entities/TimeEntry" },
+      "description": "Granular time entries linked to project"
+    },
+    "/timeEntries/{entryId}": {
+      "schema": { "$ref": "#/entities/TimeEntry" },
+      "description": "Global time tracking logs"
     },
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },

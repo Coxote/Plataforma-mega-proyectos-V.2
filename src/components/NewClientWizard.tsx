@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, UploadCloud, Sparkles, Building2, User, Globe, Check, Edit3 } from 'lucide-react';
+import { X, UploadCloud, Sparkles, Building2, User, Globe, Check, Edit3, FileText } from 'lucide-react';
 import { Client, BrandBible } from '../types';
+import { analyzeBriefWithGemini } from '../geminiService';
 
 interface NewClientWizardProps {
   isOpen: boolean;
@@ -24,6 +25,8 @@ export const NewClientWizard: React.FC<NewClientWizardProps> = ({ isOpen, onClos
   const [email, setEmail] = useState('');
   const [sitioWebRedes, setSitioWebRedes] = useState('');
   const [brandBible, setBrandBible] = useState<BrandBible | null>(null);
+  const [inputMethod, setInputMethod] = useState<'upload' | 'text'>('upload');
+  const [briefTextInput, setBriefTextInput] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -44,6 +47,7 @@ export const NewClientWizard: React.FC<NewClientWizardProps> = ({ isOpen, onClos
         setEmail('');
         setSitioWebRedes('');
         setBrandBible(null);
+        setBriefTextInput('');
         setIsEditing(true);
       }
       setStep(1);
@@ -53,6 +57,38 @@ export const NewClientWizard: React.FC<NewClientWizardProps> = ({ isOpen, onClos
   if (!isOpen) return null;
 
   const isStep1Valid = nombreComercial.trim() !== '' && categoria.trim() !== '' && contactoPrincipal.trim() !== '';
+
+  // Analizar texto de brief con Gemini
+  const handleAnalyzeText = async () => {
+    if (!briefTextInput.trim()) return;
+    setIsAnalyzing(true);
+    try {
+      const data = await analyzeBriefWithGemini(briefTextInput);
+      const hexList = (data.visualIdentity?.colorPaletteHex || ['#000000', '#06b6d4', '#10b981', '#f8fafc']).filter(Boolean);
+      const toneStr = Array.isArray(data.voiceAndTone?.personalityTraits)
+        ? data.voiceAndTone.personalityTraits.join(', ')
+        : data.voiceAndTone?.guidelines || 'Estratégico, empático y orientado a resultados.';
+
+      setBrandBible({
+        archetype: data.valuesAndPersonality?.archetype || 'El Héroe / El Sabio',
+        misionVision: `${data.onePager?.mission || ''} ${data.onePager?.vision || ''}`.trim() || `Impulsar el crecimiento y liderazgo en el sector ${categoria || 'comercial'}.`,
+        tonoVoz: toneStr,
+        coloresHex: hexList.length > 0 ? hexList : ['#000000', '#06b6d4', '#10b981', '#f8fafc'],
+        mensajesClave: data.onePager?.uvp || data.positioning?.statement || 'Excelencia y conversión acelerada.'
+      });
+    } catch {
+      // Fallback robusto
+      setBrandBible({
+        archetype: 'El Creador / El Sabio',
+        misionVision: `Consolidar a ${nombreComercial || 'la marca'} como referente en el sector ${categoria || 'empresarial'}.`,
+        tonoVoz: 'Innovador, directo, empático y profesional.',
+        coloresHex: ['#0f172a', '#06b6d4', '#10b981', '#f8fafc'],
+        mensajesClave: 'Menos fricción, máxima entrega de valor medible.'
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   // --- Manejo de Drag & Drop ---
   const handleDrag = (e: React.DragEvent) => {
@@ -83,9 +119,31 @@ export const NewClientWizard: React.FC<NewClientWizardProps> = ({ isOpen, onClos
     }
   };
 
-  const processFile = (file: File) => {
+  const processFile = async (file: File) => {
     setIsAnalyzing(true);
-    // Simulación de análisis IA leyendo el archivo
+    if (file.type.includes('text') || file.name.endsWith('.txt') || file.name.endsWith('.md')) {
+      try {
+        const text = await file.text();
+        const data = await analyzeBriefWithGemini(text);
+        const hexList = (data.visualIdentity?.colorPaletteHex || ['#000000', '#06b6d4', '#10b981', '#f8fafc']).filter(Boolean);
+        const toneStr = Array.isArray(data.voiceAndTone?.personalityTraits)
+          ? data.voiceAndTone.personalityTraits.join(', ')
+          : data.voiceAndTone?.guidelines || 'Innovador, directo y profesional.';
+
+        setBrandBible({
+          archetype: data.valuesAndPersonality?.archetype || 'El Creador / El Mago',
+          misionVision: `${data.onePager?.mission || ''} ${data.onePager?.vision || ''}`.trim() || `Liderar el sector ${categoria || 'digital'}.`,
+          tonoVoz: toneStr,
+          coloresHex: hexList.length > 0 ? hexList : ['#000000', '#06b6d4', '#10b981', '#f8fafc'],
+          mensajesClave: data.onePager?.uvp || 'Menos teoría, más conversiones aceleradas.'
+        });
+        setIsAnalyzing(false);
+        return;
+      } catch {
+        // Fallback
+      }
+    }
+
     setTimeout(() => {
       setBrandBible({
         archetype: 'El Creador / El Mago',
@@ -95,7 +153,7 @@ export const NewClientWizard: React.FC<NewClientWizardProps> = ({ isOpen, onClos
         mensajesClave: 'Menos teoría, más conversiones aceleradas.'
       });
       setIsAnalyzing(false);
-    }, 2500);
+    }, 1800);
   };
 
   const handleFinish = () => {
@@ -265,43 +323,101 @@ export const NewClientWizard: React.FC<NewClientWizardProps> = ({ isOpen, onClos
           </div>
         )}
 
-        {/* FASE 2: DROPZONE REAL */}
+        {/* FASE 2: DROPZONE O TEXTO DE BRIEF */}
         {step === 2 && (
           <div className="p-8 space-y-6">
             {!brandBible ? (
               <div className="space-y-4">
-                {/* ZONA DRAG AND DROP */}
-                <form
-                  onDragEnter={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                  onClick={() => isEditing && fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-3xl p-10 text-center transition-all flex flex-col items-center justify-center ${
-                    !isEditing ? 'opacity-60 cursor-not-allowed border-stone-200 bg-stone-50' :
-                    dragActive ? 'border-cyan-500 bg-cyan-100/50 scale-98' : 'border-stone-300 bg-[#F4F5F0] hover:bg-stone-100 cursor-pointer'
-                  }`}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    className="hidden"
-                    onChange={handleChange}
-                    accept=".pdf,.doc,.docx,.txt"
-                    disabled={!isEditing}
-                  />
-                  <UploadCloud className={`w-10 h-10 mb-4 ${dragActive ? 'text-cyan-600 animate-bounce' : 'text-cyan-500'}`} />
-                  <span className="text-sm font-bold text-slate-900 block mb-1">
-                    {isEditing ? 'Arrastra el manual de marca o PDF aquí' : 'No se ha cargado manual de marca'}
-                  </span>
-                  <span className="text-xs text-slate-500 font-medium">
-                    {isEditing ? 'o haz clic para explorar en tu equipo' : 'Ponte en modo edición para cargar un archivo'}
-                  </span>
-                </form>
+                {/* SELECTOR DE MÉTODO */}
+                {isEditing && (
+                  <div className="flex gap-2 p-1 bg-[#F4F5F0] rounded-2xl w-fit">
+                    <button
+                      type="button"
+                      onClick={() => setInputMethod('upload')}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        inputMethod === 'upload'
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <UploadCloud className="w-3.5 h-3.5" />
+                      Cargar Documento / PDF
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInputMethod('text')}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        inputMethod === 'text'
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900'
+                      }`}
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      Pegar Notas / Brief
+                    </button>
+                  </div>
+                )}
+
+                {inputMethod === 'upload' ? (
+                  /* ZONA DRAG AND DROP */
+                  <form
+                    onDragEnter={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    onClick={() => isEditing && fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-3xl p-10 text-center transition-all flex flex-col items-center justify-center ${
+                      !isEditing ? 'opacity-60 cursor-not-allowed border-stone-200 bg-stone-50' :
+                      dragActive ? 'border-cyan-500 bg-cyan-100/50 scale-98' : 'border-stone-300 bg-[#F4F5F0] hover:bg-stone-100 cursor-pointer'
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      onChange={handleChange}
+                      accept=".pdf,.doc,.docx,.txt,.md"
+                      disabled={!isEditing}
+                    />
+                    <UploadCloud className={`w-10 h-10 mb-4 ${dragActive ? 'text-cyan-600 animate-bounce' : 'text-cyan-500'}`} />
+                    <span className="text-sm font-bold text-slate-900 block mb-1">
+                      {isEditing ? 'Arrastra el manual de marca o PDF aquí' : 'No se ha cargado manual de marca'}
+                    </span>
+                    <span className="text-xs text-slate-500 font-medium">
+                      {isEditing ? 'o haz clic para explorar en tu equipo (.pdf, .docx, .txt, .md)' : 'Ponte en modo edición para cargar un archivo'}
+                    </span>
+                  </form>
+                ) : (
+                  /* ÁREA DE TEXTO DE BRIEF */
+                  <div className="space-y-3">
+                    <label className="block text-xs font-bold text-slate-500 uppercase">
+                      Notas, Misión o Brief del Cliente para Gemini 3.6-Flash:
+                    </label>
+                    <textarea
+                      value={briefTextInput}
+                      onChange={(e) => setBriefTextInput(e.target.value)}
+                      disabled={!isEditing}
+                      rows={5}
+                      placeholder="Pega aquí la descripción del cliente, pilares, tono de voz o notas de reunión. Gemini extraerá automáticamente el arquetipo, misión, mensajes y paleta de colores..."
+                      className="w-full p-4 bg-[#F4F5F0] rounded-2xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-slate-900/10 resize-none"
+                    />
+                    {isEditing && (
+                      <button
+                        type="button"
+                        disabled={!briefTextInput.trim() || isAnalyzing}
+                        onClick={handleAnalyzeText}
+                        className="px-5 py-2.5 bg-slate-900 hover:bg-black text-white rounded-full text-xs font-bold disabled:opacity-30 flex items-center gap-2 cursor-pointer shadow-xs transition-all"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                        Analizar Brief con Gemini
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 {isAnalyzing && (
-                  <div className="text-center py-4 text-cyan-700 font-bold animate-pulse flex items-center justify-center gap-2">
-                    <Sparkles className="w-5 h-5" /> La IA está analizando detalladamente el documento...
+                  <div className="text-center py-4 text-cyan-700 font-bold animate-pulse flex items-center justify-center gap-2 text-xs">
+                    <Sparkles className="w-4 h-4" /> La IA está analizando detalladamente los lineamientos de marca...
                   </div>
                 )}
               </div>

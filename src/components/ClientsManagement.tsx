@@ -25,7 +25,9 @@ import {
   FileText,
   BadgeCheck,
   CheckCircle2,
-  FolderKanban
+  FolderKanban,
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 import { NewClientWizard } from './NewClientWizard';
 
@@ -34,16 +36,19 @@ interface ClientsManagementProps {
   projects?: Project[];
   onAddClient: (client: Client) => void;
   onUpdateClientStatus?: (clientId: string, nuevoEstado: 'activo' | 'inactivo' | 'pausado') => void;
+  onDeleteClient?: (clientId: string) => void;
 }
 
 export const ClientsManagement: React.FC<ClientsManagementProps> = ({
   clients,
   projects = [],
   onAddClient,
-  onUpdateClientStatus
+  onUpdateClientStatus,
+  onDeleteClient
 }) => {
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
@@ -131,6 +136,40 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
     navigator.clipboard.writeText(color);
     setCopiedColor(color);
     setTimeout(() => setCopiedColor(null), 1500);
+  };
+
+  const handleExportBrandBibleMD = (client: Client) => {
+    if (!client.brandBible) return;
+    const bb = client.brandBible;
+    let md = `# Brand Bible - ${client.nombreComercial}\n\n`;
+    md += `> **Categoría:** ${client.categoria}\n`;
+    md += `> **Contacto Principal:** ${client.contactoPrincipal}\n`;
+    if (client.email) md += `> **Correo:** ${client.email}\n`;
+    if (client.sitioWebRedes) md += `> **Web / Redes:** ${client.sitioWebRedes}\n`;
+    md += `> **Fecha de Emisión:** ${new Date().toISOString().split('T')[0]}\n\n`;
+
+    md += `## 1. Arquetipo de Marca\n${bb.archetype || 'No especificado'}\n\n`;
+    md += `## 2. Misión & Visión\n${bb.misionVision || 'No especificado'}\n\n`;
+    md += `## 3. Tono y Voz\n${bb.tonoVoz || 'No especificado'}\n\n`;
+    md += `## 4. Mensajes Clave\n${bb.mensajesClave || 'No especificado'}\n\n`;
+    md += `## 5. Paleta de Colores Extraída\n`;
+    if (bb.coloresHex && bb.coloresHex.length > 0) {
+      bb.coloresHex.forEach((hex) => {
+        md += `- \`${hex}\`\n`;
+      });
+    } else {
+      md += `*No se registraron colores.*\n`;
+    }
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Brand_Bible_${client.nombreComercial.replace(/\\s+/g, '_')}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const getClientStatusBadge = (estado?: 'activo' | 'inactivo' | 'pausado') => {
@@ -379,6 +418,18 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                       >
                         <Edit3 className="w-3 h-3 text-slate-500" /> Editar Datos
                       </button>
+
+                      {onDeleteClient && (
+                        <button
+                          type="button"
+                          onClick={() => setClientToDelete(currentSelectedClient)}
+                          className="flex items-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer shadow-2xs"
+                          title="Eliminar este cliente"
+                        >
+                          <Trash2 className="w-3 h-3 text-rose-600" />
+                          <span>Eliminar</span>
+                        </button>
+                      )}
                     </div>
 
                     <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">{currentSelectedClient.nombreComercial}</h2>
@@ -636,9 +687,23 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
                     <div className="space-y-6">
 
                       {/* TITLE OF BRAND BIBLE SECTION */}
-                      <div className="flex items-center gap-2.5 pb-2">
-                        <BookOpen className="w-5 h-5 text-slate-800" />
-                        <h3 className="font-semibold text-slate-900 uppercase text-xs tracking-wider">Brand Bible Generada por Inteligencia Artificial</h3>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-stone-200/60">
+                        <div className="flex items-center gap-2.5">
+                          <BookOpen className="w-5 h-5 text-slate-800" />
+                          <div>
+                            <h3 className="font-bold text-slate-900 uppercase text-xs tracking-wider">Brand Bible Generada por Inteligencia Artificial</h3>
+                            <p className="text-xs text-slate-400 font-normal">Identidad estratégica extraída con Gemini 3.6-Flash</p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleExportBrandBibleMD(currentSelectedClient)}
+                          className="bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs self-start sm:self-center active:scale-95"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-slate-200" />
+                          <span>Descargar Brand Bible (.md)</span>
+                        </button>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -748,6 +813,52 @@ export const ClientsManagement: React.FC<ClientsManagementProps> = ({
         onSaveClient={onAddClient}
         initialData={editingClient}
       />
+
+      {/* MODAL DE CONFIRMACIÓN DE ELIMINACIÓN DE CLIENTE */}
+      {clientToDelete && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white max-w-md w-full rounded-3xl p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="w-10 h-10 rounded-2xl bg-rose-100 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">¿Eliminar Cliente?</h3>
+                <p className="text-xs text-slate-500">Esta acción no se puede deshacer</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 leading-relaxed">
+              ¿Estás seguro de que deseas eliminar permanentemente a <strong className="text-slate-900 font-semibold">{clientToDelete.nombreComercial}</strong> del directorio y de Cloud Firestore?
+            </p>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setClientToDelete(null)}
+                className="px-4 py-2 rounded-full text-xs font-semibold text-slate-600 hover:bg-stone-100 cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onDeleteClient && clientToDelete) {
+                    onDeleteClient(clientToDelete.id);
+                    if (selectedClient?.id === clientToDelete.id) {
+                      setSelectedClient(null);
+                    }
+                    setClientToDelete(null);
+                  }
+                }}
+                className="px-5 py-2 rounded-full text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs cursor-pointer"
+              >
+                Eliminar Cliente
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

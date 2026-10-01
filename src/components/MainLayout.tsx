@@ -21,7 +21,9 @@ import {
   Plug,
   BrainCircuit,
   CheckCircle2,
-  Search
+  Search,
+  Trophy,
+  Flame
 } from 'lucide-react';
 import {
   Project,
@@ -35,6 +37,8 @@ import {
 import { TppLogo } from './TppLogo';
 import { AIAssistantModal } from './AIAssistantModal';
 import { GlobalLogTimeModal } from './GlobalLogTimeModal';
+import { TimeTrackerWidget } from './TimeTrackerWidget';
+import { calculateStreak } from '../utils/gamification';
 
 export type PlatformStatus = 'en_linea' | 'ausente' | 'no_molestar';
 
@@ -199,6 +203,19 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   }, 0);
   const todayProgressPct = Math.min(100, Math.round((todayHoursLogged / 8) * 100));
 
+  // User active streak calculation
+  const userEntryDates = projects.flatMap((p) =>
+    (p.timeEntries || [])
+      .filter(
+        (e) =>
+          e.userId === currentUser.id ||
+          e.username?.toLowerCase() === currentUser.username.toLowerCase()
+      )
+      .map((e) => e.date)
+      .filter(Boolean)
+  );
+  const userCurrentStreak = calculateStreak(userEntryDates).currentStreak;
+
   const navSections: Array<{
     label: string;
     items: Array<{
@@ -215,6 +232,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         { view: 'dashboard', label: 'Dashboard Proyectos', icon: LayoutDashboard, show: isViewAllowedForRole(currentUser.role, 'dashboard') },
         { view: 'planner', label: 'Planer Diario', icon: CalendarDays, show: isViewAllowedForRole(currentUser.role, 'planner') },
         { view: 'gantt', label: 'Línea de Tiempo', icon: Layers, show: isViewAllowedForRole(currentUser.role, 'gantt') },
+        { view: 'gamification', label: 'Top 5 & Gamificación', icon: Trophy, show: isViewAllowedForRole(currentUser.role, 'gamification') },
       ],
     },
     {
@@ -544,6 +562,26 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 />
               </div>
             </div>
+
+            {/* ACCESO RÁPIDO TOP 5 Y GAMIFICACIÓN */}
+            <button
+              onClick={() => onNavigate('gamification')}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                currentView === 'gamification'
+                  ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
+                  : 'bg-amber-50 hover:bg-amber-100/80 text-amber-900 border-amber-200/80'
+              }`}
+              title="Ver el Top 5 y clasificación del equipo"
+            >
+              <Trophy className="w-3.5 h-3.5 text-amber-600" />
+              <span>Top 5</span>
+              {userCurrentStreak > 0 && (
+                <span className="flex items-center gap-0.5 text-[11px] text-orange-600 font-bold pl-0.5">
+                  <Flame className="w-3 h-3 fill-orange-500 text-orange-500" />
+                  {userCurrentStreak}d
+                </span>
+              )}
+            </button>
           </div>
 
           {/* DERECHA: BARRA DE BÚSQUEDA CTRL+K */}
@@ -580,6 +618,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         onClose={() => setIsGlobalLogTimeOpen(false)}
         currentUser={currentUser}
         projects={projects}
+        onLogTime={onLogTimeGlobal}
+      />
+
+      {/* WIDGET FLOTANTE PERMANENTE DE MEDICIÓN DE TIEMPO Y CRONÓMETRO */}
+      <TimeTrackerWidget
+        projects={projects}
+        currentUser={currentUser}
         onLogTime={onLogTimeGlobal}
       />
 

@@ -1,16 +1,16 @@
 export type Role = 'supervisor' | 'coordinador' | 'sac' | 'contents' | 'contentd' | 'proveedor' | 'invitado' | 'director_financiero';
 
-export type ViewState = 'dashboard' | 'planner' | 'team' | 'project' | 'gantt' | 'clients' | 'profile' | 'financial' | 'integrations' | 'predictive';
+export type ViewState = 'dashboard' | 'planner' | 'team' | 'project' | 'gantt' | 'clients' | 'profile' | 'financial' | 'integrations' | 'predictive' | 'gamification';
 
 export const ROLE_ALLOWED_VIEWS: Record<Role, ViewState[]> = {
-  coordinador: ['dashboard', 'planner', 'team', 'project', 'gantt', 'clients', 'profile', 'financial', 'integrations', 'predictive'],
-  supervisor: ['dashboard', 'planner', 'team', 'project', 'gantt', 'clients', 'profile', 'financial', 'integrations', 'predictive'],
-  director_financiero: ['financial', 'predictive', 'clients', 'integrations', 'planner', 'gantt', 'project', 'profile'],
-  sac: ['planner', 'gantt', 'project', 'profile'],
-  contents: ['planner', 'gantt', 'project', 'profile'],
-  contentd: ['planner', 'gantt', 'project', 'profile'],
-  proveedor: ['project', 'profile'],
-  invitado: ['project', 'profile'],
+  coordinador: ['dashboard', 'planner', 'team', 'project', 'gantt', 'clients', 'profile', 'financial', 'integrations', 'predictive', 'gamification'],
+  supervisor: ['dashboard', 'planner', 'team', 'project', 'gantt', 'clients', 'profile', 'financial', 'integrations', 'predictive', 'gamification'],
+  director_financiero: ['financial', 'predictive', 'clients', 'integrations', 'planner', 'gantt', 'project', 'profile', 'gamification'],
+  sac: ['planner', 'gantt', 'project', 'profile', 'gamification'],
+  contents: ['planner', 'gantt', 'project', 'profile', 'gamification'],
+  contentd: ['planner', 'gantt', 'project', 'profile', 'gamification'],
+  proveedor: ['project', 'profile', 'gamification'],
+  invitado: ['project', 'profile', 'gamification'],
 };
 
 export function isViewAllowedForRole(role: Role, view: ViewState): boolean {

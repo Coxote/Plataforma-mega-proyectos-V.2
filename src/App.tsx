@@ -24,6 +24,8 @@ import { MyProfileView } from './components/MyProfileView';
 import { FinancialDashboard } from './components/FinancialDashboard';
 import { IntegrationsPanel } from './components/IntegrationsPanel';
 import { PredictiveAnalyticsPanel } from './components/PredictiveAnalyticsPanel';
+import { GamificationView } from './components/GamificationView';
+import { MiniWidgetStandalone } from './components/MiniWidgetStandalone';
 import { Sparkles, Shield, Users, LogOut, Activity, Briefcase } from 'lucide-react';
 import { generatePhasesForTemplate } from './projectTemplates';
 import { NewProjectWizard } from './components/NewProjectWizard';
@@ -37,11 +39,13 @@ import {
   deleteProjectFromFirestore,
   subscribeClients,
   saveClientToFirestore,
+  deleteClientFromFirestore,
   subscribeUsers,
   saveUserToFirestore,
   deleteUserFromFirestore,
   authenticateOrApproveUserInFirestore,
-  seedFirestoreIfEmpty
+  seedFirestoreIfEmpty,
+  logTimeEntryToFirestore
 } from './services/firebaseDb';
 
 const DEMO_VERSION_KEY = 'saas_phase_system_prod_clean_v2';
@@ -319,9 +323,19 @@ export default function App() {
   };
 
   const handleUpdateClientStatus = (clientId: string, nuevoEstado: 'activo' | 'inactivo' | 'pausado') => {
-    setClients((prevClients) =>
-      prevClients.map((c) => (c.id === clientId ? { ...c, estado: nuevoEstado } : c))
-    );
+    setClients((prevClients) => {
+      const updated = prevClients.map((c) => (c.id === clientId ? { ...c, estado: nuevoEstado } : c));
+      const target = updated.find((c) => c.id === clientId);
+      if (target) {
+        saveClientToFirestore(target).catch(err => console.warn('Cloud sync note (Client Status):', err));
+      }
+      return updated;
+    });
+  };
+
+  const handleDeleteClient = (clientId: string) => {
+    setClients((prevClients) => prevClients.filter((c) => c.id !== clientId));
+    deleteClientFromFirestore(clientId).catch(err => console.warn('Cloud sync note (Delete Client):', err));
   };
 
   const updateClientLastActivity = (clientName: string) => {
@@ -673,6 +687,61 @@ export default function App() {
     handleSave();
   };
 
+  const handleClientDeliverableStatusUpdate = (deliverableId: string, newStatus: 'aprobado' | 'rechazado', comment?: string) => {
+    if (!activeProject) return;
+
+    const targetDeliv = (activeProject.deliverables || []).find((d) => d.id === deliverableId);
+    const nowIso = new Date().toISOString();
+    const actionText = newStatus === 'aprobado' ? 'Aprobó Formalmente' : 'Solicitó Correcciones en';
+    const tag = newStatus === 'aprobado' ? 'ENTREGABLE_REVISADO' : 'ENTREGABLE_CAMBIOS';
+
+    const updatedDeliverables = (activeProject.deliverables || []).map((d) => {
+      if (d.id === deliverableId) {
+        const newAnnotations = [...(d.annotations || [])];
+        if (comment && comment.trim()) {
+          newAnnotations.push({
+            id: `ann-${Date.now()}`,
+            authorName: currentUser?.username || 'Cliente',
+            date: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+            comment: comment.trim(),
+            status: 'pendiente' as const
+          });
+        }
+        return {
+          ...d,
+          status: newStatus,
+          annotations: newAnnotations
+        };
+      }
+      return d;
+    });
+
+    const newAuditLog = [
+      {
+        id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 5)}`,
+        timestamp: nowIso,
+        userId: currentUser?.id || 'client',
+        username: currentUser?.username || 'Cliente',
+        userRole: 'invitado' as const,
+        action: newStatus === 'aprobado' ? 'APROBACION_CLIENTE' : 'RECHAZO_CORRECCION_CLIENTE',
+        entityType: 'Entregable',
+        details: `Cliente ${actionText} el entregable "${targetDeliv?.title || 'Entregable'}".${comment ? ` Comentario: "${comment}"` : ''}`,
+        phaseId: targetDeliv?.phaseId,
+        tag: tag as any
+      },
+      ...(activeProject.auditLog || [])
+    ];
+
+    const updatedProject = {
+      ...activeProject,
+      deliverables: updatedDeliverables,
+      auditLog: newAuditLog
+    };
+
+    handleUpdateProject(updatedProject);
+    handleSave();
+  };
+
   // Authentication Handlers
   const handleLogin = (user: UserSession) => {
     setCurrentUser(user);
@@ -779,7 +848,10 @@ export default function App() {
     return (
       <ClientPortal
         project={activeProject}
+        projects={visibleProjects}
+        onSelectProject={handleSelectProject}
         onAddAnnotation={handleAddAnnotation}
+        onUpdateDeliverableStatus={handleClientDeliverableStatusUpdate}
         onLogout={handleLogout}
       />
     );
@@ -831,10 +903,42 @@ export default function App() {
       }
     };
 
+    // Sincronizar directamente el registro de horas y presupuesto en Cloud Firestore
+    logTimeEntryToFirestore({
+      projectId,
+      phaseId,
+      hours,
+      description,
+      type,
+      retrabajoOrigen,
+      retrabajoMotivo,
+      currentUser
+    }).catch(err => console.warn('Cloud sync note (Log Time to Firestore):', err));
+
     handleUpdateProject(updatedProject);
   };
 
   const activePhase = activeProject?.phases.find((p) => p.id === activeProject.activePhaseId) || activeProject?.phases[0];
+
+  // Modo mini-ventana independiente (popup que solo renderiza el widget)
+  const isMiniWidgetView = typeof window !== 'undefined' && window.location.search.includes('mini_widget=true');
+
+  if (isMiniWidgetView) {
+    const effectiveUser: UserSession = currentUser || {
+      id: 'user-default',
+      username: 'Colaborador',
+      puesto: 'Colaborador',
+      role: 'contents'
+    };
+
+    return (
+      <MiniWidgetStandalone
+        projects={projects}
+        currentUser={effectiveUser}
+        onLogTime={handleLogTimeGlobal}
+      />
+    );
+  }
 
   return (
     <MainLayout
@@ -896,6 +1000,7 @@ export default function App() {
             projects={projects}
             onAddClient={handleAddClient}
             onUpdateClientStatus={handleUpdateClientStatus}
+            onDeleteClient={handleDeleteClient}
           />
         </div>
       ) : currentView === 'financial' && isViewAllowedForRole(currentUser.role, 'financial') ? (
@@ -917,6 +1022,16 @@ export default function App() {
             projects={projects}
             users={usersList}
             currentUser={currentUser}
+          />
+        </div>
+      ) : currentView === 'gamification' && isViewAllowedForRole(currentUser.role, 'gamification') ? (
+        <div className="view-container">
+          <GamificationView
+            projects={projects}
+            users={usersList}
+            currentUser={currentUser}
+            onSelectProject={handleSelectProject}
+            onNavigateToView={(view) => setCurrentView(view)}
           />
         </div>
       ) : (
