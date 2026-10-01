@@ -2,182 +2,58 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Global Safety Net (Default Deny)
-    match /{document=**} {
-      allow read, write: if false;
-    }
-
     // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
     function isValidId(id) {
       return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-    }
-
-    function hasAdminRole() {
-      return isSignedIn() && (
-        request.auth.token.email == 'coxot35@gmail.com' ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         getUserData().role in ['coordinador', 'director_financiero', 'supervisor'])
-      );
-    }
-
-    function canManagePlanner() {
-      return isSignedIn() &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        getUserData().role in ['coordinador', 'supervisor', 'director_financiero', 'sac', 'contents', 'contentd'];
-    }
-
-    function isAssignedPlannerUser() {
-      return isSignedIn() &&
-        resource.data.assignedToUsers is list &&
-        request.auth.uid in resource.data.assignedToUsers;
-    }
-
-    function isValidPlannerTask(taskId) {
-      return request.resource.data.id == taskId &&
-        request.resource.data.brand is string &&
-        request.resource.data.project is string &&
-        request.resource.data.start is string &&
-        request.resource.data.deadline is string &&
-        request.resource.data.status in ['pendiente', 'proceso', 'completado'] &&
-        (!('priority' in request.resource.data) || request.resource.data.priority in ['alta', 'media', 'baja']) &&
-        (!('estimatedHours' in request.resource.data) || request.resource.data.estimatedHours is number) &&
-        (!('assignedToUsers' in request.resource.data) || request.resource.data.assignedToUsers is list) &&
-        (!('assignedTo' in request.resource.data) || request.resource.data.assignedTo is string);
-    }
-
-    function isValidUserProfile(userId) {
-      return isOwner(userId) &&
-        request.resource.data.id == userId &&
-        request.resource.data.email == request.auth.token.email &&
-        request.resource.data.estado == 'pendiente_autenticacion' &&
-        request.resource.data.role in [
-          'coordinador',
-          'supervisor',
-          'director_financiero',
-          'sac',
-          'contents',
-          'contentd',
-          'proveedor',
-          'invitado'
-        ] &&
-        !('password' in request.resource.data);
-    }
-
-    function isLegacyBootstrapProfile(userId) {
-      return isOwner(userId) &&
-        request.resource.data.id == userId &&
-        request.resource.data.email == request.auth.token.email &&
-        request.resource.data.email in [
-          'rodrigo@tpp.com',
-          'lourdes@tpp.com',
-          'maylin@tpp.com',
-          'eduardo@tpp.com',
-          'edgar@tpp.com',
-          'jeremy@tpp.com',
-          'noemi@tpp.com',
-          'alejandra@tpp.com',
-          'fabiola@tpp.com',
-          'luis@tpp.com',
-          'sofia@tpp.com',
-          'proveedor@tpp.com',
-          'invitado@tpp.com',
-          'coxot35@gmail.com'
-        ] &&
-        request.resource.data.estado == 'activo' &&
-        request.resource.data.role in [
-          'coordinador',
-          'supervisor',
-          'director_financiero',
-          'sac',
-          'contents',
-          'contentd',
-          'proveedor',
-          'invitado'
-        ] &&
-        !('password' in request.resource.data);
-    }
-
-    // 1. Projects Collection
+    // 1. Projects Collection & Subcollections
     match /projects/{projectId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && hasAdminRole() && isValidId(projectId);
-      allow update: if isSignedIn() && isValidId(projectId);
-      allow delete: if isSignedIn() && hasAdminRole();
+      allow read, write: if isValidId(projectId);
 
-      // Subcollection for granular time entries
       match /timeEntries/{entryId} {
-        allow read: if isSignedIn();
-        allow create, update: if isSignedIn() && isValidId(entryId);
-        allow delete: if isSignedIn() && hasAdminRole();
+        allow read, write: if isValidId(entryId);
       }
     }
 
     // Direct Time Entries Collection
     match /timeEntries/{entryId} {
-      allow read: if isSignedIn();
-      allow create, update: if isSignedIn() && isValidId(entryId);
-      allow delete: if isSignedIn() && hasAdminRole();
+      allow read, write: if isValidId(entryId);
     }
 
     // 2. Users Collection
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if isValidId(userId) && (isValidUserProfile(userId) || isLegacyBootstrapProfile(userId) || hasAdminRole());
-      allow update: if isValidId(userId) &&
-        (
-          hasAdminRole() ||
-          (
-            isOwner(userId) &&
-            !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-              'role',
-              'estado',
-              'autenticadoPor',
-              'fechaAutenticacion',
-              'password'
-            ])
-          )
-        ) &&
-        !('password' in request.resource.data);
-      allow delete: if isValidId(userId) && hasAdminRole();
+      allow read, write: if isValidId(userId);
     }
 
     // 3. Clients Directory
     match /clients/{clientId} {
-      allow read: if isSignedIn();
-      allow create, update, delete: if isSignedIn() && hasAdminRole() && isValidId(clientId);
+      allow read, write: if isValidId(clientId);
     }
 
     // 4. Planner Tasks
     match /plannerTasks/{taskId} {
-      allow read: if isSignedIn();
-      allow create: if isValidId(taskId) && canManagePlanner() && isValidPlannerTask(taskId);
-      allow update: if isValidId(taskId) &&
-        isValidPlannerTask(taskId) &&
-        (
-          canManagePlanner() ||
-          (
-            isAssignedPlannerUser() &&
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-          )
-        );
-      allow delete: if isValidId(taskId) && hasAdminRole();
+      allow read, write: if isValidId(taskId);
+    }
+
+    // 5. Leaves & Vacations
+    match /leaves/{leaveId} {
+      allow read, write: if isValidId(leaveId);
+    }
+
+    // 6. Kudos & Team Recognition
+    match /kudos/{kudoId} {
+      allow read, write: if isValidId(kudoId);
+    }
+
+    // 7. Gamification Document Store
+    match /gamification/{docId} {
+      allow read, write: if isValidId(docId);
     }
 
     // Connection testing
     match /test/connection {
-      allow read: if true;
+      allow read, write: if true;
     }
   }
 }

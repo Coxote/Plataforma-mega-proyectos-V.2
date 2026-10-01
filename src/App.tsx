@@ -9,7 +9,7 @@ import {
   isViewAllowedForRole,
   getDefaultViewForRole
 } from './types';
-import { createDefaultPhases, createDefaultBudget, createDefaultRaci } from './initialData';
+import { createDefaultPhases, createDefaultBudget, createDefaultRaci, INITIAL_PROJECTS } from './initialData';
 import Sidebar from './components/Sidebar';
 import PhaseContent from './components/PhaseContent';
 import Login from './components/Login';
@@ -259,11 +259,12 @@ export default function App() {
 
   // Sincronización en tiempo real con Cloud Firestore (Base de datos en la nube)
   useEffect(() => {
-    if (!currentUser || !firebaseAuthUser) {
+    if (!currentUser) {
       return;
     }
 
-    seedFirestoreIfEmpty([], DEFAULT_CLIENTS, DEFAULT_USERS);
+    // Sembrar la base de datos en la nube si está vacía con los proyectos, clientes y equipo oficiales
+    seedFirestoreIfEmpty(INITIAL_PROJECTS, DEFAULT_CLIENTS, DEFAULT_USERS);
 
     const unsubProjects = subscribeProjects((cloudProjects) => {
       if (cloudProjects && cloudProjects.length > 0) {
@@ -291,7 +292,7 @@ export default function App() {
       unsubClients();
       unsubUsers();
     };
-  }, [currentUser, firebaseAuthUser]);
+  }, [currentUser]);
 
   // Centralized local storage synchronization (Single Source of Truth)
   useEffect(() => {

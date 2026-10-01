@@ -1,4 +1,5 @@
 import { Project, UserSession, TimeEntry, Role } from '../types';
+import { sendKudoToFirestore } from '../services/firebaseDb';
 
 export type LeaderboardCategory = 'xp' | 'projects' | 'hours' | 'rework' | 'streak';
 export type TimeFilterPeriod = 'month' | 'quarter' | 'all';
@@ -194,9 +195,12 @@ export function getKudosMap(): Record<string, { count: number; users: string[] }
 }
 
 /**
- * Otorga un kudo/reconocimiento a un compañero.
+ * Otorga un kudo/reconocimiento a un compañero sincronizado en la nube.
  */
 export function sendKudoToUser(targetUserId: string, fromUsername: string): { success: boolean; newCount: number } {
+  // Sincronizar en Cloud Firestore
+  sendKudoToFirestore(targetUserId, fromUsername).catch(err => console.warn('Cloud sync note (Kudo):', err));
+
   try {
     const map = getKudosMap();
     if (!map[targetUserId]) {
@@ -220,11 +224,12 @@ export function sendKudoToUser(targetUserId: string, fromUsername: string): { su
 export function calculateAllUserGamificationStats(
   users: UserSession[],
   projects: Project[],
-  period: TimeFilterPeriod = 'month'
+  period: TimeFilterPeriod = 'month',
+  overrideKudosMap?: Record<string, { count: number; users: string[] }>
 ): UserGamificationStats[] {
   const allEntries = getAllProjectTimeEntries(projects);
   const filteredEntries = filterEntriesByPeriod(allEntries, period);
-  const kudosMap = getKudosMap();
+  const kudosMap = overrideKudosMap || getKudosMap();
 
   return users.map((user) => {
     // 1. Entradas del usuario en el período

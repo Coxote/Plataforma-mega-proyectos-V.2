@@ -28,10 +28,13 @@ import {
   CalendarRange,
   Plus,
   Award,
-  Laptop
+  Laptop,
+  Flame
 } from 'lucide-react';
 import { EFFECTIVE_MONTHLY_CAPACITY } from '../dashboardUtils';
 import { CustomModal } from './CustomModal';
+import { calculateAllUserGamificationStats } from '../utils/gamification';
+import { subscribeLeaves, saveLeaveToFirestore, deleteLeaveFromFirestore } from '../services/firebaseDb';
 
 interface MyProfileViewProps {
   currentUser: UserSession;
@@ -97,9 +100,15 @@ const DEFAULT_LEAVES: UserLeave[] = [
 ];
 
 export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, projects, onOpenOnboarding }) => {
-  const [activeTab, setActiveTab] = useState<'generales' | 'empleado' | 'adicionales' | 'vacaciones' | 'integraciones'>('vacaciones');
+  const [activeTab, setActiveTab] = useState<'generales' | 'empleado' | 'adicionales' | 'vacaciones' | 'integraciones' | 'logros'>('vacaciones');
   const [filterProject, setFilterProject] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
+
+  // Gamificación y logros del usuario
+  const userGamification = React.useMemo(() => {
+    const stats = calculateAllUserGamificationStats([currentUser], projects, 'all');
+    return stats[0] || null;
+  }, [currentUser, projects]);
 
   // Custom Avatar State with LocalStorage persistence
   const [customAvatar, setCustomAvatar] = useState<string>(() => {
@@ -108,7 +117,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
   const [isChangingPhoto, setIsChangingPhoto] = useState(false);
   const [tempPhotoUrl, setTempPhotoUrl] = useState('');
 
-  // Vacaciones y Licencias State with LocalStorage persistence
+  // Vacaciones y Licencias State with Cloud Firestore & local fallback
   const [leaves, setLeaves] = useState<UserLeave[]>(() => {
     const saved = localStorage.getItem(`user_leaves_${currentUser.id}`);
     if (saved) {
@@ -121,9 +130,23 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
     return DEFAULT_LEAVES;
   });
 
-  const updateLeaves = (newLeaves: UserLeave[]) => {
+  // Sincronización en tiempo real con Cloud Firestore
+  React.useEffect(() => {
+    const unsub = subscribeLeaves(currentUser.id, (cloudLeaves) => {
+      if (cloudLeaves && cloudLeaves.length > 0) {
+        setLeaves(cloudLeaves);
+        localStorage.setItem(`user_leaves_${currentUser.id}`, JSON.stringify(cloudLeaves));
+      }
+    });
+    return () => unsub();
+  }, [currentUser.id]);
+
+  const updateLeaves = (newLeaves: UserLeave[], changedLeave?: UserLeave) => {
     setLeaves(newLeaves);
     localStorage.setItem(`user_leaves_${currentUser.id}`, JSON.stringify(newLeaves));
+    if (changedLeave) {
+      saveLeaveToFirestore(changedLeave, currentUser.id).catch(err => console.warn('Cloud sync error (Leave):', err));
+    }
   };
 
   // Modal State for Nueva / Editar Licencia
@@ -286,16 +309,17 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
     if (!formFechaDesde || !formFechaHasta) return;
 
     if (editingLeave) {
-      const updated = leaves.map(l => l.id === editingLeave.id ? {
-        ...l,
+      const updatedLeave: UserLeave = {
+        ...editingLeave,
         motivo: formMotivo,
         fechaDesde: formFechaDesde,
         fechaHasta: formFechaHasta,
         todoElDia: formTodoElDia,
         horaInicio: formTodoElDia ? '00:00' : formHoraInicio,
         horaFin: formTodoElDia ? '23:59' : formHoraFin,
-      } : l);
-      updateLeaves(updated);
+      };
+      const updated = leaves.map(l => l.id === editingLeave.id ? updatedLeave : l);
+      updateLeaves(updated, updatedLeave);
     } else {
       const newLeave: UserLeave = {
         id: `leave-${Date.now()}`,
@@ -307,7 +331,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
         horaInicio: formTodoElDia ? '00:00' : formHoraInicio,
         horaFin: formTodoElDia ? '23:59' : formHoraFin,
       };
-      updateLeaves([newLeave, ...leaves]);
+      updateLeaves([newLeave, ...leaves], newLeave);
     }
     setIsModalOpen(false);
   };
@@ -416,6 +440,25 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
           }`}
         >
           Integraciones
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('logros')}
+          className={`px-4 py-2 text-xs sm:text-sm rounded-full transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            activeTab === 'logros'
+              ? 'bg-slate-900 text-white shadow-xs font-semibold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-[#F4F5F0] font-medium'
+          }`}
+        >
+          <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
+          <span>Racha e Insignias</span>
+          {userGamification && userGamification.currentStreakDays > 0 && (
+            <span className={`px-1.5 py-0.2 text-[11px] font-bold rounded-full ${
+              activeTab === 'logros' ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-800'
+            }`}>
+              {userGamification.currentStreakDays}d
+            </span>
+          )}
         </button>
       </div>
 
@@ -1074,6 +1117,150 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
           </div>
         )}
 
+        {/* TAB 6: RACHA E INSIGNIAS (GAMIFICACIÓN PERSONAL) */}
+        {activeTab === 'logros' && userGamification && (
+          <div className="space-y-6 animate-in fade-in">
+            {/* Banner de Racha y Nivel de Usuario */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-stone-200/80">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-3xl shadow-2xs shrink-0">
+                    <Flame className="w-8 h-8 text-orange-500 fill-orange-500" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-bold text-slate-900">
+                        {userGamification.currentStreakDays} Días de Racha Activa
+                      </h2>
+                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#c6ef4e] text-black">
+                        Nv. {userGamification.level}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">
+                      Rango actual: <strong className="text-slate-800 font-semibold">{userGamification.levelTitle}</strong> · Récord histórico: <strong>{userGamification.maxStreakDays} días</strong>
+                    </p>
+
+                    {/* Barra de progreso de XP */}
+                    <div className="mt-3 w-64 sm:w-80">
+                      <div className="flex justify-between text-xs text-slate-500 mb-1">
+                        <span>{userGamification.xpScore} XP acumulados</span>
+                        <span className="font-semibold text-slate-700">+{userGamification.xpToNextLevel} XP para Nv.{userGamification.level + 1}</span>
+                      </div>
+                      <div className="w-full bg-[#F4F5F0] rounded-full h-2 overflow-hidden">
+                        <div
+                          className="bg-[#c6ef4e] h-full rounded-full transition-all duration-500"
+                          style={{ width: `${userGamification.levelProgressPct}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Métricas clave */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div className="bg-[#F4F5F0] rounded-2xl p-3.5 text-center">
+                    <span className="text-[11px] text-slate-400 font-medium block">Horas Totales</span>
+                    <span className="text-base font-bold text-slate-900 mt-0.5 block">{userGamification.totalHours} hrs</span>
+                  </div>
+                  <div className="bg-[#F4F5F0] rounded-2xl p-3.5 text-center">
+                    <span className="text-[11px] text-slate-400 font-medium block">Proyectos Activos</span>
+                    <span className="text-base font-bold text-slate-900 mt-0.5 block">{userGamification.activeProjectsCount}</span>
+                  </div>
+                  <div className="bg-[#F4F5F0] rounded-2xl p-3.5 text-center col-span-2 sm:col-span-1">
+                    <span className="text-[11px] text-slate-400 font-medium block">Tasa Retrabajo</span>
+                    <span className={`text-base font-bold mt-0.5 block ${userGamification.reworkRatePct <= 5 ? 'text-emerald-600' : 'text-amber-600'}`}>
+                      {userGamification.reworkRatePct}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Colección de Insignias y Logros Desbloqueables */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-stone-200/80 space-y-4">
+              <div className="flex items-center justify-between border-b border-stone-100 pb-4">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <Award className="w-5 h-5 text-amber-500" />
+                    <span>Insignias y Logros Desbloqueables</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Recompensas automáticas otorgadas por consistencia en registro, volumen y calidad técnica.
+                  </p>
+                </div>
+                <span className="text-xs font-semibold px-3 py-1 bg-stone-100 text-slate-700 rounded-full">
+                  {userGamification.badges.filter(b => b.unlocked).length} de {userGamification.badges.length} desbloqueadas
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                {userGamification.badges.map((badge) => (
+                  <div
+                    key={badge.id}
+                    className={`p-4 rounded-2xl border transition-all ${
+                      badge.unlocked
+                        ? 'bg-amber-50/40 border-amber-200 shadow-2xs'
+                        : 'bg-[#F4F5F0]/60 border-stone-200/80 opacity-75'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                          badge.unlocked
+                            ? 'bg-amber-100 text-amber-900 shadow-2xs'
+                            : 'bg-stone-200 text-slate-400'
+                        }`}
+                      >
+                        {badge.id === 'swiss-clock' && <Clock className="w-5 h-5" />}
+                        {badge.id === 'zero-rework' && <ShieldCheck className="w-5 h-5" />}
+                        {badge.id === 'multitask-pro' && <FolderKanban className="w-5 h-5" />}
+                        {badge.id === 'streak-master' && <Flame className="w-5 h-5 fill-current" />}
+                        {badge.id === 'centurion' && <Award className="w-5 h-5" />}
+                        {badge.id === 'team-pillar' && <Sparkles className="w-5 h-5" />}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <h4 className="text-xs font-bold text-slate-900 truncate">
+                            {badge.name}
+                          </h4>
+                          {badge.unlocked ? (
+                            <span className="text-[10px] font-bold text-emerald-600 flex items-center gap-0.5 shrink-0">
+                              <CheckCircle2 className="w-3 h-3" /> Desbloqueado
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-medium text-slate-400 shrink-0">
+                              En progreso
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-1 leading-snug">
+                          {badge.description}
+                        </p>
+
+                        <div className="mt-3">
+                          <div className="flex justify-between text-[10px] text-slate-400 mb-1">
+                            <span>Progreso</span>
+                            <span>{badge.progressLabel}</span>
+                          </div>
+                          <div className="w-full bg-stone-200 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                badge.unlocked ? 'bg-amber-500' : 'bg-slate-400'
+                              }`}
+                              style={{ width: `${badge.progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* MODAL: NUEVA LICENCIA / EDITAR LICENCIA */}
@@ -1236,6 +1423,7 @@ export const MyProfileView: React.FC<MyProfileViewProps> = ({ currentUser, proje
         onConfirm={() => {
           if (leaveToDelete) {
             updateLeaves(leaves.filter(l => l.id !== leaveToDelete));
+            deleteLeaveFromFirestore(leaveToDelete).catch(err => console.warn('Cloud sync error (Delete Leave):', err));
             setLeaveToDelete(null);
           }
         }}

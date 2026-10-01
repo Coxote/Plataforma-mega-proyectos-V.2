@@ -232,7 +232,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         { view: 'dashboard', label: 'Dashboard Proyectos', icon: LayoutDashboard, show: isViewAllowedForRole(currentUser.role, 'dashboard') },
         { view: 'planner', label: 'Planer Diario', icon: CalendarDays, show: isViewAllowedForRole(currentUser.role, 'planner') },
         { view: 'gantt', label: 'Línea de Tiempo', icon: Layers, show: isViewAllowedForRole(currentUser.role, 'gantt') },
-        { view: 'gamification', label: 'Top 5 & Gamificación', icon: Trophy, show: isViewAllowedForRole(currentUser.role, 'gamification') },
+        { view: 'gamification', label: 'Top 5', icon: Trophy, show: isViewAllowedForRole(currentUser.role, 'gamification') },
       ],
     },
     {
@@ -563,24 +563,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               </div>
             </div>
 
-            {/* ACCESO RÁPIDO TOP 5 Y GAMIFICACIÓN */}
+            {/* ACCESO RÁPIDO TOP 5 */}
             <button
               onClick={() => onNavigate('gamification')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                 currentView === 'gamification'
-                  ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-xs'
-                  : 'bg-amber-50 hover:bg-amber-100/80 text-amber-900 border-amber-200/80'
+                  ? 'bg-[#58CC02] text-white shadow-xs'
+                  : 'bg-stone-100 hover:bg-stone-200/90 text-stone-700'
               }`}
-              title="Ver el Top 5 y clasificación del equipo"
+              title="Top 5"
             >
-              <Trophy className="w-3.5 h-3.5 text-amber-600" />
-              <span>Top 5</span>
-              {userCurrentStreak > 0 && (
-                <span className="flex items-center gap-0.5 text-[11px] text-orange-600 font-bold pl-0.5">
-                  <Flame className="w-3 h-3 fill-orange-500 text-orange-500" />
-                  {userCurrentStreak}d
-                </span>
-              )}
+              <Trophy className="w-3.5 h-3.5 text-amber-500" />
+              <span>top5</span>
             </button>
           </div>
 

@@ -85,6 +85,34 @@
         "createdAt": { "type": "string", "description": "Creation timestamp" }
       },
       "required": ["id", "projectId", "userId", "hours", "date", "description"]
+    },
+    "Leave": {
+      "title": "Leave",
+      "description": "User vacation or leave permit record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Leave unique identifier" },
+        "userId": { "type": "string", "description": "Associated user id" },
+        "motivo": { "type": "string", "description": "Leave reason category" },
+        "fechaDesde": { "type": "string", "description": "Start date (YYYY-MM-DD)" },
+        "fechaHasta": { "type": "string", "description": "End date (YYYY-MM-DD)" },
+        "todoElDia": { "type": "boolean", "description": "All day flag" },
+        "horaInicio": { "type": "string", "description": "Start time (HH:MM)" },
+        "horaFin": { "type": "string", "description": "End time (HH:MM)" }
+      },
+      "required": ["id", "userId", "motivo", "fechaDesde", "fechaHasta"]
+    },
+    "Kudo": {
+      "title": "Kudo",
+      "description": "Peer recognition transaction",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Kudo record identifier" },
+        "targetUserId": { "type": "string", "description": "Recipient user id" },
+        "fromUsername": { "type": "string", "description": "Sender username" },
+        "createdAt": { "type": "string", "description": "Timestamp" }
+      },
+      "required": ["id", "targetUserId", "fromUsername"]
     }
   },
   "firestore": {
@@ -111,6 +139,14 @@
     "/plannerTasks/{taskId}": {
       "schema": { "$ref": "#/entities/PlannerTask" },
       "description": "Workload and planner task schedule records"
+    },
+    "/leaves/{leaveId}": {
+      "schema": { "$ref": "#/entities/Leave" },
+      "description": "User leaves and vacation records"
+    },
+    "/kudos/{kudoId}": {
+      "schema": { "$ref": "#/entities/Kudo" },
+      "description": "Team gamification peer recognition records"
     }
   }
 }
