@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Project, OrdenVenta, EstadoOV, Client, DecisionLogEntry, UserSession } from '../types';
+import { Project, OrdenVenta, EstadoOV, Client, DecisionLogEntry, UserSession, AuditLogEntry } from '../types';
 import {
   User,
   Hash,
@@ -24,7 +24,8 @@ import {
   Filter,
   FileCheck,
   Palette,
-  Check
+  Check,
+  Edit2
 } from 'lucide-react';
 import { getRetrabajoStats } from '../dashboardUtils';
 import { CustomModal } from './CustomModal';
@@ -82,7 +83,63 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({
   const [ovToDelete, setOvToDelete] = useState<string | null>(null);
   const [ovRestrictionModal, setOvRestrictionModal] = useState(false);
 
-  const saveUpdatedOVs = (updatedList: OrdenVenta[]) => {
+  // Modificar Orden de Venta existente
+  const [editingOvId, setEditingOvId] = useState<string | null>(null);
+  const [editOvNumber, setEditOvNumber] = useState('');
+  const [editOvMonto, setEditOvMonto] = useState<number | ''>('');
+  const [editOvHoras, setEditOvHoras] = useState<number | ''>('');
+  const [editOvDesc, setEditOvDesc] = useState('');
+  const [editOvEstado, setEditOvEstado] = useState<EstadoOV>('creada');
+
+  const startEditOv = (ov: OrdenVenta) => {
+    setEditingOvId(ov.id);
+    setEditOvNumber(ov.numero);
+    setEditOvMonto(ov.monto);
+    setEditOvHoras(ov.horasAsociadas || 0);
+    setEditOvDesc(ov.descripcion || '');
+    setEditOvEstado(ov.estado || 'creada');
+  };
+
+  const handleSaveEditOv = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingOvId) return;
+    const cleanNum = editOvNumber.trim();
+    if (!cleanNum) return;
+
+    const montoVal = typeof editOvMonto === 'number' ? editOvMonto : 0;
+    const horasVal = typeof editOvHoras === 'number' ? editOvHoras : 0;
+
+    const updatedList = ordenesVentaList.map((o) => {
+      if (o.id === editingOvId) {
+        return {
+          ...o,
+          numero: cleanNum,
+          monto: montoVal,
+          horasAsociadas: horasVal,
+          descripcion: editOvDesc.trim() || `Orden de Venta ${cleanNum}`,
+          estado: editOvEstado
+        };
+      }
+      return o;
+    });
+
+    const editAuditEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      timestamp: new Date().toISOString(),
+      userId: currentUser?.id || 'sys',
+      username: currentUser?.username || 'Usuario',
+      userRole: (currentUser?.role || userRole || 'coordinador') as any,
+      action: 'MODIFICAR_ORDEN_VENTA',
+      entityType: 'Orden de Venta',
+      details: `Modificó Orden de Venta ${cleanNum}: monto $${montoVal.toLocaleString('es-CL')} ${project.currency || 'USD'}, ${horasVal} hrs, estado "${editOvEstado.toUpperCase()}".`,
+      tag: 'ORDEN_VENTA'
+    };
+
+    saveUpdatedOVs(updatedList, editAuditEntry);
+    setEditingOvId(null);
+  };
+
+  const saveUpdatedOVs = (updatedList: OrdenVenta[], auditEntry?: AuditLogEntry) => {
     const calcTotalIncome = updatedList.reduce((sum, o) => sum + (o.monto || 0), 0);
     const ovNumbersConcat = updatedList.map((o) => o.numero).join(', ') || updatedList[0]?.numero || 'OV-001';
 
@@ -91,7 +148,8 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({
       ordenesVenta: updatedList,
       totalIncome: calcTotalIncome,
       saleOrderNumber: ovNumbersConcat,
-      ovNumber: ovNumbersConcat
+      ovNumber: ovNumbersConcat,
+      auditLog: auditEntry ? [auditEntry, ...(project.auditLog || [])] : (project.auditLog || [])
     });
   };
 
@@ -100,18 +158,33 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({
     const cleanNum = newOvNumber.trim();
     if (!cleanNum) return;
 
+    const montoVal = typeof newOvMonto === 'number' ? newOvMonto : 0;
+    const horasVal = typeof newOvHoras === 'number' ? newOvHoras : 0;
+
     const newOV: OrdenVenta = {
       id: `ov-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
       numero: cleanNum,
-      monto: typeof newOvMonto === 'number' ? newOvMonto : 0,
+      monto: montoVal,
       moneda: project.currency || 'USD',
-      horasAsociadas: typeof newOvHoras === 'number' ? newOvHoras : 0,
+      horasAsociadas: horasVal,
       fechaEmision: new Date().toISOString().split('T')[0],
       descripcion: newOvDesc.trim() || `Orden de Venta ${cleanNum}`,
       estado: 'creada'
     };
 
-    saveUpdatedOVs([...ordenesVentaList, newOV]);
+    const newAuditEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      timestamp: new Date().toISOString(),
+      userId: currentUser?.id || 'sys',
+      username: currentUser?.username || 'Usuario',
+      userRole: (currentUser?.role || userRole || 'coordinador') as any,
+      action: 'CREAR_ORDEN_VENTA',
+      entityType: 'Orden de Venta',
+      details: `Agregó Orden de Venta ${cleanNum} por ${project.currency || 'USD'} ${montoVal.toLocaleString('es-CL')} (${horasVal} hrs).`,
+      tag: 'ORDEN_VENTA'
+    };
+
+    saveUpdatedOVs([...ordenesVentaList, newOV], newAuditEntry);
     setNewOvNumber('');
     setNewOvMonto('');
     setNewOvHoras('');
@@ -129,12 +202,42 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({
 
   const confirmDeleteOV = () => {
     if (!ovToDelete) return;
-    saveUpdatedOVs(ordenesVentaList.filter((o) => o.id !== ovToDelete));
+    const targetOv = ordenesVentaList.find((o) => o.id === ovToDelete);
+    const updatedList = ordenesVentaList.filter((o) => o.id !== ovToDelete);
+
+    const deleteAuditEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      timestamp: new Date().toISOString(),
+      userId: currentUser?.id || 'sys',
+      username: currentUser?.username || 'Usuario',
+      userRole: (currentUser?.role || userRole || 'coordinador') as any,
+      action: 'ELIMINAR_ORDEN_VENTA',
+      entityType: 'Orden de Venta',
+      details: `Eliminó la Orden de Venta ${targetOv?.numero || ovToDelete}.`,
+      tag: 'ORDEN_VENTA'
+    };
+
+    saveUpdatedOVs(updatedList, deleteAuditEntry);
     setOvToDelete(null);
   };
 
   const handleQuickStatusChange = (ovId: string, newStatus: EstadoOV) => {
-    saveUpdatedOVs(ordenesVentaList.map((o) => (o.id === ovId ? { ...o, estado: newStatus } : o)));
+    const targetOv = ordenesVentaList.find((o) => o.id === ovId);
+    const updatedList = ordenesVentaList.map((o) => (o.id === ovId ? { ...o, estado: newStatus } : o));
+
+    const statusAuditEntry: AuditLogEntry = {
+      id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      timestamp: new Date().toISOString(),
+      userId: currentUser?.id || 'sys',
+      username: currentUser?.username || 'Usuario',
+      userRole: (currentUser?.role || userRole || 'coordinador') as any,
+      action: 'MODIFICAR_ORDEN_VENTA',
+      entityType: 'Orden de Venta',
+      details: `Modificó la Orden de Venta ${targetOv?.numero || ovId}: nuevo estado "${newStatus.toUpperCase()}".`,
+      tag: 'ORDEN_VENTA'
+    };
+
+    saveUpdatedOVs(updatedList, statusAuditEntry);
   };
 
   // 3. Cálculos de Desglose de Horas Presupuestadas vs. Ejecutadas (Minimalista)
@@ -232,7 +335,7 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({
     };
 
     const updatedDecisions = [newEntry, ...(project.decisionLog || [])];
-    const newAuditEntry = {
+    const newAuditEntry: AuditLogEntry = {
       id: `audit-${Date.now()}`,
       timestamp: new Date().toISOString(),
       userId: currentUser?.id || 'sys',
@@ -240,7 +343,8 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({
       userRole: (currentUser?.role || 'coordinador') as any,
       action: 'REGISTRAR_ACUERDO',
       entityType: 'DecisionLog',
-      details: `Registró acuerdo "${decTitle}" en categoría ${decCategory}. Aprobado por: ${newEntry.approvedBy}`
+      details: `Registró acuerdo "${decTitle}" en categoría ${decCategory}. Aprobado por: ${newEntry.approvedBy}`,
+      tag: 'ACUERDO_CLIENTE'
     };
 
     onUpdateProject({
@@ -480,63 +584,174 @@ export const PerfilGeneral: React.FC<PerfilGeneralProps> = ({
 
         {/* Lista de OVs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {ordenesVentaList.map((ov, index) => (
-            <div
-              key={ov.id || index}
-              className="p-4 rounded-2xl border border-stone-200 bg-[#F4F5F0] hover:bg-stone-50 transition-all flex flex-col justify-between space-y-3"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-xs bg-white px-2.5 py-1 rounded-lg border border-stone-200 text-slate-900">
-                      {ov.numero}
-                    </span>
-                    <span className="font-mono font-bold text-base text-slate-900">
-                      ${(ov.monto || 0).toLocaleString('es-CL')} {ov.moneda || 'USD'}
-                    </span>
-                  </div>
-                  {ov.descripcion && (
-                    <p className="text-xs text-slate-600 mt-1 line-clamp-1">{ov.descripcion}</p>
-                  )}
-                </div>
+          {ordenesVentaList.map((ov, index) => {
+            const isEditing = editingOvId === ov.id;
 
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {isCoordinador ? (
-                    <select
-                      value={ov.estado}
-                      onChange={(e) => handleQuickStatusChange(ov.id, e.target.value as EstadoOV)}
-                      className="text-xs font-bold px-3 py-1 rounded-full border border-stone-200 bg-white text-slate-800 outline-none cursor-pointer"
-                    >
-                      <option value="creada">Creada</option>
-                      <option value="enviada">Enviada</option>
-                      <option value="bloqueada">Bloqueada</option>
-                      <option value="facturada">Facturada</option>
-                    </select>
-                  ) : (
-                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white border border-stone-200 text-slate-700 uppercase">
-                      {ov.estado}
+            if (isEditing) {
+              return (
+                <form
+                  key={ov.id || index}
+                  onSubmit={handleSaveEditOv}
+                  className="p-4 rounded-2xl border-2 border-indigo-400 bg-white shadow-xs space-y-3"
+                >
+                  <div className="flex items-center justify-between border-b border-stone-100 pb-2">
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      Modificar Orden de Venta
                     </span>
-                  )}
-
-                  {isCoordinador && ordenesVentaList.length > 1 && (
                     <button
                       type="button"
-                      onClick={() => handleDeleteOV(ov.id)}
-                      className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer rounded-lg"
-                      title="Eliminar OV"
+                      onClick={() => setEditingOvId(null)}
+                      className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
-                  )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Número OV</label>
+                      <input
+                        type="text"
+                        value={editOvNumber}
+                        onChange={(e) => setEditOvNumber(e.target.value)}
+                        className="w-full bg-[#F4F5F0] rounded-xl px-2.5 py-1.5 border border-stone-200 font-mono font-bold"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Monto ({project.currency || 'USD'})</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={editOvMonto}
+                        onChange={(e) => setEditOvMonto(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="w-full bg-[#F4F5F0] rounded-xl px-2.5 py-1.5 border border-stone-200 font-mono font-bold"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Horas Asociadas</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={editOvHoras}
+                        onChange={(e) => setEditOvHoras(e.target.value === '' ? '' : Number(e.target.value))}
+                        className="w-full bg-[#F4F5F0] rounded-xl px-2.5 py-1.5 border border-stone-200 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Estado</label>
+                      <select
+                        value={editOvEstado}
+                        onChange={(e) => setEditOvEstado(e.target.value as EstadoOV)}
+                        className="w-full bg-[#F4F5F0] rounded-xl px-2.5 py-1.5 border border-stone-200 font-bold"
+                      >
+                        <option value="creada">Creada</option>
+                        <option value="enviada">Enviada</option>
+                        <option value="bloqueada">Bloqueada</option>
+                        <option value="facturada">Facturada</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Descripción / Notas</label>
+                    <input
+                      type="text"
+                      value={editOvDesc}
+                      onChange={(e) => setEditOvDesc(e.target.value)}
+                      placeholder="Concepto o descripción..."
+                      className="w-full bg-[#F4F5F0] rounded-xl px-2.5 py-1.5 text-xs border border-stone-200"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-1 border-t border-stone-100">
+                    <button
+                      type="button"
+                      onClick={() => setEditingOvId(null)}
+                      className="px-3 py-1 rounded-xl text-xs font-semibold text-slate-600 hover:bg-stone-100 cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-3 py-1 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 cursor-pointer shadow-xs"
+                    >
+                      Guardar Modificación
+                    </button>
+                  </div>
+                </form>
+              );
+            }
+
+            return (
+              <div
+                key={ov.id || index}
+                className="p-4 rounded-2xl border border-stone-200 bg-[#F4F5F0] hover:bg-stone-50 transition-all flex flex-col justify-between space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-bold text-xs bg-white px-2.5 py-1 rounded-lg border border-stone-200 text-slate-900">
+                        {ov.numero}
+                      </span>
+                      <span className="font-mono font-bold text-base text-slate-900">
+                        ${(ov.monto || 0).toLocaleString('es-CL')} {ov.moneda || 'USD'}
+                      </span>
+                    </div>
+                    {ov.descripcion && (
+                      <p className="text-xs text-slate-600 mt-1 line-clamp-1">{ov.descripcion}</p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {isCoordinador ? (
+                      <>
+                        <select
+                          value={ov.estado}
+                          onChange={(e) => handleQuickStatusChange(ov.id, e.target.value as EstadoOV)}
+                          className="text-xs font-bold px-3 py-1 rounded-full border border-stone-200 bg-white text-slate-800 outline-none cursor-pointer"
+                        >
+                          <option value="creada">Creada</option>
+                          <option value="enviada">Enviada</option>
+                          <option value="bloqueada">Bloqueada</option>
+                          <option value="facturada">Facturada</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => startEditOv(ov)}
+                          className="p-1 text-slate-500 hover:text-slate-900 cursor-pointer rounded-lg hover:bg-white"
+                          title="Modificar OV"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        {ordenesVentaList.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteOV(ov.id)}
+                            className="p-1 text-slate-400 hover:text-rose-600 cursor-pointer rounded-lg hover:bg-white"
+                            title="Eliminar OV"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white border border-stone-200 text-slate-700 uppercase">
+                        {ov.estado}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-stone-200/60">
+                  <span>{ov.horasAsociadas || 0} hrs asignadas</span>
+                  <span>Emisión: {ov.fechaEmision || 'N/A'}</span>
                 </div>
               </div>
-
-              <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-stone-200/60">
-                <span>{ov.horasAsociadas || 0} hrs asignadas</span>
-                <span>Emisión: {ov.fechaEmision || 'N/A'}</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

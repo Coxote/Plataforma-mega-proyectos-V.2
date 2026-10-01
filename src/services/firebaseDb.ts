@@ -6,7 +6,7 @@ import {
   getDocs,
   onSnapshot
 } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../firebase';
+import { auth, db, handleFirestoreError, OperationType } from '../firebase';
 import { Project, Client, UserSession } from '../types';
 
 export const APP_ENVIRONMENT_ID = 'prod_v1';
@@ -49,6 +49,10 @@ export function subscribeProjects(
   onProjects: (projects: Project[]) => void,
   onError?: (err: any) => void
 ) {
+  if (!auth.currentUser) {
+    return () => {};
+  }
+
   return onSnapshot(
     collection(db, PROJECTS_COL),
     (snapshot) => {
@@ -74,6 +78,10 @@ export function subscribeProjects(
  * Guarda o actualiza un proyecto en Cloud Firestore.
  */
 export async function saveProjectToFirestore(project: Project): Promise<void> {
+  if (!auth.currentUser) {
+    return;
+  }
+
   try {
     const docRef = doc(db, PROJECTS_COL, project.id);
     await setDoc(docRef, withEnvironment(project), { merge: true });
@@ -86,6 +94,10 @@ export async function saveProjectToFirestore(project: Project): Promise<void> {
  * Elimina un proyecto en Cloud Firestore.
  */
 export async function deleteProjectFromFirestore(projectId: string): Promise<void> {
+  if (!auth.currentUser) {
+    return;
+  }
+
   try {
     const docRef = doc(db, PROJECTS_COL, projectId);
     await deleteDoc(docRef);
@@ -101,6 +113,10 @@ export function subscribeClients(
   onClients: (clients: Client[]) => void,
   onError?: (err: any) => void
 ) {
+  if (!auth.currentUser) {
+    return () => {};
+  }
+
   return onSnapshot(
     collection(db, CLIENTS_COL),
     (snapshot) => {
@@ -121,9 +137,13 @@ export function subscribeClients(
 }
 
 /**
- * Guarda o actualiza un cliente en Firestore.
+ * Guarda o actualiza un cliente en Cloud Firestore.
  */
 export async function saveClientToFirestore(client: Client): Promise<void> {
+  if (!auth.currentUser) {
+    return;
+  }
+
   try {
     const docRef = doc(db, CLIENTS_COL, client.id);
     await setDoc(docRef, withEnvironment(client), { merge: true });
@@ -133,12 +153,32 @@ export async function saveClientToFirestore(client: Client): Promise<void> {
 }
 
 /**
- * Suscripción en tiempo real a Usuarios en Cloud Firestore.
+ * Elimina un cliente de Cloud Firestore.
+ */
+export async function deleteClientFromFirestore(clientId: string): Promise<void> {
+  if (!auth.currentUser) {
+    return;
+  }
+
+  try {
+    const docRef = doc(db, CLIENTS_COL, clientId);
+    await deleteDoc(docRef);
+  } catch (error) {
+    handleFirestoreError(error, OperationType.DELETE, `${CLIENTS_COL}/${clientId}`);
+  }
+}
+
+/**
+ * Suscripción en tiempo real a Usuarios registrados en el sistema.
  */
 export function subscribeUsers(
   onUsers: (users: UserSession[]) => void,
   onError?: (err: any) => void
 ) {
+  if (!auth.currentUser) {
+    return () => {};
+  }
+
   return onSnapshot(
     collection(db, USERS_COL),
     (snapshot) => {
@@ -164,6 +204,10 @@ export function subscribeUsers(
  * Guarda o actualiza un usuario en Cloud Firestore.
  */
 export async function saveUserToFirestore(user: UserSession): Promise<void> {
+  if (!auth.currentUser) {
+    return;
+  }
+
   try {
     const docRef = doc(db, USERS_COL, user.id);
     await setDoc(docRef, withEnvironment(sanitizeUserForFirestore(user)), { merge: true });
@@ -176,6 +220,10 @@ export async function saveUserToFirestore(user: UserSession): Promise<void> {
  * Elimina un usuario de Cloud Firestore.
  */
 export async function deleteUserFromFirestore(userId: string): Promise<void> {
+  if (!auth.currentUser) {
+    return;
+  }
+
   try {
     const docRef = doc(db, USERS_COL, userId);
     await deleteDoc(docRef);
@@ -191,6 +239,10 @@ export function subscribePlannerTasks(
   onTasks: (tasks: PlannerTaskRecord[]) => void,
   onError?: (err: any) => void
 ) {
+  if (!auth.currentUser) {
+    return () => {};
+  }
+
   return onSnapshot(
     collection(db, PLANNER_TASKS_COL),
     (snapshot) => {
@@ -212,6 +264,10 @@ export function subscribePlannerTasks(
 }
 
 export async function savePlannerTaskToFirestore(task: PlannerTaskRecord): Promise<void> {
+  if (!auth.currentUser) {
+    return;
+  }
+
   try {
     const docRef = doc(db, PLANNER_TASKS_COL, task.id);
     await setDoc(docRef, withEnvironment(task), { merge: true });
@@ -221,6 +277,10 @@ export async function savePlannerTaskToFirestore(task: PlannerTaskRecord): Promi
 }
 
 export async function deletePlannerTaskFromFirestore(taskId: string): Promise<void> {
+  if (!auth.currentUser) {
+    return;
+  }
+
   try {
     const docRef = doc(db, PLANNER_TASKS_COL, taskId);
     await deleteDoc(docRef);
@@ -230,6 +290,10 @@ export async function deletePlannerTaskFromFirestore(taskId: string): Promise<vo
 }
 
 export async function seedPlannerTasksIfEmpty(defaultTasks: PlannerTaskRecord[]): Promise<void> {
+  if (!auth.currentUser) {
+    return;
+  }
+
   try {
     const tasksSnap = await getDocs(collection(db, PLANNER_TASKS_COL));
     if (tasksSnap.empty) {
@@ -250,6 +314,10 @@ export async function authenticateOrApproveUserInFirestore(
   userId: string,
   approvedByUsername: string
 ): Promise<void> {
+  if (!auth.currentUser) {
+    return;
+  }
+
   try {
     const docRef = doc(db, USERS_COL, userId);
     await setDoc(
@@ -275,6 +343,10 @@ export async function seedFirestoreIfEmpty(
   defaultClients: Client[],
   defaultUsers: UserSession[]
 ): Promise<void> {
+  if (!auth.currentUser) {
+    return;
+  }
+
   try {
     const projectsSnap = await getDocs(collection(db, PROJECTS_COL));
     if (!projectsSnap.docs.some((docSnap) => isCurrentEnvironment(docSnap.data()))) {

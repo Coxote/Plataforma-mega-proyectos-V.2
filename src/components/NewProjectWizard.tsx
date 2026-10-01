@@ -549,7 +549,16 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     }
   }, [draft, isOpen]);
 
-  if (!isOpen) return null;
+  // Escape key listener for closing the wizard safely
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleResetAndClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   const totalHoursCalculated =
     Number(draft.roleHours.supervisor || 0) +
@@ -958,17 +967,6 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     handleResetAndClose();
   };
 
-  // Escape key listener for closing the wizard safely
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        handleResetAndClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
-
   const rosterUsers = (users || [])
     .filter(u => u.role !== 'invitado')
     .map(u => ({
@@ -982,6 +980,8 @@ export const NewProjectWizard: React.FC<NewProjectWizardProps> = ({ isOpen, onCl
     member.name.toLowerCase().includes(rosterSearch.toLowerCase()) ||
     member.roleBase.toLowerCase().includes(rosterSearch.toLowerCase())
   );
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4">

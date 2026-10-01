@@ -43,8 +43,22 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
   users,
   currentUser,
 }) => {
-  // Baseline financials from active projects
-  const baselineFinancials = useMemo(() => calculateGlobalFinancials(projects), [projects]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
+
+  // Baseline financials from active projects or selected project
+  const baselineFinancials = useMemo(() => {
+    if (selectedProjectId === 'all') {
+      return calculateGlobalFinancials(projects);
+    }
+    const singleProj = projects.filter((p) => p.id === selectedProjectId);
+    return calculateGlobalFinancials(singleProj);
+  }, [projects, selectedProjectId]);
+
+  // Selected project object for deep analysis
+  const currentSelectedProject = useMemo(() => {
+    if (selectedProjectId === 'all') return null;
+    return projects.find((p) => p.id === selectedProjectId) || null;
+  }, [projects, selectedProjectId]);
 
   // Simulation Parameters state
   const [params, setParams] = useState<ScenarioSimulationParams>({
@@ -259,7 +273,7 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         {/* Sliders Panel (5 cols) */}
-        <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-7 shadow-xs space-y-6 border border-stone-200/60">
+        <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-7 shadow-xs space-y-5 border border-stone-200/60">
           <div className="flex items-center justify-between border-b border-stone-100 pb-3">
             <h3 className="font-semibold text-base text-slate-900 flex items-center gap-2">
               <Sliders className="w-5 h-5 text-slate-800" />
@@ -271,6 +285,25 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
             >
               <RotateCcw className="w-3 h-3 text-slate-800" /> Reset
             </button>
+          </div>
+
+          {/* Selector de Alcance (Portafolio vs Proyecto Individual) */}
+          <div className="bg-[#F4F5F0] p-3.5 rounded-2xl space-y-1.5 border border-stone-200/60">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              Alcance del Escenario a Proyectar
+            </label>
+            <select
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="w-full bg-white border border-stone-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none cursor-pointer shadow-2xs"
+            >
+              <option value="all">Portafolio Consolidado ({projects.length} Proyectos)</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name} ({p.clientName || 'Cliente'})
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Slider 1: Rework Increase */}
@@ -417,8 +450,32 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
 
           </div>
 
+          {/* CAJA DE ALERTA TEMPRANA ANTES DEL IMPACTO */}
+          <div className="bg-slate-800/90 rounded-2xl p-4 border border-slate-700/80 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-bold text-amber-300 flex items-center gap-1.5 uppercase tracking-wider">
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+                Alerta Temprana de Desvío & Sobrecosto
+              </span>
+              <span className="text-[11px] text-slate-400 font-mono">
+                {params.slaDelayDays > 0 ? `Desfase: +${params.slaDelayDays} días` : 'En plazo'}
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              {simulationResult.deltaProfit < 0 ? (
+                <span>
+                  El escenario proyecta un sobrecosto potencial de <strong className="text-rose-300 font-bold">${Math.round(Math.abs(simulationResult.deltaProfit)).toLocaleString()} USD</strong> antes de la entrega final. Se aconseja tramitar una <strong className="text-white font-bold">Orden de Venta (OV) adicional por ${Math.round(simulationResult.recommendedOVAdjustment).toLocaleString()} USD</strong> para absorber los retrabajos de cliente y salvaguardar el margen del 25%.
+                </span>
+              ) : (
+                <span>
+                  Los parámetros simulados mantienen la rentabilidad en rango favorable (<strong className="text-emerald-300">{simulationResult.projectedMarginPct.toFixed(1)}% margen</strong>). No se prevé riesgo de quiebre presupuestario.
+                </span>
+              )}
+            </p>
+          </div>
+
           {/* AI Strategy Button */}
-          <div className="pt-2">
+          <div className="pt-1">
             {aiInsightText ? (
               <div className="bg-slate-850 p-4 sm:p-5 rounded-2xl space-y-2 text-xs text-slate-200 border border-slate-700">
                 <div className="flex items-center justify-between text-stone-200 font-semibold">

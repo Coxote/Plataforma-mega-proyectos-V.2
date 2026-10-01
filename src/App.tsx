@@ -29,7 +29,7 @@ import { generatePhasesForTemplate } from './projectTemplates';
 import { NewProjectWizard } from './components/NewProjectWizard';
 import { CustomModal } from './components/CustomModal';
 import { useDeliverableMonitoring } from './hooks/useDeliverableMonitoring';
-import { signOut } from 'firebase/auth';
+import { signOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { auth } from './firebase';
 import {
   subscribeProjects,
@@ -244,9 +244,18 @@ export default function App() {
     isInitialized.current = true;
   }, []);
 
+  const [firebaseAuthUser, setFirebaseAuthUser] = useState<FirebaseUser | null>(auth.currentUser);
+
+  useEffect(() => {
+    const unsubAuth = onAuthStateChanged(auth, (user) => {
+      setFirebaseAuthUser(user);
+    });
+    return () => unsubAuth();
+  }, []);
+
   // Sincronización en tiempo real con Cloud Firestore (Base de datos en la nube)
   useEffect(() => {
-    if (!currentUser) {
+    if (!currentUser || !firebaseAuthUser) {
       return;
     }
 
@@ -278,7 +287,7 @@ export default function App() {
       unsubClients();
       unsubUsers();
     };
-  }, [currentUser]);
+  }, [currentUser, firebaseAuthUser]);
 
   // Centralized local storage synchronization (Single Source of Truth)
   useEffect(() => {
@@ -637,6 +646,7 @@ export default function App() {
       return d;
     });
 
+    const targetDeliv = (activeProject.deliverables || []).find((d) => d.id === deliverableId);
     const newAuditLog = [
       {
         id: `audit-${Date.now()}`,
@@ -644,9 +654,11 @@ export default function App() {
         userId: currentUser ? currentUser.id : 'client',
         username: currentUser ? currentUser.username : 'Cliente',
         userRole: currentUser ? currentUser.role : 'invitado' as const,
-        action: 'Feedback de Cliente',
+        action: 'SOLICITUD_CAMBIOS_CLIENTE',
         entityType: 'Entregable',
-        details: `Anotó comentario en entregable: "${(comment || '').substring(0, 40)}..."`,
+        details: `Cliente solicitó cambios en el entregable "${targetDeliv?.title || 'Entregable'}": "${comment}".`,
+        phaseId: targetDeliv?.phaseId,
+        tag: 'ENTREGABLE_CAMBIOS'
       },
       ...(activeProject.auditLog || [])
     ];

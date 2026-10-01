@@ -27,10 +27,15 @@ import {
   AlertCircle,
   HelpCircle,
   Layers,
-  Zap
+  Zap,
+  Activity,
+  BrainCircuit
 } from 'lucide-react';
 import { StatBar } from './StatBar';
 import { EmptyState } from './EmptyState';
+import { SCurveAndGauges } from './SCurveAndGauges';
+import { ClientProfitabilityView } from './ClientProfitabilityView';
+import { PredictiveAnalyticsPanel } from './PredictiveAnalyticsPanel';
 import { ui } from '../theme';
 
 interface FinancialDashboardProps {
@@ -77,6 +82,7 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
   currentUser
 }) => {
   const [selectedClient, setSelectedClient] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'overview' | 'scurve' | 'clients' | 'predictive'>('overview');
   const [healthFilter, setHealthFilter] = useState<'all' | 'optimo' | 'observacion' | 'critico'>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedProjectForAudit, setSelectedProjectForAudit] = useState<ProjectFinancialData | null>(null);
@@ -307,7 +313,64 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
         </div>
       </div>
 
-      <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
+      {/* NAVEGACIÓN POR PESTAÑAS DE CONTROL FINANCIERO */}
+      <div className="bg-[#ECEEE9] px-6 sm:px-8 py-2 flex items-center gap-2 border-b border-stone-200/60 shrink-0 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'overview'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'bg-white text-slate-700 hover:bg-stone-100 border border-stone-200/60'
+          }`}
+          id="btn-tab-financial-overview"
+        >
+          <BarChart3 className="w-3.5 h-3.5" />
+          <span>Proyectos & Costos</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('scurve')}
+          className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'scurve'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'bg-white text-slate-700 hover:bg-stone-100 border border-stone-200/60'
+          }`}
+          id="btn-tab-financial-scurve"
+        >
+          <Activity className="w-3.5 h-3.5" />
+          <span>Curva S & Velocímetro EVM</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('clients')}
+          className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'clients'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'bg-white text-slate-700 hover:bg-stone-100 border border-stone-200/60'
+          }`}
+          id="btn-tab-financial-clients"
+        >
+          <Building2 className="w-3.5 h-3.5" />
+          <span>Rentabilidad por Cliente</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('predictive')}
+          className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            activeTab === 'predictive'
+              ? 'bg-slate-900 text-white shadow-xs'
+              : 'bg-white text-slate-700 hover:bg-stone-100 border border-stone-200/60'
+          }`}
+          id="btn-tab-financial-predictive"
+        >
+          <BrainCircuit className="w-3.5 h-3.5" />
+          <span>Simulador Predictivo (What-If)</span>
+        </button>
+      </div>
+
+      {/* PESTAÑA 1: VISIÓN GENERAL Y COSTOS */}
+      {activeTab === 'overview' && (
+        <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
         {/* NIVEL 1: BANDA DE ESTADO FINANCIERA (StatBar) */}
         <StatBar
@@ -667,6 +730,42 @@ export const FinancialDashboard: React.FC<FinancialDashboardProps> = ({
         </div>
 
       </div>
+      )}
+
+      {/* PESTAÑA 2: CURVA S FINANCIERA & VELOCÍMETRO EVM */}
+      {activeTab === 'scurve' && (
+        <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
+          <SCurveAndGauges
+            projects={projects}
+            clients={clients}
+            users={users}
+            currentUser={currentUser}
+          />
+        </div>
+      )}
+
+      {/* PESTAÑA 3: CONTROL DE RENTABILIDAD POR CLIENTE */}
+      {activeTab === 'clients' && (
+        <div className="p-6 md:p-8 max-w-7xl mx-auto w-full">
+          <ClientProfitabilityView
+            projects={projects}
+            clients={clients}
+            users={users}
+            currentUser={currentUser}
+          />
+        </div>
+      )}
+
+      {/* PESTAÑA 4: SIMULADOR PREDICTIVO WHAT-IF */}
+      {activeTab === 'predictive' && (
+        <div className="w-full">
+          <PredictiveAnalyticsPanel
+            projects={projects}
+            users={users}
+            currentUser={currentUser}
+          />
+        </div>
+      )}
 
       {/* MODAL DE AUDITORÍA FINANCIERA DETALLADA POR PROYECTO */}
       {selectedProjectForAudit && (
